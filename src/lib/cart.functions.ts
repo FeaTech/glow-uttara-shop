@@ -72,13 +72,17 @@ export const addToCart = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const cartId = await ensureCart(supabase, userId);
 
-    const { data: existing } = await supabase
+    let existingQuery = supabase
       .from("cart_items")
       .select("id, quantity")
       .eq("cart_id", cartId)
-      .eq("product_id", data.productId)
-      .is("variant_id", data.variantId ?? null)
-      .maybeSingle();
+      .eq("product_id", data.productId);
+    if (data.variantId) {
+      existingQuery = existingQuery.eq("variant_id", data.variantId);
+    } else {
+      existingQuery = existingQuery.is("variant_id", null);
+    }
+    const { data: existing } = await existingQuery.maybeSingle();
 
     if (existing) {
       const { error } = await supabase
