@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import { listCategories, listProducts } from "@/lib/products.functions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+const productsSearchSchema = z.object({
+  category: z.string().optional(),
+});
 
 const productsQueryOptions = (category?: string) =>
   queryOptions({
@@ -27,6 +32,7 @@ export const Route = createFileRoute("/products")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: productsSearchSchema,
   loaderDeps: ({ search }) => ({ category: search.category }),
   loader: ({ context, deps }) => {
     context.queryClient.ensureQueryData(categoriesQueryOptions());
