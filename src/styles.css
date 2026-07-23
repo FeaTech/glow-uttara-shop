@@ -197,10 +197,8 @@
 @utility section-padding {
   padding-top: 4rem;
   padding-bottom: 4rem;
-}
 
-@media (min-width: 768px) {
-  @utility section-padding {
+  @media (min-width: 768px) {
     padding-top: 6rem;
     padding-bottom: 6rem;
   }
