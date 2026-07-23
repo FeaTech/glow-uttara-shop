@@ -132,7 +132,7 @@ function ProductPage() {
                   <SelectContent>
                     {variants.map((variant) => (
                       <SelectItem key={variant.id} value={variant.id}>
-                        {variant.variant_name} — ₹{variant.price_inr.toLocaleString("en-IN")}
+                        {variant.variant_name} — ₹{(variant.price_inr ?? 0).toLocaleString("en-IN")}
                       </SelectItem>
                     ))}
                   </SelectContent>
