@@ -24,7 +24,7 @@ const addressesQueryOptions = () =>
     queryFn: () => getAddresses({ data: undefined }),
   });
 
-export const Route = createFileRoute("/checkout")({
+export const Route = createFileRoute("/_authenticated/checkout")({
   head: () => ({
     meta: [
       { title: "Checkout — FEALuxy" },

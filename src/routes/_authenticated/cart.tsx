@@ -12,7 +12,7 @@ const cartQueryOptions = () =>
     queryFn: () => getCart({ data: undefined }),
   });
 
-export const Route = createFileRoute("/cart")({
+export const Route = createFileRoute("/_authenticated/cart")({
   head: () => ({
     meta: [
       { title: "Shopping cart — FEALuxy" },
