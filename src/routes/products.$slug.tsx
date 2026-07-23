@@ -29,8 +29,8 @@ export const Route = createFileRoute("/products/$slug")({
         ]
       : [],
   }),
-  loader: ({ context, params }) => {
-    context.queryClient.ensureQueryData(productQueryOptions(params.slug));
+  loader: async ({ context, params }) => {
+    return context.queryClient.ensureQueryData(productQueryOptions(params.slug));
   },
   component: ProductPage,
 });
