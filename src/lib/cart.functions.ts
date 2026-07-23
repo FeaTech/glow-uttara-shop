@@ -107,8 +107,16 @@ export const updateCartItem = createServerFn({ method: "POST" })
   .inputValidator((input) => updateCartItemSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { data: cart } = await supabase
+      .from("cart")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .single();
+    if (!cart) throw new Error("Cart not found");
+
     if (data.quantity === 0) {
-      const { error } = await supabase.from("cart_items").delete().eq("id", data.itemId);
+      const { error } = await supabase.from("cart_items").delete().eq("id", data.itemId).eq("cart_id", cart.id);
       if (error) throw error;
       return { ok: true };
     }
@@ -116,9 +124,7 @@ export const updateCartItem = createServerFn({ method: "POST" })
       .from("cart_items")
       .update({ quantity: data.quantity })
       .eq("id", data.itemId)
-      .eq("cart_id", (
-        await supabase.from("cart").select("id").eq("user_id", userId).eq("status", "active").single()
-      ).data?.id);
+      .eq("cart_id", cart.id);
     if (error) throw error;
     return { ok: true };
   });
