@@ -1,21 +1,22 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ShoppingBag, User, Menu, X, LogOut } from "lucide-react";
+import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
 export function Header() {
-  const [session, setSession] = useState<ReturnType<typeof supabase.auth.getSession> extends Promise<infer R> ? R : never | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (mounted) setSession(data.session as unknown as typeof session);
+      if (mounted) setSession(data.session);
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      if (mounted) setSession(newSession as unknown as typeof session);
+      if (mounted) setSession(newSession);
     });
     return () => {
       mounted = false;
