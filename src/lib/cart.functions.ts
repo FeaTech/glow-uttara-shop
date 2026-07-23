@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 const addToCartSchema = z.object({
   productId: z.string().uuid(),
@@ -17,7 +19,9 @@ const removeCartItemSchema = z.object({
   itemId: z.string().uuid(),
 });
 
-async function ensureCart(supabase: ReturnType<typeof requireSupabaseAuth> extends { handler: (args: any) => Promise<{ context: { supabase: infer S } }> } ? never : any, userId: string) {
+type LuxySupabase = SupabaseClient<Database>;
+
+async function ensureCart(supabase: LuxySupabase, userId: string) {
   const { data: existing } = await supabase
     .from("cart")
     .select("id")
