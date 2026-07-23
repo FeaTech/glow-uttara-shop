@@ -49,7 +49,8 @@ export const listProducts = createServerFn({ method: "GET" })
   .inputValidator((input) => listProductsSchema.parse(input))
   .handler(async ({ data }) => {
     const supabase = getPublicClient();
-    let query = supabase.from("products").select("*, categories(name, slug)").order("created_at", { ascending: false });
+    const select = data.category ? "*, categories!inner(name, slug)" : "*, categories(name, slug)";
+    let query = supabase.from("products").select(select).order("created_at", { ascending: false });
     if (data.category) {
       query = query.eq("categories.slug", data.category);
     }
