@@ -20,7 +20,7 @@ type ProductLoaderData = Awaited<ReturnType<typeof getProductBySlug>>;
 
 export const Route = createFileRoute("/products/$slug")({
   head: ({ loaderData }) => {
-    const product = loaderData as ProductLoaderData;
+    const product = (loaderData as unknown) as ProductLoaderData | undefined;
     return {
       meta: product
         ? [
