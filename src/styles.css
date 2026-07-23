@@ -181,10 +181,10 @@
   padding: 0.625rem 1.25rem;
   font-weight: 500;
   transition: background-color 150ms ease, transform 150ms ease;
-}
 
-@utility btn-gold:hover {
-  background-color: color-mix(in oklab, var(--color-primary) 85%, black);
+  &:hover {
+    background-color: color-mix(in oklab, var(--color-primary) 85%, black);
+  }
 }
 
 @utility card-luxe {
