@@ -81,7 +81,9 @@ function HomePage() {
               search={{ category: cat.slug }}
               className="group card-luxe flex flex-col items-center justify-center p-6 text-center transition-transform hover:-translate-y-1"
             >
-              <span className="text-3xl">{cat.icon}</span>
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-serif text-primary">
+                {cat.name.charAt(0)}
+              </span>
               <span className="mt-3 font-medium text-foreground group-hover:text-primary">{cat.name}</span>
             </Link>
           ))}
