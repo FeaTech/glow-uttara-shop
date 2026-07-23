@@ -16,19 +16,24 @@ const productQueryOptions = (slug: string) =>
     queryFn: () => getProductBySlug({ data: { slug } }),
   });
 
+type ProductLoaderData = Awaited<ReturnType<ReturnType<typeof getProductBySlug>["handler"]>>;
+
 export const Route = createFileRoute("/products/$slug")({
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.name} — FEALuxy` },
-          { name: "description", content: loaderData.description ?? `Shop ${loaderData.name} at FEALuxy.` },
-          { property: "og:title", content: `${loaderData.name} — FEALuxy` },
-          { property: "og:description", content: loaderData.description ?? `Shop ${loaderData.name} at FEALuxy.` },
-          { property: "og:type", content: "product" },
-          { name: "twitter:card", content: "summary_large_image" },
-        ]
-      : [],
-  }),
+  head: ({ loaderData }) => {
+    const product = loaderData as ProductLoaderData;
+    return {
+      meta: product
+        ? [
+            { title: `${product.name} — FEALuxy` },
+            { name: "description", content: product.description ?? `Shop ${product.name} at FEALuxy.` },
+            { property: "og:title", content: `${product.name} — FEALuxy` },
+            { property: "og:description", content: product.description ?? `Shop ${product.name} at FEALuxy.` },
+            { property: "og:type", content: "product" },
+            { name: "twitter:card", content: "summary_large_image" },
+          ]
+        : [],
+    };
+  },
   loader: async ({ context, params }) => {
     return context.queryClient.ensureQueryData(productQueryOptions(params.slug));
   },
