@@ -99,6 +99,20 @@ function AuthPage() {
               <Button type="submit" className="w-full btn-gold" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email) return toast.error("Enter your email first");
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  if (error) toast.error(error.message);
+                  else toast.success("Password reset link sent");
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Forgot password?
+              </button>
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4">
