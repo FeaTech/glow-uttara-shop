@@ -76,7 +76,10 @@ function ProductPage() {
   const selectedVariant = variants.find((v) => v.id === selectedVariantId);
   const price = selectedVariant?.price_inr ?? product.price_inr ?? 0;
   const compare = product.compare_price_inr;
-  const images = product.images?.length ? product.images : ["https://placehold.co/600x600/e8e0d5/8b7355?text=FEALuxy"];
+  const productImages = (product.images as string[] | undefined) ?? [];
+  const images = productImages.length
+    ? productImages
+    : ["https://placehold.co/600x600/e8e0d5/8b7355?text=FEALuxy"];
 
   const handleAdd = () => {
     mutation.mutate({
