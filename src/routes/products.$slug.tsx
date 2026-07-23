@@ -16,7 +16,7 @@ const productQueryOptions = (slug: string) =>
     queryFn: () => getProductBySlug({ data: { slug } }),
   });
 
-type ProductLoaderData = Awaited<ReturnType<ReturnType<typeof getProductBySlug>["handler"]>>;
+type ProductLoaderData = Awaited<ReturnType<typeof getProductBySlug>>;
 
 export const Route = createFileRoute("/products/$slug")({
   head: ({ loaderData }) => {
