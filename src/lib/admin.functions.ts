@@ -17,10 +17,6 @@ async function assertAdmin(supabase: LuxySupabase, userId: string) {
   if (!data) throw new Error("Forbidden: admin access required");
 }
 
-async function admin() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
-}
 
 const slugify = (s: string) =>
   s
@@ -36,7 +32,7 @@ export const adminStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
 
     const [{ data: orders }, { count: productCount }, { count: customerCount }] = await Promise.all([
       db.from("orders").select("total_inr, status, created_at"),
@@ -94,7 +90,7 @@ export const adminListProducts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data, error } = await db
       .from("products")
       .select("*, categories(name, slug)")
@@ -123,7 +119,7 @@ export const adminSaveProduct = createServerFn({ method: "POST" })
   .inputValidator((input) => productInputSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
 
     const slug = data.slug?.trim() || slugify(data.name);
     const payload = {
@@ -157,7 +153,7 @@ export const adminDeleteProduct = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { error } = await db.from("products").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
@@ -170,7 +166,7 @@ export const adminUpdateStock = createServerFn({ method: "POST" })
   .inputValidator((input) => stockSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { error } = await db.from("products").update({ stock: data.stock }).eq("id", data.id);
     if (error) throw error;
     return { ok: true };
@@ -186,7 +182,7 @@ export const adminListVariants = createServerFn({ method: "GET" })
   .inputValidator((input) => productIdParamSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: variants, error } = await db
       .from("product_variants")
       .select("*")
@@ -210,7 +206,7 @@ export const adminSaveVariant = createServerFn({ method: "POST" })
   .inputValidator((input) => variantInputSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const payload = {
       product_id: data.productId,
       variant_name: data.variant_name,
@@ -233,7 +229,7 @@ export const adminDeleteVariant = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { error } = await db.from("product_variants").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
@@ -246,7 +242,7 @@ export const adminListReviews = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data, error } = await db
       .from("reviews")
       .select("*, products(name, slug)")
@@ -261,7 +257,7 @@ export const adminDeleteReview = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { error } = await db.from("reviews").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
@@ -274,7 +270,7 @@ export const adminListCategories = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data, error } = await db
       .from("categories")
       .select("*, products(count)")
@@ -296,7 +292,7 @@ export const adminSaveCategory = createServerFn({ method: "POST" })
   .inputValidator((input) => categoryInputSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const payload = {
       name: data.name,
       slug: data.slug?.trim() || slugify(data.name),
@@ -318,7 +314,7 @@ export const adminDeleteCategory = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { error } = await db.from("categories").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
@@ -331,7 +327,7 @@ export const adminListOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: orders, error } = await db
       .from("orders")
       .select("*, order_items(*)")
@@ -365,7 +361,7 @@ export const adminUpdateOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => orderStatusSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const patch: Record<string, unknown> = {};
     if (data.status) patch.status = data.status;
     if (data.paymentStatus) patch.payment_status = data.paymentStatus;
@@ -382,7 +378,7 @@ export const adminListCoupons = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data, error } = await db.from("coupons").select("*").order("created_at", { ascending: false });
     if (error) throw error;
     return data ?? [];
@@ -405,7 +401,7 @@ export const adminSaveCoupon = createServerFn({ method: "POST" })
   .inputValidator((input) => couponInputSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const payload = {
       code: data.code.trim().toUpperCase(),
       description: data.description || null,
@@ -431,7 +427,7 @@ export const adminDeleteCoupon = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { error } = await db.from("coupons").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
