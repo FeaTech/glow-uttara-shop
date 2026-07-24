@@ -13,7 +13,7 @@ const orderQueryOptions = (orderId: string) =>
   queryOptions({ queryKey: ["orders", orderId], queryFn: () => getOrderById({ data: { orderId } }) });
 
 export const Route = createFileRoute("/_authenticated/orders/$orderId")({
-  head: () => ({ meta: [{ title: "Order details — FEALuxy" }] }),
+  head: () => ({ meta: [{ title: "Order details — FEALuxe" }] }),
   loader: ({ context, params }) => context.queryClient.ensureQueryData(orderQueryOptions(params.orderId)),
   component: OrderDetailPage,
 });

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const KEY = "fealuxy:recently-viewed";
+const KEY = "fealuxe:recently-viewed";
 const MAX = 12;
 
 function read(): string[] {

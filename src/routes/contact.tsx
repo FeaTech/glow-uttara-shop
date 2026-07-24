@@ -11,15 +11,15 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact us — FEALuxy" },
-      { name: "description", content: "Get in touch with the FEALuxy customer care team." },
+      { title: "Contact us — FEALuxe" },
+      { name: "description", content: "Get in touch with the FEALuxe customer care team." },
     ],
   }),
   component: ContactPage,
 });
 
 const details = [
-  { icon: Mail, label: "Email", value: "care@fealuxy.example" },
+  { icon: Mail, label: "Email", value: "care@fealuxe.example" },
   { icon: Phone, label: "Phone", value: "+91 90000 00000" },
   { icon: MapPin, label: "Address", value: "Bandra Kurla Complex, Mumbai, India" },
   { icon: Clock, label: "Hours", value: "Mon–Sat, 10am – 7pm IST" },

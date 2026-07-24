@@ -17,7 +17,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/categories")({
-  head: () => ({ meta: [{ title: "Categories — Admin — FEALuxy" }] }),
+  head: () => ({ meta: [{ title: "Categories — Admin — FEALuxe" }] }),
   component: AdminCategories,
 });
 

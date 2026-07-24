@@ -5,8 +5,8 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 export const Route = createFileRoute("/shipping")({
   head: () => ({
     meta: [
-      { title: "Shipping & Returns — FEALuxy" },
-      { name: "description", content: "FEALuxy shipping timelines, charges, and our 7-day returns policy." },
+      { title: "Shipping & Returns — FEALuxe" },
+      { name: "description", content: "FEALuxe shipping timelines, charges, and our 7-day returns policy." },
     ],
   }),
   component: ShippingPage,

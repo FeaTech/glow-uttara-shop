@@ -19,9 +19,9 @@ const removeCartItemSchema = z.object({
   itemId: z.string().uuid(),
 });
 
-type LuxySupabase = SupabaseClient<Database>;
+type LuxeSupabase = SupabaseClient<Database>;
 
-async function ensureCart(supabase: LuxySupabase, userId: string) {
+async function ensureCart(supabase: LuxeSupabase, userId: string) {
   const { data: existing } = await supabase
     .from("cart")
     .select("id")

@@ -88,7 +88,7 @@ export function Header() {
       <div className="container-luxe flex h-16 items-center gap-4">
         <Link to="/" className="flex shrink-0 items-center gap-2">
           <span className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-            FEA<span className="text-primary">Luxy</span>
+            FEA<span className="text-primary">Luxe</span>
           </span>
         </Link>
 
@@ -108,7 +108,7 @@ export function Header() {
 
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new Event("fealuxy:search"))}
+          onClick={() => window.dispatchEvent(new Event("fealuxe:search"))}
           className="ml-auto hidden max-w-xs flex-1 items-center gap-2 rounded-full border border-input bg-background/60 py-2 pl-3 pr-2 text-left text-sm text-muted-foreground transition-colors hover:border-primary md:flex"
           aria-label="Search"
         >

@@ -23,8 +23,8 @@ const addressesQueryOptions = () =>
 export const Route = createFileRoute("/_authenticated/checkout")({
   head: () => ({
     meta: [
-      { title: "Checkout — FEALuxy" },
-      { name: "description", content: "Complete your FEALuxy order." },
+      { title: "Checkout — FEALuxe" },
+      { name: "description", content: "Complete your FEALuxe order." },
     ],
   }),
   loader: ({ context }) => {

@@ -15,8 +15,8 @@ const authSearchSchema = (value: Record<string, unknown>) => ({
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — FEALuxy" },
-      { name: "description", content: "Sign in or create an account to shop luxury beauty products at FEALuxy." },
+      { title: "Sign in — FEALuxe" },
+      { name: "description", content: "Sign in or create an account to shop luxury beauty products at FEALuxe." },
     ],
   }),
   validateSearch: authSearchSchema,
@@ -72,7 +72,7 @@ function AuthPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
         <div className="relative flex h-full flex-col justify-between p-12">
           <Link to="/" className="font-heading text-3xl font-semibold tracking-tight text-foreground">
-            FEA<span className="text-primary">Luxy</span>
+            FEA<span className="text-primary">Luxe</span>
           </Link>
           <div className="max-w-sm">
             <h2 className="font-serif text-4xl font-light leading-tight text-foreground">
@@ -92,14 +92,14 @@ function AuthPage() {
         <div className="w-full max-w-md">
           <div className="text-center lg:hidden">
             <Link to="/" className="font-heading text-3xl font-semibold tracking-tight">
-              FEA<span className="text-primary">Luxy</span>
+              FEA<span className="text-primary">Luxe</span>
             </Link>
           </div>
           <h1 className="mt-6 font-serif text-3xl font-light text-foreground">
             {tab === "signin" ? "Welcome back" : "Create your account"}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {tab === "signin" ? "Sign in to continue shopping premium beauty." : "Join FEALuxy for a curated beauty experience."}
+            {tab === "signin" ? "Sign in to continue shopping premium beauty." : "Join FEALuxe for a curated beauty experience."}
           </p>
 
           <Tabs value={tab} onValueChange={setTab} className="mt-8">

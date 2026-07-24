@@ -36,7 +36,7 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-4">
           <div className="md:col-span-1">
             <Link to="/" className="font-heading text-2xl font-semibold tracking-tight">
-              FEA<span className="text-primary">Luxy</span>
+              FEA<span className="text-primary">Luxe</span>
             </Link>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
               Curated cosmetics, skincare, and fragrances for the modern Indian beauty lover.
@@ -87,7 +87,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted-foreground md:flex-row">
-          <p>&copy; {new Date().getFullYear()} FEALuxy. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} FEALuxe. All rights reserved.</p>
           <div className="flex gap-6">
             <Link to="/privacy" className="hover:text-foreground">Privacy policy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms of service</Link>
@@ -105,7 +105,7 @@ function NewsletterForm() {
 
   const mutation = useMutation({
     mutationFn: subscribeFn,
-    onSuccess: () => { setDone(true); setEmail(""); toast.success("You're subscribed — welcome to FEALuxy!"); },
+    onSuccess: () => { setDone(true); setEmail(""); toast.success("You're subscribed — welcome to FEALuxe!"); },
     onError: (err: any) => toast.error(err?.message ?? "Could not subscribe"),
   });
 
