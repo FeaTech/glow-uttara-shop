@@ -1,4 +1,4 @@
-Build FEALuxy, a Clean & Luxe-styled cosmetics and beauty e-commerce platform for the Indian market, using the already-connected external Supabase project. Deliver the full shopping flow: browse, cart, checkout, auth, orders, and profile/address management.
+Build FEALuxe, a Clean & Luxe-styled cosmetics and beauty e-commerce platform for the Indian market, using the already-connected external Supabase project. Deliver the full shopping flow: browse, cart, checkout, auth, orders, and profile/address management.
 
 ```text
 src/routes/
