@@ -22,6 +22,7 @@ export function useWishlist() {
     retry: false,
     staleTime: 60_000,
     throwOnError: false,
+    refetchOnWindowFocus: false,
   });
 
   const ids = data ?? [];

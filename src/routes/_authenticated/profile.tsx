@@ -171,8 +171,10 @@ function AddressForm({ address, onDone }: { address: Address | null; onDone: () 
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
 
   const mutation = useMutation({
-    mutationFn: (data: typeof form) =>
-      address ? updateFn({ data: { addressId: address.id, ...data } }) : createFn({ data }),
+    mutationFn: async (data: typeof form) => {
+      if (address) await updateFn({ data: { addressId: address.id, ...data } });
+      else await createFn({ data });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
       toast.success(address ? "Address updated" : "Address saved");
