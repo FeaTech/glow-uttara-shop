@@ -93,8 +93,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@feaglam" },
       { name: "twitter:title", content: "FEAGlam — Premium Beauty & Cosmetics" },
       { name: "twitter:description", content: "Discover luxury makeup, skincare, haircare, fragrances and beauty accessories at FEAGlam." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3d96de23-494b-4c63-8f24-701a7c7b016e" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3d96de23-494b-4c63-8f24-701a7c7b016e" },
+      { property: "og:image", content: "https://fealuxe.com/images/og-feaglam.jpg" },
+      { name: "twitter:image", content: "https://fealuxe.com/images/og-feaglam.jpg" },
     ],
     links: [
       {
