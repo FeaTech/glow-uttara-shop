@@ -24,3 +24,9 @@ export function productImage(images: unknown, index = 0): string {
   const arr = Array.isArray(images) ? (images as string[]) : [];
   return arr[index] ?? PLACEHOLDER_IMAGE;
 }
+
+/** onError handler that swaps a broken product image for the placeholder. */
+export function handleImageError(event: { currentTarget: HTMLImageElement }) {
+  const img = event.currentTarget;
+  if (img.src !== PLACEHOLDER_IMAGE) img.src = PLACEHOLDER_IMAGE;
+}

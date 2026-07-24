@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -41,7 +42,15 @@ export function RealtimeProvider() {
       .on(
         pg,
         { event: "*", schema: "public", table: "orders", filter: `user_id=eq.${userId}` } as any,
-        () => invalidate(["orders"]),
+        (payload: any) => {
+          invalidate(["orders"]);
+          const next = payload?.new?.status;
+          const prev = payload?.old?.status;
+          if (payload?.eventType === "UPDATE" && next && prev && next !== prev) {
+            const ref = String(payload.new?.id ?? "").slice(0, 8).toUpperCase();
+            toast(`Order #${ref} is now ${next}`);
+          }
+        },
       )
       // Wishlist — sync across tabs/devices.
       .on(

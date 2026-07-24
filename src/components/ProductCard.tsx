@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { addToCart } from "@/lib/cart.functions";
 import { RatingStars } from "@/components/RatingStars";
 import { WishlistButton } from "@/components/WishlistButton";
-import { discountPercent, formatINR, productImage } from "@/lib/format";
+import { discountPercent, formatINR, handleImageError, productImage } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export interface ProductCardProduct {
@@ -66,6 +66,7 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
           src={image}
           alt={product.name}
           loading="lazy"
+          onError={handleImageError}
           className={cn(
             "h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.08]",
             outOfStock && "opacity-70",
