@@ -35,10 +35,23 @@ export const createOrder = createServerFn({ method: "POST" })
 
     const { data: items, error: itemsError } = await supabase
       .from("cart_items")
-      .select("*, products(id, name, price_inr, images), product_variants(id, variant_name, price_inr)")
+      .select("*, products(id, name, price_inr, images, stock), product_variants(id, variant_name, price_inr, stock)")
       .eq("cart_id", cart.id);
     if (itemsError) throw itemsError;
     if (!items || items.length === 0) throw new Error("Cart is empty");
+
+    // Prevent overselling: ensure every line has enough stock.
+    for (const item of items) {
+      const available = item.product_variants?.stock ?? item.products?.stock ?? 0;
+      if (available < item.quantity) {
+        const name = item.products?.name ?? "An item";
+        throw new Error(
+          available <= 0
+            ? `${name} is out of stock`
+            : `Only ${available} of ${name} left in stock`,
+        );
+      }
+    }
 
     const subtotal = items.reduce((sum, item) => {
       const price = item.product_variants?.price_inr ?? item.products?.price_inr ?? 0;

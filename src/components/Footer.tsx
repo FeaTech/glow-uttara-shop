@@ -1,5 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Instagram, Facebook, Twitter, Truck, ShieldCheck, RefreshCw, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Instagram, Facebook, Twitter, Truck, ShieldCheck, RefreshCw, Sparkles, Check } from "lucide-react";
+import { subscribeNewsletter } from "@/lib/newsletter.functions";
+import { toast } from "sonner";
 
 const trust = [
   { icon: Truck, title: "Pan-India shipping", sub: "Fast, tracked delivery" },
@@ -63,6 +68,7 @@ export function Footer() {
           <div>
             <h4 className="font-heading text-lg font-medium">Help</h4>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <li><Link to="/about" className="hover:text-foreground">About us</Link></li>
               <li><Link to="/orders" className="hover:text-foreground">Order status</Link></li>
               <li><Link to="/shipping" className="hover:text-foreground">Shipping &amp; returns</Link></li>
               <li><Link to="/faq" className="hover:text-foreground">FAQs</Link></li>
@@ -75,14 +81,7 @@ export function Footer() {
             <p className="mt-4 text-sm text-muted-foreground">
               Subscribe for launches, beauty tips, and exclusive offers.
             </p>
-            <form className="mt-4 flex gap-2" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Your email"
-                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-              />
-              <button type="submit" className="btn-gold px-4 py-2 text-sm">Join</button>
-            </form>
+            <NewsletterForm />
             <p className="mt-3 text-xs text-muted-foreground">Try code <span className="font-semibold text-primary">WELCOME10</span> at checkout.</p>
           </div>
         </div>
@@ -96,5 +95,44 @@ export function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+function NewsletterForm() {
+  const [email, setEmail] = useState("");
+  const [done, setDone] = useState(false);
+  const subscribeFn = useServerFn(subscribeNewsletter);
+
+  const mutation = useMutation({
+    mutationFn: subscribeFn,
+    onSuccess: () => { setDone(true); setEmail(""); toast.success("You're subscribed — welcome to FEALuxy!"); },
+    onError: (err: any) => toast.error(err?.message ?? "Could not subscribe"),
+  });
+
+  if (done) {
+    return (
+      <p className="mt-4 flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm text-primary">
+        <Check className="h-4 w-4" /> Thanks for subscribing!
+      </p>
+    );
+  }
+
+  return (
+    <form
+      className="mt-4 flex gap-2"
+      onSubmit={(e) => { e.preventDefault(); if (email.trim()) mutation.mutate({ data: { email: email.trim() } }); }}
+    >
+      <input
+        type="email"
+        required
+        placeholder="Your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+      />
+      <button type="submit" className="btn-gold px-4 py-2 text-sm" disabled={mutation.isPending}>
+        {mutation.isPending ? "…" : "Join"}
+      </button>
+    </form>
   );
 }

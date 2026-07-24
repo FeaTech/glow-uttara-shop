@@ -177,6 +177,97 @@ export const adminUpdateStock = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
+// Product variants
+// ---------------------------------------------------------------------------
+const productIdParamSchema = z.object({ productId: z.string().uuid() });
+
+export const adminListVariants = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => productIdParamSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = await admin();
+    const { data: variants, error } = await db
+      .from("product_variants")
+      .select("*")
+      .eq("product_id", data.productId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return variants ?? [];
+  });
+
+const variantInputSchema = z.object({
+  id: z.string().uuid().optional(),
+  productId: z.string().uuid(),
+  variant_name: z.string().min(1).max(120),
+  sku: z.string().max(80).optional().nullable(),
+  price_inr: z.number().int().min(0).nullable().optional(),
+  stock: z.number().int().min(0).default(0),
+});
+
+export const adminSaveVariant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => variantInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = await admin();
+    const payload = {
+      product_id: data.productId,
+      variant_name: data.variant_name,
+      sku: data.sku || null,
+      price_inr: data.price_inr ?? null,
+      stock: data.stock,
+    };
+    if (data.id) {
+      const { error } = await db.from("product_variants").update(payload).eq("id", data.id);
+      if (error) throw error;
+      return { ok: true, id: data.id };
+    }
+    const { data: created, error } = await db.from("product_variants").insert(payload).select("id").single();
+    if (error) throw error;
+    return { ok: true, id: created.id };
+  });
+
+export const adminDeleteVariant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => idSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = await admin();
+    const { error } = await db.from("product_variants").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+// ---------------------------------------------------------------------------
+// Reviews moderation
+// ---------------------------------------------------------------------------
+export const adminListReviews = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = await admin();
+    const { data, error } = await db
+      .from("reviews")
+      .select("*, products(name, slug)")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw error;
+    return data ?? [];
+  });
+
+export const adminDeleteReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => idSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = await admin();
+    const { error } = await db.from("reviews").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+// ---------------------------------------------------------------------------
 // Categories
 // ---------------------------------------------------------------------------
 export const adminListCategories = createServerFn({ method: "GET" })

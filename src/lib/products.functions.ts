@@ -134,6 +134,22 @@ export const getRelatedProducts = createServerFn({ method: "GET" })
     return products ?? [];
   });
 
+const idsSchema = z.object({ ids: z.array(z.string().uuid()).max(20) });
+
+/** Fetch a set of products by id (used by the "recently viewed" strip). */
+export const getProductsByIds = createServerFn({ method: "GET" })
+  .inputValidator((input) => idsSchema.parse(input))
+  .handler(async ({ data }) => {
+    if (data.ids.length === 0) return [];
+    const supabase = getPublicClient();
+    const { data: products, error } = await supabase
+      .from("products")
+      .select("*, categories(name, slug)")
+      .in("id", data.ids);
+    if (error) throw error;
+    return products ?? [];
+  });
+
 /** Lightweight search used by the header command palette. */
 const quickSearchSchema = z.object({ q: z.string().trim().max(120) });
 

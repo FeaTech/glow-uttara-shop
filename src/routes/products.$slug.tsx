@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RatingStars, StarInput } from "@/components/RatingStars";
 import { ProductCard } from "@/components/ProductCard";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
+import { recordProductView } from "@/hooks/use-recently-viewed";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { discountPercent, formatDate, formatINR, PLACEHOLDER_IMAGE } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -57,6 +59,10 @@ function ProductPage() {
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+
+  useEffect(() => {
+    if (product?.id) recordProductView(product.id);
+  }, [product?.id]);
 
   const addMutation = useMutation({
     mutationFn: addToCartFn,
@@ -276,6 +282,9 @@ function ProductPage() {
 
         {/* Related */}
         <RelatedProducts productId={product.id} categoryId={product.category_id} />
+
+        {/* Recently viewed */}
+        <RecentlyViewed excludeId={product.id} />
       </div>
     </div>
   );

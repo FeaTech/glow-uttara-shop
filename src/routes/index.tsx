@@ -5,6 +5,7 @@ import { listCategories, listProducts } from "@/lib/products.functions";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ProductCard";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
 
 const featuredProductsQueryOptions = () =>
   queryOptions({
@@ -164,6 +165,11 @@ function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ---------- Recently viewed ---------- */}
+      <div className="container-luxe">
+        <RecentlyViewed title="Recently viewed" />
+      </div>
 
       {/* ---------- Testimonials ---------- */}
       <section className="border-t border-border bg-secondary/40 py-16 md:py-24">

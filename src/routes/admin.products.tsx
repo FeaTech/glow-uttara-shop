@@ -3,7 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Plus, Pencil, Trash2, Check, Upload, X, Loader2 } from "lucide-react";
-import { adminListProducts, adminSaveProduct, adminDeleteProduct, adminUpdateStock } from "@/lib/admin.functions";
+import {
+  adminListProducts, adminSaveProduct, adminDeleteProduct, adminUpdateStock,
+  adminListVariants, adminSaveVariant, adminDeleteVariant,
+} from "@/lib/admin.functions";
 import { listCategories } from "@/lib/products.functions";
 import { uploadProductImage } from "@/lib/upload";
 import { Button } from "@/components/ui/button";
@@ -263,7 +266,129 @@ function ProductDialog({
           </Button>
         </DialogFooter>
       </form>
+
+      {product?.id ? (
+        <div className="mt-2 border-t border-border pt-4">
+          <VariantsManager productId={product.id} />
+        </div>
+      ) : (
+        <p className="mt-2 border-t border-border pt-4 text-xs text-muted-foreground">
+          Save the product first to add size/shade variants.
+        </p>
+      )}
     </DialogContent>
+  );
+}
+
+function VariantsManager({ productId }: { productId: string }) {
+  const queryClient = useQueryClient();
+  const { data: variants } = useQuery({
+    queryKey: ["admin", "variants", productId],
+    queryFn: () => adminListVariants({ data: { productId } }),
+    retry: false,
+  });
+
+  const saveFn = useServerFn(adminSaveVariant);
+  const deleteFn = useServerFn(adminDeleteVariant);
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "variants", productId] });
+    queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: saveFn,
+    onSuccess: () => { invalidate(); toast.success("Variant saved"); },
+    onError: (err: any) => toast.error(err?.message ?? "Save failed"),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteFn,
+    onSuccess: () => { invalidate(); toast.success("Variant removed"); },
+    onError: (err: any) => toast.error(err?.message ?? "Delete failed"),
+  });
+
+  const [draft, setDraft] = useState({ variant_name: "", sku: "", price_inr: "", stock: "0" });
+
+  const addVariant = () => {
+    if (!draft.variant_name.trim()) return toast.error("Variant name is required");
+    saveMutation.mutate({
+      data: {
+        productId,
+        variant_name: draft.variant_name.trim(),
+        sku: draft.sku || null,
+        price_inr: draft.price_inr ? Number(draft.price_inr) : null,
+        stock: Number(draft.stock) || 0,
+      },
+    });
+    setDraft({ variant_name: "", sku: "", price_inr: "", stock: "0" });
+  };
+
+  return (
+    <div>
+      <p className="text-sm font-medium text-foreground">Variants</p>
+      <div className="mt-3 space-y-2">
+        {(variants ?? []).map((v) => (
+          <VariantRow
+            key={v.id}
+            variant={v}
+            productId={productId}
+            onSave={(patch) => saveMutation.mutate({ data: { id: v.id, productId, ...patch } })}
+            onDelete={() => deleteMutation.mutate({ data: { id: v.id } })}
+          />
+        ))}
+        {(variants ?? []).length === 0 && (
+          <p className="text-xs text-muted-foreground">No variants yet.</p>
+        )}
+      </div>
+
+      <div className="mt-3 grid grid-cols-[1fr_1fr_80px_70px_auto] items-center gap-2">
+        <Input placeholder="Name (e.g. 50ml)" value={draft.variant_name} onChange={(e) => setDraft({ ...draft, variant_name: e.target.value })} className="h-9" />
+        <Input placeholder="SKU" value={draft.sku} onChange={(e) => setDraft({ ...draft, sku: e.target.value })} className="h-9" />
+        <Input type="number" placeholder="₹" value={draft.price_inr} onChange={(e) => setDraft({ ...draft, price_inr: e.target.value })} className="h-9" />
+        <Input type="number" placeholder="Qty" value={draft.stock} onChange={(e) => setDraft({ ...draft, stock: e.target.value })} className="h-9" />
+        <Button type="button" size="sm" variant="outline" onClick={addVariant} disabled={saveMutation.isPending}>Add</Button>
+      </div>
+    </div>
+  );
+}
+
+function VariantRow({
+  variant, onSave, onDelete,
+}: {
+  variant: Awaited<ReturnType<typeof adminListVariants>>[number];
+  productId: string;
+  onSave: (patch: { variant_name: string; sku: string | null; price_inr: number | null; stock: number }) => void;
+  onDelete: () => void;
+}) {
+  const [form, setForm] = useState({
+    variant_name: variant.variant_name,
+    sku: variant.sku ?? "",
+    price_inr: variant.price_inr?.toString() ?? "",
+    stock: variant.stock.toString(),
+  });
+  const dirty =
+    form.variant_name !== variant.variant_name ||
+    form.sku !== (variant.sku ?? "") ||
+    form.price_inr !== (variant.price_inr?.toString() ?? "") ||
+    form.stock !== variant.stock.toString();
+
+  return (
+    <div className="grid grid-cols-[1fr_1fr_80px_70px_auto] items-center gap-2">
+      <Input value={form.variant_name} onChange={(e) => setForm({ ...form, variant_name: e.target.value })} className="h-9" />
+      <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className="h-9" placeholder="SKU" />
+      <Input type="number" value={form.price_inr} onChange={(e) => setForm({ ...form, price_inr: e.target.value })} className="h-9" placeholder="₹" />
+      <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="h-9" />
+      <div className="flex gap-1">
+        {dirty && (
+          <Button type="button" size="icon" variant="ghost" className="h-9 w-9" aria-label="Save variant"
+            onClick={() => onSave({ variant_name: form.variant_name, sku: form.sku || null, price_inr: form.price_inr ? Number(form.price_inr) : null, stock: Number(form.stock) || 0 })}>
+            <Check className="h-4 w-4 text-primary" />
+          </Button>
+        )}
+        <Button type="button" size="icon" variant="ghost" className="h-9 w-9" aria-label="Delete variant" onClick={onDelete}>
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+      </div>
+    </div>
   );
 }
 
