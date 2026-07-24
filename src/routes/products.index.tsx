@@ -69,7 +69,7 @@ function ProductsIndexPage() {
   const activeCategory = categories.find((c) => c.slug === search.category);
 
   const update = (patch: Partial<ProductsSearch>) =>
-    navigate({ to: "/products", search: (prev) => ({ ...prev, ...patch }), replace: true });
+    navigate({ to: ".", search: (prev: ProductsSearch) => ({ ...prev, ...patch }), replace: true });
 
   const clearAll = () =>
     navigate({ to: "/products", search: {}, replace: true });
