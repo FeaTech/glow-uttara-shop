@@ -17,10 +17,6 @@ async function assertAdmin(supabase: LuxySupabase, userId: string) {
   if (!data) throw new Error("Forbidden: admin access required");
 }
 
-async function admin() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
-}
 
 const slugify = (s: string) =>
   s
