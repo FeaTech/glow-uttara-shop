@@ -89,8 +89,8 @@ export function Footer() {
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted-foreground md:flex-row">
           <p>&copy; {new Date().getFullYear()} FEALuxy. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-foreground">Privacy policy</a>
-            <a href="#" className="hover:text-foreground">Terms of service</a>
+            <Link to="/privacy" className="hover:text-foreground">Privacy policy</Link>
+            <Link to="/terms" className="hover:text-foreground">Terms of service</Link>
           </div>
         </div>
       </div>
