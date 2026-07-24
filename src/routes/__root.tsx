@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CommandPalette } from "@/components/CommandPalette";
+import { RealtimeProvider } from "@/components/RealtimeProvider";
 
 function NotFoundComponent() {
   return (
@@ -153,6 +154,7 @@ function RootComponent() {
         <Footer />
       </div>
       <CommandPalette />
+      <RealtimeProvider />
       <Toaster position="bottom-right" richColors />
     </QueryClientProvider>
   );

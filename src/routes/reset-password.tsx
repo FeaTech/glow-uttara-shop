@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -21,21 +21,33 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [hashChecked, setHashChecked] = useState(false);
+  const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange(async (event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setHashChecked(true);
-      }
+    let mounted = true;
+    // The PASSWORD_RECOVERY event can fire before this listener is attached
+    // (Supabase processes the URL hash on init), so also check for an existing
+    // recovery session on mount.
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted && data.session) setReady(true);
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) setReady(true);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
     const { error: updateError } = await supabase.auth.updateUser({ password });
     setLoading(false);
@@ -43,7 +55,9 @@ function ResetPasswordPage() {
       setError(updateError.message);
       toast.error(updateError.message);
     } else {
-      toast.success("Password updated. You can now sign in.");
+      toast.success("Password updated. Please sign in.");
+      await supabase.auth.signOut();
+      navigate({ to: "/auth" });
     }
   };
 
@@ -54,6 +68,11 @@ function ResetPasswordPage() {
         <p className="mt-2 text-center text-sm text-muted-foreground">Choose a new password for your account.</p>
 
         {error && <p className="mt-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+        {!ready && !error && (
+          <p className="mt-4 rounded-md bg-secondary p-3 text-center text-sm text-muted-foreground">
+            Open this page from the reset link in your email to continue.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
@@ -67,7 +86,7 @@ function ResetPasswordPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <Button type="submit" className="w-full btn-gold" disabled={loading || !hashChecked}>
+          <Button type="submit" className="w-full btn-gold" disabled={loading || !ready}>
             {loading ? "Updating..." : "Update password"}
           </Button>
         </form>

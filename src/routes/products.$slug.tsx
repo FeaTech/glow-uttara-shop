@@ -18,6 +18,7 @@ import { RatingStars, StarInput } from "@/components/RatingStars";
 import { ProductCard } from "@/components/ProductCard";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { recordProductView } from "@/hooks/use-recently-viewed";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { discountPercent, formatDate, formatINR, PLACEHOLDER_IMAGE } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -314,6 +315,14 @@ function ReviewsSection({ productId, ratingAvg, ratingCount, slug }: { productId
   const { data: reviews } = useQuery({
     queryKey: ["reviews", productId],
     queryFn: () => listReviews({ data: { productId } }),
+  });
+
+  // Live-update reviews and the product's rating as others post/edit them.
+  useRealtimeInvalidate({
+    channel: `reviews-${productId}`,
+    table: "reviews",
+    filter: `product_id=eq.${productId}`,
+    invalidate: [["reviews", productId], ["products", slug]],
   });
 
   const breakdown = useMemo(() => {

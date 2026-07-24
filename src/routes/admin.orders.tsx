@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Fragment, useState } from "react";
 import { adminListOrders, adminUpdateOrder } from "@/lib/admin.functions";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,13 @@ function AdminOrders() {
   });
   const [expanded, setExpanded] = useState<string | null>(null);
   const updateFn = useServerFn(adminUpdateOrder);
+
+  // New orders and status changes appear without a refresh.
+  useRealtimeInvalidate({
+    channel: "admin-orders",
+    table: "orders",
+    invalidate: [["admin", "orders"], ["admin", "stats"]],
+  });
 
   const mutation = useMutation({
     mutationFn: updateFn,
