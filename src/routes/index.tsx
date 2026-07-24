@@ -28,9 +28,9 @@ const categoriesQueryOptions = () =>
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FEALuxe — Premium Beauty & Cosmetics" },
-      { name: "description", content: "Discover luxury makeup, skincare, haircare, fragrances and beauty accessories at FEALuxe." },
-      { property: "og:title", content: "FEALuxe — Premium Beauty & Cosmetics" },
+      { title: "FEAGlam — Premium Beauty & Cosmetics" },
+      { name: "description", content: "Discover luxury makeup, skincare, haircare, fragrances and beauty accessories at FEAGlam." },
+      { property: "og:title", content: "FEAGlam — Premium Beauty & Cosmetics" },
       { property: "og:type", content: "website" },
     ],
   }),

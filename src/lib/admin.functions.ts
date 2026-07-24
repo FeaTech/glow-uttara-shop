@@ -4,10 +4,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
-type LuxeSupabase = SupabaseClient<Database>;
+type GlamSupabase = SupabaseClient<Database>;
 
 /** Throw unless the caller holds the 'admin' role (checked with their own RLS client). */
-async function assertAdmin(supabase: LuxeSupabase, userId: string) {
+async function assertAdmin(supabase: GlamSupabase, userId: string) {
   const { data } = await supabase
     .from("user_roles")
     .select("role")

@@ -20,7 +20,7 @@ import { formatINR } from "@/lib/format";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/coupons")({
-  head: () => ({ meta: [{ title: "Coupons — Admin — FEALuxe" }] }),
+  head: () => ({ meta: [{ title: "Coupons — Admin — FEAGlam" }] }),
   component: AdminCoupons,
 });
 

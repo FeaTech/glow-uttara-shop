@@ -10,7 +10,7 @@ import { quickSearchProducts, listCategories } from "@/lib/products.functions";
 import { formatINR, productImage } from "@/lib/format";
 
 /**
- * Global search launched with ⌘K / Ctrl+K (or the `fealuxe:search` window event).
+ * Global search launched with ⌘K / Ctrl+K (or the `feaglam:search` window event).
  * Mounted once in the root layout. cmdk's built-in filter is disabled because
  * results are produced server-side.
  */
@@ -29,10 +29,10 @@ export function CommandPalette() {
     };
     const onOpen = () => setOpen(true);
     window.addEventListener("keydown", onKey);
-    window.addEventListener("fealuxe:search", onOpen);
+    window.addEventListener("feaglam:search", onOpen);
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener("fealuxe:search", onOpen);
+      window.removeEventListener("feaglam:search", onOpen);
     };
   }, []);
 
@@ -64,7 +64,7 @@ export function CommandPalette() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
-        <DialogTitle className="sr-only">Search FEALuxe</DialogTitle>
+        <DialogTitle className="sr-only">Search FEAGlam</DialogTitle>
         <Command
           shouldFilter={false}
           className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-3 [&_[cmdk-item]]:py-2.5"

@@ -20,8 +20,8 @@ const addressesQueryOptions = () =>
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "My profile — FEALuxe" },
-      { name: "description", content: "Manage your FEALuxe profile and addresses." },
+      { title: "My profile — FEAGlam" },
+      { name: "description", content: "Manage your FEAGlam profile and addresses." },
     ],
   }),
   loader: ({ context }) => {

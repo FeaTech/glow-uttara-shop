@@ -44,9 +44,9 @@ const categoriesQueryOptions = () =>
 export const Route = createFileRoute("/products/")({
   head: () => ({
     meta: [
-      { title: "Shop — FEALuxe" },
-      { name: "description", content: "Browse premium makeup, skincare, haircare, fragrances and beauty accessories at FEALuxe." },
-      { property: "og:title", content: "Shop — FEALuxe" },
+      { title: "Shop — FEAGlam" },
+      { name: "description", content: "Browse premium makeup, skincare, haircare, fragrances and beauty accessories at FEAGlam." },
+      { property: "og:title", content: "Shop — FEAGlam" },
       { property: "og:type", content: "website" },
     ],
   }),
@@ -83,7 +83,7 @@ function ProductsIndexPage() {
       {/* Page banner */}
       <div className="border-b border-border bg-gradient-to-b from-secondary/50 to-background">
         <div className="container-luxe py-12 md:py-16">
-          <p className="text-xs font-medium uppercase tracking-widest text-primary">FEALuxe Collection</p>
+          <p className="text-xs font-medium uppercase tracking-widest text-primary">FEAGlam Collection</p>
           <h1 className="mt-3 font-serif text-4xl font-light text-foreground md:text-5xl">
             {search.search
               ? `Results for “${search.search}”`

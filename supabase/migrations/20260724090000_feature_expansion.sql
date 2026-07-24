@@ -1,5 +1,5 @@
 -- ============================================================================
--- FEALuxe feature expansion:
+-- FEAGlam feature expansion:
 --   • roles / admin (secure has_role pattern)
 --   • wishlist
 --   • product reviews + rating aggregates

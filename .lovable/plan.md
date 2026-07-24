@@ -1,4 +1,4 @@
-Build FEALuxe, a Clean & Luxe-styled cosmetics and beauty e-commerce platform for the Indian market, using the already-connected external Supabase project. Deliver the full shopping flow: browse, cart, checkout, auth, orders, and profile/address management.
+Build FEAGlam, a Clean & Glam-styled cosmetics and beauty e-commerce platform for the Indian market, using the already-connected external Supabase project. Deliver the full shopping flow: browse, cart, checkout, auth, orders, and profile/address management.
 
 ```text
 src/routes/
@@ -35,7 +35,7 @@ supabase schema:
 
 All user tables use RLS. Public reads for categories/products via TO anon SELECT policies. Writes restricted to authenticated owners. Seed categories (Makeup, Skincare, Haircare, Fragrances, Beauty Accessories) and ~20 realistic Indian-market sample products.
 
-Design system: update src/styles.css with Clean & Luxe tokens (cream backgrounds, warm neutrals, rose-gold accent, elegant serif display font + clean sans-serif body). Generate hero/category images matching the palette.
+Design system: update src/styles.css with Clean & Glam tokens (cream backgrounds, warm neutrals, rose-gold accent, elegant serif display font + clean sans-serif body). Generate hero/category images matching the palette.
 
 Auth: use Supabase Auth email/password. Create /auth and /reset-password routes. Wire onAuthStateChange in __root.tsx to invalidate router/query cache. Header shows sign-in/sign-out state.
 

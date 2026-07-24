@@ -5,15 +5,15 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: "FAQs — FEALuxe" },
-      { name: "description", content: "Answers to common questions about shopping, shipping, returns, and payments at FEALuxe." },
+      { title: "FAQs — FEAGlam" },
+      { name: "description", content: "Answers to common questions about shopping, shipping, returns, and payments at FEAGlam." },
     ],
   }),
   component: FaqPage,
 });
 
 const faqs = [
-  { q: "Are all products 100% authentic?", a: "Yes. Every product sold on FEALuxe is sourced directly from authorised brands or distributors. We never sell counterfeit or grey-market goods." },
+  { q: "Are all products 100% authentic?", a: "Yes. Every product sold on FEAGlam is sourced directly from authorised brands or distributors. We never sell counterfeit or grey-market goods." },
   { q: "How long does delivery take?", a: "Metro cities typically receive orders in 2–4 business days, and the rest of India within 4–7 business days. You'll get a tracking link once your order ships." },
   { q: "What is your return policy?", a: "Unopened products can be returned within 7 days of delivery for a full refund. For hygiene reasons, opened cosmetics and skincare cannot be returned unless they arrived damaged or defective." },
   { q: "Which payment methods do you accept?", a: "We accept cash on delivery, along with UPI, credit/debit cards, and net banking via our secure online payment option at checkout." },
@@ -30,7 +30,7 @@ function FaqPage() {
         <div className="container-luxe py-16 text-center">
           <div className="rule-gold mx-auto" />
           <h1 className="mt-4 font-serif text-4xl font-light text-foreground md:text-5xl">Frequently asked questions</h1>
-          <p className="mt-3 text-muted-foreground">Everything you need to know about shopping with FEALuxe.</p>
+          <p className="mt-3 text-muted-foreground">Everything you need to know about shopping with FEAGlam.</p>
         </div>
       </div>
       <div className="container-luxe max-w-3xl py-14">

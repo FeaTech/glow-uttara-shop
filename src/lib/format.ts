@@ -18,7 +18,7 @@ export function discountPercent(price: number, compare?: number | null): number 
 }
 
 export const PLACEHOLDER_IMAGE =
-  "https://placehold.co/600x600/efe6da/9c7a52?text=FEALuxe";
+  "https://placehold.co/600x600/efe6da/9c7a52?text=FEAGlam";
 
 export function productImage(images: unknown, index = 0): string {
   const arr = Array.isArray(images) ? (images as string[]) : [];

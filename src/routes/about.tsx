@@ -6,8 +6,8 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About us — FEALuxe" },
-      { name: "description", content: "FEALuxe curates authentic luxury beauty for India — the story behind the brand." },
+      { title: "About us — FEAGlam" },
+      { name: "description", content: "FEAGlam curates authentic luxury beauty for India — the story behind the brand." },
     ],
   }),
   component: AboutPage,
@@ -42,7 +42,7 @@ function AboutPage() {
             Beauty, <span className="italic text-gradient-gold">thoughtfully curated.</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
-            FEALuxe is a modern beauty destination bringing authentic luxury makeup, skincare, haircare, and
+            FEAGlam is a modern beauty destination bringing authentic luxury makeup, skincare, haircare, and
             fragrances to beauty lovers across India.
           </p>
         </div>
@@ -52,7 +52,7 @@ function AboutPage() {
       <section className="container-luxe max-w-3xl py-16 md:py-20">
         <ScrollReveal className="space-y-6 text-lg leading-relaxed text-muted-foreground">
           <p>
-            We started FEALuxe with a simple frustration: finding genuinely premium beauty in India often meant
+            We started FEAGlam with a simple frustration: finding genuinely premium beauty in India often meant
             navigating counterfeits, limited shade ranges, and endless overwhelm. We wanted a place that felt as
             considered as the products themselves.
           </p>

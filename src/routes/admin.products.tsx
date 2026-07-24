@@ -28,7 +28,7 @@ import { formatINR, productImage } from "@/lib/format";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/products")({
-  head: () => ({ meta: [{ title: "Products — Admin — FEALuxe" }] }),
+  head: () => ({ meta: [{ title: "Products — Admin — FEAGlam" }] }),
   component: AdminProducts,
 });
 
