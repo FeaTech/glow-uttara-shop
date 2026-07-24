@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -29,6 +30,7 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
+import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders.index'
@@ -41,6 +43,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -133,6 +140,11 @@ const AdminProductsRoute = AdminProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -158,6 +170,7 @@ const AuthenticatedOrdersOrderIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -175,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -183,6 +197,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -197,6 +212,7 @@ export interface FileRoutesByTo {
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin': typeof AdminIndexRoute
   '/products': typeof ProductsIndexRoute
@@ -207,6 +223,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -224,6 +241,7 @@ export interface FileRoutesById {
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -234,6 +252,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/admin'
     | '/auth'
     | '/contact'
@@ -251,6 +270,7 @@ export interface FileRouteTypes {
     | '/admin/coupons'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/reviews'
     | '/products/$slug'
     | '/admin/'
     | '/products/'
@@ -259,6 +279,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/auth'
     | '/contact'
     | '/faq'
@@ -273,6 +294,7 @@ export interface FileRouteTypes {
     | '/admin/coupons'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/reviews'
     | '/products/$slug'
     | '/admin'
     | '/products'
@@ -282,6 +304,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/about'
     | '/admin'
     | '/auth'
     | '/contact'
@@ -299,6 +322,7 @@ export interface FileRouteTypes {
     | '/admin/coupons'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/reviews'
     | '/products/$slug'
     | '/admin/'
     | '/products/'
@@ -309,6 +333,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
@@ -333,6 +358,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -461,6 +493,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/products/': {
       id: '/products/'
       path: '/'
@@ -529,6 +568,7 @@ interface AdminRouteChildren {
   AdminCouponsRoute: typeof AdminCouponsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminReviewsRoute: typeof AdminReviewsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -537,6 +577,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCouponsRoute: AdminCouponsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminReviewsRoute: AdminReviewsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -559,6 +600,7 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
