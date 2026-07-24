@@ -1,26 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { getCart, removeCartItem, updateCartItem } from "@/lib/cart.functions";
 import { Button } from "@/components/ui/button";
+import { formatINR, productImage } from "@/lib/format";
 import { toast } from "sonner";
 
 const cartQueryOptions = () =>
-  queryOptions({
-    queryKey: ["cart"],
-    queryFn: () => getCart({ data: undefined }),
-  });
+  queryOptions({ queryKey: ["cart"], queryFn: () => getCart({ data: undefined }) });
 
 export const Route = createFileRoute("/_authenticated/cart")({
   head: () => ({
     meta: [
       { title: "Shopping cart — FEALuxy" },
       { name: "description", content: "Review your FEALuxy shopping cart." },
-      { property: "og:title", content: "Shopping cart — FEALuxy" },
-      { property: "og:description", content: "Review your FEALuxy shopping cart." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(cartQueryOptions()),
@@ -35,10 +29,7 @@ function CartPage() {
 
   const removeMutation = useMutation({
     mutationFn: removeItem,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      toast.success("Item removed");
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["cart"] }); toast.success("Item removed"); },
     onError: (err: any) => toast.error(err?.message ?? "Could not remove item"),
   });
 
@@ -50,93 +41,98 @@ function CartPage() {
 
   if (!cart.items.length) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 lg:px-8">
-        <h1 className="font-serif text-3xl font-light text-foreground">Your cart is empty</h1>
+      <div className="container-luxe py-24 text-center">
+        <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground/40" />
+        <h1 className="mt-4 font-serif text-3xl font-light text-foreground">Your cart is empty</h1>
         <p className="mt-2 text-muted-foreground">Discover luxury beauty products curated for you.</p>
-        <Button asChild className="mt-6 btn-gold">
-          <Link to="/products">Continue shopping</Link>
-        </Button>
+        <Button asChild className="btn-gold mt-6"><Link to="/products">Continue shopping</Link></Button>
       </div>
     );
   }
 
+  const freeShippingThreshold = 999;
+  const remaining = Math.max(0, freeShippingThreshold - cart.total);
+  const progress = Math.min(100, (cart.total / freeShippingThreshold) * 100);
+
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="font-serif text-3xl font-light text-foreground">Shopping cart</h1>
-        <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
+    <div className="min-h-screen bg-background pb-24">
+      <div className="container-luxe py-12">
+        <h1 className="font-serif text-3xl font-light text-foreground md:text-4xl">Shopping cart</h1>
+        <p className="mt-1 text-muted-foreground">{cart.items.length} item{cart.items.length === 1 ? "" : "s"}</p>
+
+        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="space-y-4 lg:col-span-2">
             {cart.items.map((item) => {
               const product = item.products;
               const variant = item.product_variants;
               const price = variant?.price_inr ?? product?.price_inr ?? 0;
-              const image = (product?.images as string[] | undefined)?.[0] ?? "https://placehold.co/600x600/e8e0d5/8b7355?text=FEALuxy";
+              const image = productImage(product?.images);
               return (
                 <div key={item.id} className="card-luxe flex gap-4 p-4">
-                  <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                    <img src={image} alt={product?.name} className="h-full w-full object-cover" />
-                  </div>
+                  <Link to="/products/$slug" params={{ slug: product?.slug ?? "" }} className="h-24 w-24 shrink-0 overflow-hidden rounded-md bg-muted sm:h-28 sm:w-28">
+                    <img src={image} alt={product?.name} className="h-full w-full object-cover transition-transform hover:scale-105" />
+                  </Link>
                   <div className="flex flex-1 flex-col justify-between">
-                    <div>
-                      <Link to="/products/$slug" params={{ slug: product?.slug ?? "" }} className="font-medium text-foreground hover:text-primary">
-                        {product?.name}
-                      </Link>
-                      {variant && <p className="text-sm text-muted-foreground">{variant.variant_name}</p>}
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <Link to="/products/$slug" params={{ slug: product?.slug ?? "" }} className="font-medium text-foreground hover:text-primary">
+                          {product?.name}
+                        </Link>
+                        {variant && <p className="text-sm text-muted-foreground">{variant.variant_name}</p>}
+                        <p className="mt-1 text-sm text-muted-foreground">{formatINR(price)} each</p>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label="Remove item"
+                        className="text-muted-foreground transition-colors hover:text-destructive"
+                        onClick={() => removeMutation.mutate({ data: { itemId: item.id } })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center rounded-md border border-input">
-                        <button
-                          type="button"
-                          className="px-3 py-1 text-foreground hover:bg-accent"
-                          onClick={() => updateMutation.mutate({ data: { itemId: item.id, quantity: Math.max(0, item.quantity - 1) } })}
-                        >
-                          −
+                        <button type="button" className="grid h-9 w-9 place-items-center text-foreground hover:bg-secondary" aria-label="Decrease"
+                          onClick={() => updateMutation.mutate({ data: { itemId: item.id, quantity: Math.max(0, item.quantity - 1) } })}>
+                          <Minus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="w-8 text-center text-sm">{item.quantity}</span>
-                        <button
-                          type="button"
-                          className="px-3 py-1 text-foreground hover:bg-accent"
-                          onClick={() => updateMutation.mutate({ data: { itemId: item.id, quantity: item.quantity + 1 } })}
-                        >
-                          +
+                        <span className="w-9 text-center text-sm">{item.quantity}</span>
+                        <button type="button" className="grid h-9 w-9 place-items-center text-foreground hover:bg-secondary" aria-label="Increase"
+                          onClick={() => updateMutation.mutate({ data: { itemId: item.id, quantity: item.quantity + 1 } })}>
+                          <Plus className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <span className="font-semibold text-foreground">₹{(price * item.quantity).toLocaleString("en-IN")}</span>
+                      <span className="font-semibold text-foreground">{formatINR(price * item.quantity)}</span>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    className="text-sm text-muted-foreground hover:text-destructive"
-                    onClick={() => removeMutation.mutate({ data: { itemId: item.id } })}
-                  >
-                    Remove
-                  </button>
                 </div>
               );
             })}
           </div>
 
-          <div className="card-luxe h-fit p-6">
+          <div className="card-luxe h-fit p-6 lg:sticky lg:top-24">
             <h2 className="font-serif text-xl text-foreground">Order summary</h2>
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between text-muted-foreground">
-                <span>Subtotal</span>
-                <span>₹{cart.total.toLocaleString("en-IN")}</span>
-              </div>
-              <div className="flex justify-between text-muted-foreground">
-                <span>Shipping</span>
-                <span>Calculated at checkout</span>
-              </div>
-            </div>
-            <div className="mt-4 border-t pt-4">
-              <div className="flex justify-between text-lg font-semibold text-foreground">
-                <span>Total</span>
-                <span>₹{cart.total.toLocaleString("en-IN")}</span>
+
+            <div className="mt-4">
+              {remaining > 0 ? (
+                <p className="text-sm text-muted-foreground">Add <span className="font-medium text-foreground">{formatINR(remaining)}</span> for free shipping</p>
+              ) : (
+                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">You've unlocked free shipping! 🎉</p>
+              )}
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-secondary">
+                <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
               </div>
             </div>
-            <Button asChild className="mt-6 w-full btn-gold">
-              <Link to="/checkout">Proceed to checkout</Link>
-            </Button>
+
+            <div className="mt-5 space-y-2 border-t border-border pt-5 text-sm">
+              <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{formatINR(cart.total)}</span></div>
+              <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span>Calculated at checkout</span></div>
+            </div>
+            <div className="mt-4 flex justify-between border-t border-border pt-4 text-lg font-semibold text-foreground">
+              <span>Total</span><span>{formatINR(cart.total)}</span>
+            </div>
+            <Button asChild className="btn-gold mt-6 w-full"><Link to="/checkout">Proceed to checkout</Link></Button>
+            <Button asChild variant="ghost" className="mt-2 w-full"><Link to="/products">Continue shopping</Link></Button>
           </div>
         </div>
       </div>

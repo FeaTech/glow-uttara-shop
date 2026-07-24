@@ -1,0 +1,140 @@
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
+import { addToCart } from "@/lib/cart.functions";
+import { RatingStars } from "@/components/RatingStars";
+import { WishlistButton } from "@/components/WishlistButton";
+import { discountPercent, formatINR, productImage } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+export interface ProductCardProduct {
+  id: string;
+  slug: string;
+  name: string;
+  price_inr: number | null;
+  compare_price_inr?: number | null;
+  images?: unknown;
+  stock?: number;
+  is_featured?: boolean;
+  rating_avg?: number;
+  rating_count?: number;
+  categories?: { name?: string | null } | null;
+}
+
+export function ProductCard({ product, index = 0 }: { product: ProductCardProduct; index?: number }) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const addToCartFn = useServerFn(addToCart);
+
+  const price = product.price_inr ?? 0;
+  const compare = product.compare_price_inr;
+  const off = discountPercent(price, compare);
+  const image = productImage(product.images);
+  const outOfStock = typeof product.stock === "number" && product.stock <= 0;
+
+  const addMutation = useMutation({
+    mutationFn: addToCartFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      toast.success("Added to cart");
+    },
+    onError: (err: any) => {
+      if (err?.message?.includes("Unauthorized")) {
+        toast.error("Please sign in to shop");
+        navigate({ to: "/auth" });
+      } else {
+        toast.error(err?.message ?? "Could not add to cart");
+      }
+    },
+  });
+
+  return (
+    <div
+      className="group card-luxe card-hover relative flex flex-col overflow-hidden"
+      style={{ animation: `var(--animate-fade-up)`, animationDelay: `${Math.min(index, 8) * 60}ms` }}
+    >
+      <WishlistButton productId={product.id} />
+
+      <Link
+        to="/products/$slug"
+        params={{ slug: product.slug }}
+        className="relative block aspect-square overflow-hidden bg-muted"
+      >
+        <img
+          src={image}
+          alt={product.name}
+          loading="lazy"
+          className={cn(
+            "h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.08]",
+            outOfStock && "opacity-70",
+          )}
+        />
+
+        <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5">
+          {product.is_featured && (
+            <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm">
+              Featured
+            </span>
+          )}
+          {off !== null && (
+            <span className="rounded-full bg-foreground px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-background shadow-sm">
+              {off}% off
+            </span>
+          )}
+        </div>
+
+        {outOfStock && (
+          <div className="absolute inset-0 grid place-items-center bg-background/40">
+            <span className="rounded-full bg-background/90 px-3 py-1 text-xs font-medium text-foreground">
+              Out of stock
+            </span>
+          </div>
+        )}
+
+        {/* Quick add — slides up on hover (desktop) */}
+        {!outOfStock && (
+          <div className="absolute inset-x-3 bottom-3 translate-y-[130%] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <button
+              type="button"
+              disabled={addMutation.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                addMutation.mutate({ data: { productId: product.id, quantity: 1 } });
+              }}
+              className="btn-gold w-full py-2 text-sm"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              {addMutation.isPending ? "Adding…" : "Quick add"}
+            </button>
+          </div>
+        )}
+      </Link>
+
+      <Link
+        to="/products/$slug"
+        params={{ slug: product.slug }}
+        className="flex flex-1 flex-col p-4"
+      >
+        {product.categories?.name && (
+          <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+            {product.categories.name}
+          </p>
+        )}
+        <h3 className="mt-1 line-clamp-2 font-medium leading-snug text-foreground transition-colors group-hover:text-primary">
+          {product.name}
+        </h3>
+        {typeof product.rating_count === "number" && product.rating_count > 0 && (
+          <RatingStars value={product.rating_avg ?? 0} count={product.rating_count} className="mt-2" />
+        )}
+        <div className="mt-auto flex items-center gap-2 pt-3">
+          <span className="font-semibold text-foreground">{formatINR(price)}</span>
+          {off !== null && (
+            <span className="text-sm text-muted-foreground line-through">{formatINR(compare)}</span>
+          )}
+        </div>
+      </Link>
+    </div>
+  );
+}

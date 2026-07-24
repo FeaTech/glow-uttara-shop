@@ -1,38 +1,62 @@
 import { Link } from "@tanstack/react-router";
-import { Instagram, Facebook, Twitter } from "lucide-react";
+import { Instagram, Facebook, Twitter, Truck, ShieldCheck, RefreshCw, Sparkles } from "lucide-react";
+
+const trust = [
+  { icon: Truck, title: "Pan-India shipping", sub: "Fast, tracked delivery" },
+  { icon: ShieldCheck, title: "100% authentic", sub: "Genuine luxury brands" },
+  { icon: RefreshCw, title: "Easy 7-day returns", sub: "Hassle-free refunds" },
+  { icon: Sparkles, title: "Cruelty-free edit", sub: "Consciously curated" },
+];
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-secondary">
-      <div className="container-luxe section-padding">
+    <footer className="border-t border-border bg-secondary/60">
+      <div className="container-luxe border-b border-border py-10">
+        <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+          {trust.map(({ icon: Icon, title, sub }) => (
+            <div key={title} className="flex items-center gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                <Icon className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-sm font-medium text-foreground">{title}</p>
+                <p className="text-xs text-muted-foreground">{sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="container-luxe py-14">
         <div className="grid gap-12 md:grid-cols-4">
           <div className="md:col-span-1">
             <Link to="/" className="font-heading text-2xl font-semibold tracking-tight">
-              FEALuxy
+              FEA<span className="text-primary">Luxy</span>
             </Link>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
               Curated cosmetics, skincare, and fragrances for the modern Indian beauty lover.
             </p>
-            <div className="mt-6 flex items-center gap-4">
-              <a href="#" aria-label="Instagram" className="text-muted-foreground hover:text-foreground">
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" aria-label="Facebook" className="text-muted-foreground hover:text-foreground">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" aria-label="Twitter" className="text-muted-foreground hover:text-foreground">
-                <Twitter className="h-5 w-5" />
-              </a>
+            <div className="mt-6 flex items-center gap-3">
+              {[Instagram, Facebook, Twitter].map((Icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  aria-label="Social link"
+                  className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
             </div>
           </div>
 
           <div>
             <h4 className="font-heading text-lg font-medium">Shop</h4>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/products?category=makeup" className="hover:text-foreground">Makeup</Link></li>
-              <li><Link to="/products?category=skincare" className="hover:text-foreground">Skincare</Link></li>
-              <li><Link to="/products?category=haircare" className="hover:text-foreground">Haircare</Link></li>
-              <li><Link to="/products?category=fragrances" className="hover:text-foreground">Fragrances</Link></li>
+              <li><Link to="/products" search={{ category: "makeup" }} className="hover:text-foreground">Makeup</Link></li>
+              <li><Link to="/products" search={{ category: "skincare" }} className="hover:text-foreground">Skincare</Link></li>
+              <li><Link to="/products" search={{ category: "haircare" }} className="hover:text-foreground">Haircare</Link></li>
+              <li><Link to="/products" search={{ category: "fragrances" }} className="hover:text-foreground">Fragrances</Link></li>
             </ul>
           </div>
 
@@ -40,9 +64,9 @@ export function Footer() {
             <h4 className="font-heading text-lg font-medium">Help</h4>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
               <li><Link to="/orders" className="hover:text-foreground">Order status</Link></li>
-              <li><a href="#" className="hover:text-foreground">Shipping & returns</a></li>
-              <li><a href="#" className="hover:text-foreground">FAQs</a></li>
-              <li><a href="#" className="hover:text-foreground">Contact us</a></li>
+              <li><Link to="/shipping" className="hover:text-foreground">Shipping &amp; returns</Link></li>
+              <li><Link to="/faq" className="hover:text-foreground">FAQs</Link></li>
+              <li><Link to="/contact" className="hover:text-foreground">Contact us</Link></li>
             </ul>
           </div>
 
@@ -55,12 +79,11 @@ export function Footer() {
               <input
                 type="email"
                 placeholder="Your email"
-                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
+                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
               />
-              <button type="submit" className="btn-gold px-4 py-2 text-sm">
-                Join
-              </button>
+              <button type="submit" className="btn-gold px-4 py-2 text-sm">Join</button>
             </form>
+            <p className="mt-3 text-xs text-muted-foreground">Try code <span className="font-semibold text-primary">WELCOME10</span> at checkout.</p>
           </div>
         </div>
 

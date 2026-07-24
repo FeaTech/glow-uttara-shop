@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { evaluateCoupon } from "@/lib/coupons.functions";
 
 const addressSchema = z.object({
   label: z.string().optional(),
@@ -15,6 +16,7 @@ const addressSchema = z.object({
 const createOrderSchema = z.object({
   shippingAddress: addressSchema,
   paymentMethod: z.enum(["cod", "online"]).default("cod"),
+  couponCode: z.string().trim().max(40).optional(),
 });
 
 export const createOrder = createServerFn({ method: "POST" })
@@ -38,18 +40,36 @@ export const createOrder = createServerFn({ method: "POST" })
     if (itemsError) throw itemsError;
     if (!items || items.length === 0) throw new Error("Cart is empty");
 
-    const total = items.reduce((sum, item) => {
+    const subtotal = items.reduce((sum, item) => {
       const price = item.product_variants?.price_inr ?? item.products?.price_inr ?? 0;
       return sum + price * item.quantity;
     }, 0);
+
+    // Authoritatively re-validate the coupon on the server.
+    let discount = 0;
+    let couponCode: string | null = null;
+    if (data.couponCode) {
+      const result = await evaluateCoupon(data.couponCode, subtotal);
+      if (result.valid) {
+        discount = result.discount;
+        couponCode = result.code;
+      } else {
+        throw new Error(result.message);
+      }
+    }
+
+    const total = Math.max(0, subtotal - discount);
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         user_id: userId,
+        subtotal_inr: subtotal,
+        discount_inr: discount,
+        coupon_code: couponCode,
         total_inr: total,
         shipping_address: data.shippingAddress,
-        payment_status: data.paymentMethod === "cod" ? "pending" : "pending",
+        payment_status: "pending",
         status: "pending",
       })
       .select("id")
@@ -67,6 +87,19 @@ export const createOrder = createServerFn({ method: "POST" })
 
     const { error: orderItemsError } = await supabase.from("order_items").insert(orderItems);
     if (orderItemsError) throw orderItemsError;
+
+    // Increment coupon usage (service role — coupons table is private).
+    if (couponCode) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: c } = await supabaseAdmin
+        .from("coupons")
+        .select("id, used_count")
+        .eq("code", couponCode)
+        .maybeSingle();
+      if (c) {
+        await supabaseAdmin.from("coupons").update({ used_count: c.used_count + 1 }).eq("id", c.id);
+      }
+    }
 
     await supabase.from("cart_items").delete().eq("cart_id", cart.id);
     await supabase.from("cart").update({ status: "converted" }).eq("id", cart.id);
@@ -102,4 +135,55 @@ export const getOrderById = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw error;
     return order;
+  });
+
+/** Cancel a still-pending order and restore stock. Ownership verified before mutating. */
+export const cancelOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => getOrderSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: order } = await supabase
+      .from("orders")
+      .select("id, status, order_items(product_id, variant_id, quantity)")
+      .eq("id", data.orderId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!order) throw new Error("Order not found");
+    if (order.status !== "pending" && order.status !== "processing") {
+      throw new Error("This order can no longer be cancelled");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Restore stock for each line.
+    for (const item of order.order_items ?? []) {
+      if (item.variant_id) {
+        const { data: v } = await supabaseAdmin
+          .from("product_variants")
+          .select("stock")
+          .eq("id", item.variant_id)
+          .maybeSingle();
+        if (v) {
+          await supabaseAdmin
+            .from("product_variants")
+            .update({ stock: v.stock + item.quantity })
+            .eq("id", item.variant_id);
+        }
+      }
+      const { data: p } = await supabaseAdmin
+        .from("products")
+        .select("stock")
+        .eq("id", item.product_id)
+        .maybeSingle();
+      if (p) {
+        await supabaseAdmin
+          .from("products")
+          .update({ stock: p.stock + item.quantity })
+          .eq("id", item.product_id);
+      }
+    }
+
+    await supabaseAdmin.from("orders").update({ status: "cancelled" }).eq("id", order.id);
+    return { ok: true };
   });

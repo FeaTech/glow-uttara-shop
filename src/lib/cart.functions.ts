@@ -138,3 +138,54 @@ export const removeCartItem = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+const reorderSchema = z.object({ orderId: z.string().uuid() });
+
+/** Add every line from a past order back into the active cart. */
+export const reorderToCart = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => reorderSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    // Verify the order belongs to the caller, then read its lines.
+    const { data: order } = await supabase
+      .from("orders")
+      .select("id, order_items(product_id, variant_id, quantity)")
+      .eq("id", data.orderId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!order) throw new Error("Order not found");
+
+    const items = order.order_items ?? [];
+    if (items.length === 0) throw new Error("This order has no items");
+
+    const cartId = await ensureCart(supabase, userId);
+
+    let added = 0;
+    for (const item of items) {
+      let existingQuery = supabase
+        .from("cart_items")
+        .select("id, quantity")
+        .eq("cart_id", cartId)
+        .eq("product_id", item.product_id);
+      existingQuery = item.variant_id
+        ? existingQuery.eq("variant_id", item.variant_id)
+        : existingQuery.is("variant_id", null);
+      const { data: existing } = await existingQuery.maybeSingle();
+
+      if (existing) {
+        await supabase.from("cart_items").update({ quantity: existing.quantity + item.quantity }).eq("id", existing.id);
+      } else {
+        await supabase.from("cart_items").insert({
+          cart_id: cartId,
+          product_id: item.product_id,
+          variant_id: item.variant_id,
+          quantity: item.quantity,
+        });
+      }
+      added += 1;
+    }
+
+    return { ok: true, added };
+  });
