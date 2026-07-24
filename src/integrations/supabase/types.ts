@@ -14,154 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      coupons: {
-        Row: {
-          active: boolean
-          code: string
-          created_at: string
-          description: string | null
-          discount_type: Database["public"]["Enums"]["discount_type"]
-          discount_value: number
-          expires_at: string | null
-          id: string
-          max_discount_inr: number | null
-          min_order_inr: number
-          starts_at: string | null
-          updated_at: string
-          usage_limit: number | null
-          used_count: number
-        }
-        Insert: {
-          active?: boolean
-          code: string
-          created_at?: string
-          description?: string | null
-          discount_type: Database["public"]["Enums"]["discount_type"]
-          discount_value: number
-          expires_at?: string | null
-          id?: string
-          max_discount_inr?: number | null
-          min_order_inr?: number
-          starts_at?: string | null
-          updated_at?: string
-          usage_limit?: number | null
-          used_count?: number
-        }
-        Update: {
-          active?: boolean
-          code?: string
-          created_at?: string
-          description?: string | null
-          discount_type?: Database["public"]["Enums"]["discount_type"]
-          discount_value?: number
-          expires_at?: string | null
-          id?: string
-          max_discount_inr?: number | null
-          min_order_inr?: number
-          starts_at?: string | null
-          updated_at?: string
-          usage_limit?: number | null
-          used_count?: number
-        }
-        Relationships: []
-      }
-      reviews: {
-        Row: {
-          author_name: string | null
-          body: string | null
-          created_at: string
-          id: string
-          is_verified: boolean
-          product_id: string
-          rating: number
-          title: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          author_name?: string | null
-          body?: string | null
-          created_at?: string
-          id?: string
-          is_verified?: boolean
-          product_id: string
-          rating: number
-          title?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          author_name?: string | null
-          body?: string | null
-          created_at?: string
-          id?: string
-          is_verified?: boolean
-          product_id?: string
-          rating?: number
-          title?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reviews_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-      wishlist_items: {
-        Row: {
-          created_at: string
-          id: string
-          product_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          product_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          product_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wishlist_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       addresses: {
         Row: {
           city: string
@@ -381,43 +233,34 @@ export type Database = {
       }
       orders: {
         Row: {
-          coupon_code: string | null
           created_at: string
-          discount_inr: number
           id: string
           notes: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           shipping_address: Json
           status: Database["public"]["Enums"]["order_status"]
-          subtotal_inr: number | null
           total_inr: number
           updated_at: string
           user_id: string
         }
         Insert: {
-          coupon_code?: string | null
           created_at?: string
-          discount_inr?: number
           id?: string
           notes?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           shipping_address: Json
           status?: Database["public"]["Enums"]["order_status"]
-          subtotal_inr?: number | null
           total_inr: number
           updated_at?: string
           user_id: string
         }
         Update: {
-          coupon_code?: string | null
           created_at?: string
-          discount_inr?: number
           id?: string
           notes?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           shipping_address?: Json
           status?: Database["public"]["Enums"]["order_status"]
-          subtotal_inr?: number | null
           total_inr?: number
           updated_at?: string
           user_id?: string
@@ -477,8 +320,6 @@ export type Database = {
           is_featured: boolean
           name: string
           price_inr: number
-          rating_avg: number
-          rating_count: number
           short_description: string | null
           slug: string
           stock: number
@@ -496,8 +337,6 @@ export type Database = {
           is_featured?: boolean
           name: string
           price_inr: number
-          rating_avg?: number
-          rating_count?: number
           short_description?: string | null
           slug: string
           stock?: number
@@ -515,8 +354,6 @@ export type Database = {
           is_featured?: boolean
           name?: string
           price_inr?: number
-          rating_avg?: number
-          rating_count?: number
           short_description?: string | null
           slug?: string
           stock?: number
@@ -565,17 +402,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "admin" | "customer"
-      discount_type: "percent" | "fixed"
       order_status:
         | "pending"
         | "processing"
@@ -710,8 +539,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "customer"],
-      discount_type: ["percent", "fixed"],
       order_status: [
         "pending",
         "processing",
