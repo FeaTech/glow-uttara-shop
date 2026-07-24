@@ -19,17 +19,29 @@ export const getWishlist = createServerFn({ method: "GET" })
   });
 
 /** Just the product ids — cached once and used to light up hearts across the catalog. */
-export const getWishlistIds = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data, error } = await supabase
-      .from("wishlist_items")
-      .select("product_id")
-      .eq("user_id", userId);
-    if (error) throw error;
-    return (data ?? []).map((r) => r.product_id);
+export const getWishlistIds = createServerFn({ method: "GET" }).handler(async () => {
+  const { getRequest } = await import("@tanstack/react-start/server");
+  const req = getRequest();
+  const authHeader = req?.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) return [] as string[];
+  const token = authHeader.slice(7);
+  if (token.split(".").length !== 3) return [] as string[];
+
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
   });
+  const { data: claims } = await supabase.auth.getClaims(token);
+  const userId = claims?.claims?.sub;
+  if (!userId) return [] as string[];
+  const { data, error } = await supabase
+    .from("wishlist_items")
+    .select("product_id")
+    .eq("user_id", userId);
+  if (error) return [] as string[];
+  return (data ?? []).map((r) => r.product_id as string);
+});
 
 export const addToWishlist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
