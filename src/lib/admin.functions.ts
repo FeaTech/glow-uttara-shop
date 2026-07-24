@@ -279,7 +279,7 @@ export const adminUpdateOrder = createServerFn({ method: "POST" })
     if (data.status) patch.status = data.status;
     if (data.paymentStatus) patch.payment_status = data.paymentStatus;
     if (Object.keys(patch).length === 0) return { ok: true };
-    const { error } = await db.from("orders").update(patch).eq("id", data.orderId);
+    const { error } = await db.from("orders").update(patch as any).eq("id", data.orderId);
     if (error) throw error;
     return { ok: true };
   });
