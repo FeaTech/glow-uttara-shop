@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatINR, productImage } from "@/lib/format";
+import { ProductImage } from "@/components/ProductImage";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/products")({
@@ -100,7 +101,7 @@ function AdminProducts() {
                 <TableRow key={p.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <img src={productImage(p.images)} alt="" className="h-11 w-11 rounded-md object-cover" />
+                      <ProductImage src={productImage(p.images)} alt="" className="h-11 w-11 rounded-md object-cover" />
                       <div className="min-w-0">
                         <p className="truncate font-medium text-foreground">{p.name}</p>
                         <p className="truncate text-xs text-muted-foreground">/{p.slug}</p>
@@ -427,7 +428,7 @@ function ImageManager({ images, onChange }: { images: string[]; onChange: (image
         <div className="flex flex-wrap gap-3">
           {images.map((img, i) => (
             <div key={i} className="group relative h-20 w-20 overflow-hidden rounded-md border border-border">
-              <img src={img} alt="" className="h-full w-full object-cover" />
+              <ProductImage src={img} alt="" className="h-full w-full object-cover" />
               <button
                 type="button"
                 onClick={() => remove(i)}
