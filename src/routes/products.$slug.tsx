@@ -132,10 +132,9 @@ function ProductPage() {
           {/* Gallery */}
           <div className="lg:sticky lg:top-24 lg:self-start">
             <div className="group relative aspect-square overflow-hidden rounded-2xl bg-muted">
-              <img
+              <ProductImage
                 src={images[activeImage]}
                 alt={product.name}
-                onError={handleImageError}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               {off !== null && (
@@ -153,7 +152,7 @@ function ProductPage() {
                       activeImage === i ? "border-primary" : "border-transparent hover:border-border",
                     )}
                   >
-                    <img src={img} alt="" className="h-full w-full object-cover" />
+                    <ProductImage src={img} alt="" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>
