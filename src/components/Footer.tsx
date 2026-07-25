@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Instagram, Facebook, Twitter, Truck, ShieldCheck, RefreshCw, Sparkles, Check } from "lucide-react";
 import { subscribeNewsletter } from "@/lib/newsletter.functions";
 import { toast } from "sonner";
+import logo from "@/assets/feaglam-logo.png.asset.json";
 
 const trust = [
   { icon: Truck, title: "Pan-India shipping", sub: "Fast, tracked delivery" },
