@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ProductCard";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
+import heroBg from "@/assets/hero-feaglam-products.png.asset.json";
 
 const featuredProductsQueryOptions = () =>
   queryOptions({
