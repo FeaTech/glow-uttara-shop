@@ -102,7 +102,7 @@ export function Header() {
           className="mx-auto flex shrink-0 items-center gap-2 md:mx-0"
           aria-label="FEAGlam home"
         >
-          <img src={logo.url} alt="FEAGlam" className="h-32 w-auto md:h-36" />
+          <img src={logo.url} alt="FEAGlam" className="h-28 w-auto md:h-32" />
         </Link>
 
         {/* Desktop nav */}
