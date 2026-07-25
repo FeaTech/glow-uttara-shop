@@ -86,11 +86,26 @@ export function Header() {
         scrolled ? "glass border-border shadow-sm" : "border-transparent bg-background",
       )}
     >
-      <div className="container-luxe flex h-32 items-center gap-4">
-        <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="FEAGlam home">
-          <img src={logo.url} alt="FEAGlam" className="h-28 w-auto md:h-32" />
+      <div className="container-luxe relative flex h-36 items-center justify-between gap-4 md:h-40">
+        {/* Mobile menu toggle — absolute left on small screens */}
+        <button
+          className="absolute left-4 top-1/2 -translate-y-1/2 md:hidden"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+
+        {/* Logo — centered on mobile, left on desktop */}
+        <Link
+          to="/"
+          className="mx-auto flex shrink-0 items-center gap-2 md:mx-0"
+          aria-label="FEAGlam home"
+        >
+          <img src={logo.url} alt="FEAGlam" className="h-32 w-auto md:h-36" />
         </Link>
 
+        {/* Desktop nav */}
         <nav className="ml-2 hidden items-center gap-7 lg:flex">
           {navLinks.map((link) => (
             <Link
@@ -116,7 +131,8 @@ export function Header() {
           <kbd className="hidden rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] lg:inline">⌘K</kbd>
         </button>
 
-        <div className="ml-auto flex items-center gap-1 md:ml-0">
+        {/* Action icons — absolute right on mobile, normal flow on desktop */}
+        <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-1 md:static md:translate-y-0 md:ml-auto">
           <Link to="/wishlist" className="hidden sm:block">
             <Button variant="ghost" size="icon" aria-label="Wishlist">
               <Heart className="h-5 w-5" />
@@ -172,14 +188,6 @@ export function Header() {
               <Button size="sm" className="btn-gold">Sign in</Button>
             </Link>
           )}
-
-          <button
-            className="ml-1 md:hidden"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
         </div>
       </div>
 
