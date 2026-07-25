@@ -42,7 +42,7 @@ function AboutPage() {
             Welcome to <span className="italic text-gradient-gold">FEA GLAM</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
-            A premium skincare, cosmetics, beauty care, and personal care brand from FEA Ventures, created with a vision to bring quality, innovation, and confidence into everyday beauty routines.
+            A premium skincare, cosmetics, beauty care, and personal care brand from FEA Ventures (FEA group of companies), created with a vision to bring quality, innovation, and confidence into everyday beauty routines.
           </p>
         </div>
       </section>
