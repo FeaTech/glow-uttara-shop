@@ -20,7 +20,8 @@ import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { recordProductView } from "@/hooks/use-recently-viewed";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { discountPercent, formatDate, formatINR, handleImageError, PLACEHOLDER_IMAGE } from "@/lib/format";
+import { discountPercent, formatDate, formatINR, PLACEHOLDER_IMAGE } from "@/lib/format";
+import { ProductImage } from "@/components/ProductImage";
 import { cn } from "@/lib/utils";
 
 const productQueryOptions = (slug: string) =>
@@ -132,10 +133,9 @@ function ProductPage() {
           {/* Gallery */}
           <div className="lg:sticky lg:top-24 lg:self-start">
             <div className="group relative aspect-square overflow-hidden rounded-2xl bg-muted">
-              <img
+              <ProductImage
                 src={images[activeImage]}
                 alt={product.name}
-                onError={handleImageError}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               {off !== null && (
@@ -153,7 +153,7 @@ function ProductPage() {
                       activeImage === i ? "border-primary" : "border-transparent hover:border-border",
                     )}
                   >
-                    <img src={img} alt="" className="h-full w-full object-cover" />
+                    <ProductImage src={img} alt="" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>

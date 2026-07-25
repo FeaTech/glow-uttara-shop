@@ -1,11 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const BUCKET = "product-images";
+export const PRODUCT_IMAGE_BUCKET = "product-images";
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 
 /**
- * Upload an image to the public `product-images` bucket and return its public URL.
- * Storage RLS restricts writes to admins; the browser client sends the user's JWT.
+ * Upload an image to the private `product-images` bucket and return its
+ * storage path (not a URL). Read paths are resolved to short-lived signed
+ * URLs at render time via <ProductImage />.
  */
 export async function uploadProductImage(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Please choose an image file");
@@ -14,13 +15,12 @@ export async function uploadProductImage(file: File): Promise<string> {
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
   const path = `${crypto.randomUUID()}.${ext || "jpg"}`;
 
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+  const { error } = await supabase.storage.from(PRODUCT_IMAGE_BUCKET).upload(path, file, {
     cacheControl: "3600",
     upsert: false,
     contentType: file.type,
   });
   if (error) throw error;
 
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return path;
 }

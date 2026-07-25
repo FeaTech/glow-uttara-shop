@@ -8,6 +8,7 @@ import {
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { quickSearchProducts, listCategories } from "@/lib/products.functions";
 import { formatINR, productImage } from "@/lib/format";
+import { ProductImage } from "@/components/ProductImage";
 
 /**
  * Global search launched with ⌘K / Ctrl+K (or the `feaglam:search` window event).
@@ -88,7 +89,7 @@ export function CommandPalette() {
               <CommandGroup heading="Products">
                 {results.map((p: any) => (
                   <CommandItem key={p.id} value={`product-${p.id}`} onSelect={() => go(() => navigate({ to: "/products/$slug", params: { slug: p.slug } }))}>
-                    <img src={productImage(p.images)} alt="" className="mr-3 h-8 w-8 rounded object-cover" />
+                    <ProductImage src={productImage(p.images)} alt="" className="mr-3 h-8 w-8 rounded object-cover" />
                     <span className="flex-1 truncate">{p.name}</span>
                     <span className="ml-2 text-xs text-muted-foreground">{formatINR(p.price_inr)}</span>
                   </CommandItem>
