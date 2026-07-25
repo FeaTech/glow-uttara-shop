@@ -86,10 +86,8 @@ export function Header() {
       )}
     >
       <div className="container-luxe flex h-16 items-center gap-4">
-        <Link to="/" className="flex shrink-0 items-center gap-2">
-          <span className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-            FEA<span className="text-primary">Glam</span>
-          </span>
+        <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="FEAGlam home">
+          <img src={logo.url} alt="FEAGlam" className="h-12 w-auto md:h-14" />
         </Link>
 
         <nav className="ml-2 hidden items-center gap-7 lg:flex">
