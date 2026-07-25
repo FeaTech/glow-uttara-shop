@@ -37,7 +37,7 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-4">
           <div className="md:col-span-1">
             <Link to="/" className="inline-block" aria-label="FEAGlam home">
-              <img src={logo.url} alt="FEAGlam" className="h-40 w-auto" />
+              <img src={logo.url} alt="FEAGlam" className="h-36 w-auto" />
             </Link>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
               Curated cosmetics, skincare, and fragrances for the modern Indian beauty lover.
