@@ -6,6 +6,7 @@ import { getOrderById, cancelOrder } from "@/lib/orders.functions";
 import { reorderToCart } from "@/lib/cart.functions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatINR, productImage } from "@/lib/format";
+import { ProductImage } from "@/components/ProductImage";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -142,7 +143,7 @@ function OrderDetailPage() {
               return (
                 <div key={item.id} className="card-luxe flex items-center gap-4 p-4">
                   <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md bg-muted">
-                    <img src={image} alt={item.name} className="h-full w-full object-cover" />
+                    <ProductImage src={image} alt={item.name} className="h-full w-full object-cover" />
                   </div>
                   <div className="min-w-0 flex-1">
                     {slug ? (
