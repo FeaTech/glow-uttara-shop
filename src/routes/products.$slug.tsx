@@ -20,7 +20,8 @@ import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { recordProductView } from "@/hooks/use-recently-viewed";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { discountPercent, formatDate, formatINR, handleImageError, PLACEHOLDER_IMAGE } from "@/lib/format";
+import { discountPercent, formatDate, formatINR, PLACEHOLDER_IMAGE } from "@/lib/format";
+import { ProductImage } from "@/components/ProductImage";
 import { cn } from "@/lib/utils";
 
 const productQueryOptions = (slug: string) =>
