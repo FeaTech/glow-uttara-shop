@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ProductCard";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
+import heroBg from "@/assets/hero-feaglam-products.png.asset.json";
 
 const featuredProductsQueryOptions = () =>
   queryOptions({
@@ -58,9 +59,9 @@ function HomePage() {
       {/* ---------- Hero ---------- */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img src="/images/hero-luxe.jpg" alt="Luxury beauty products" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+          <img src={heroBg.url} alt="FEA Glam luxury beauty products" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/70 to-transparent" />
         </div>
         <div className="container-luxe relative py-24 sm:py-32 lg:py-40">
           <div className="max-w-xl" style={{ animation: "var(--animate-fade-up)" }}>
