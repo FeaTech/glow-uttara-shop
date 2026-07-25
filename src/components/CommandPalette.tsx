@@ -11,7 +11,7 @@ import { formatINR, productImage } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
 
 /**
- * Global search launched with ⌘K / Ctrl+K (or the `feaglam:search` window event).
+ * Global search launched with ⌘K / Ctrl+K (or the `fea-glam:search` window event).
  * Mounted once in the root layout. cmdk's built-in filter is disabled because
  * results are produced server-side.
  */
@@ -30,10 +30,10 @@ export function CommandPalette() {
     };
     const onOpen = () => setOpen(true);
     window.addEventListener("keydown", onKey);
-    window.addEventListener("feaglam:search", onOpen);
+    window.addEventListener("fea-glam:search", onOpen);
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener("feaglam:search", onOpen);
+      window.removeEventListener("fea-glam:search", onOpen);
     };
   }, []);
 
@@ -65,7 +65,7 @@ export function CommandPalette() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
-        <DialogTitle className="sr-only">Search FEAGlam</DialogTitle>
+        <DialogTitle className="sr-only">Search FEA Glam</DialogTitle>
         <Command
           shouldFilter={false}
           className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-3 [&_[cmdk-item]]:py-2.5"

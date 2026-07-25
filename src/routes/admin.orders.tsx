@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/orders")({
-  head: () => ({ meta: [{ title: "Orders — Admin — FEAGlam" }] }),
+  head: () => ({ meta: [{ title: "Orders — Admin — FEA Glam" }] }),
   component: AdminOrders,
 });
 

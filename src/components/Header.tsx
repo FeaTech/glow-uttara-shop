@@ -100,9 +100,9 @@ export function Header() {
         <Link
           to="/"
           className="mx-auto flex shrink-0 items-center gap-2 md:mx-0"
-          aria-label="FEAGlam home"
+          aria-label="FEA Glam home"
         >
-          <img src={logo.url} alt="FEAGlam" className="h-24 w-auto md:h-28" />
+          <img src={logo.url} alt="FEA Glam" className="h-24 w-auto md:h-28" />
         </Link>
 
         {/* Desktop nav */}
@@ -122,7 +122,7 @@ export function Header() {
 
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new Event("feaglam:search"))}
+          onClick={() => window.dispatchEvent(new Event("fea-glam:search"))}
           className="ml-auto hidden max-w-xs flex-1 items-center gap-2 rounded-full border border-input bg-background/60 py-2 pl-3 pr-2 text-left text-sm text-muted-foreground transition-colors hover:border-primary md:flex"
           aria-label="Search"
         >

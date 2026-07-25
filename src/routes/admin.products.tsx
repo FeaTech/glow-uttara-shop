@@ -29,7 +29,7 @@ import { ProductImage } from "@/components/ProductImage";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/products")({
-  head: () => ({ meta: [{ title: "Products — Admin — FEAGlam" }] }),
+  head: () => ({ meta: [{ title: "Products — Admin — FEA Glam" }] }),
   component: AdminProducts,
 });
 

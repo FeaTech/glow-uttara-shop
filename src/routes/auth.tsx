@@ -15,8 +15,8 @@ const authSearchSchema = (value: Record<string, unknown>) => ({
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — FEAGlam" },
-      { name: "description", content: "Sign in or create an account to shop luxury beauty products at FEAGlam." },
+      { title: "Sign in — FEA Glam" },
+      { name: "description", content: "Sign in or create an account to shop luxury beauty products at FEA Glam." },
     ],
   }),
   validateSearch: authSearchSchema,
@@ -99,7 +99,7 @@ function AuthPage() {
             {tab === "signin" ? "Welcome back" : "Create your account"}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {tab === "signin" ? "Sign in to continue shopping premium beauty." : "Join FEAGlam for a curated beauty experience."}
+            {tab === "signin" ? "Sign in to continue shopping premium beauty." : "Join FEA Glam for a curated beauty experience."}
           </p>
 
           <Tabs value={tab} onValueChange={setTab} className="mt-8">

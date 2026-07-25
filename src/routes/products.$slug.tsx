@@ -38,9 +38,9 @@ export const Route = createFileRoute("/products/$slug")({
     return {
       meta: product
         ? [
-            { title: `${product.name} — FEAGlam` },
-            { name: "description", content: product.short_description ?? product.description ?? `Shop ${product.name} at FEAGlam.` },
-            { property: "og:title", content: `${product.name} — FEAGlam` },
+            { title: `${product.name} — FEA Glam` },
+            { name: "description", content: product.short_description ?? product.description ?? `Shop ${product.name} at FEA Glam.` },
+            { property: "og:title", content: `${product.name} — FEA Glam` },
             { property: "og:type", content: "product" },
           ]
         : [],
