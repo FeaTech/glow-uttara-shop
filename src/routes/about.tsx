@@ -6,8 +6,8 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About us — FEAGlam" },
-      { name: "description", content: "FEAGlam curates authentic luxury beauty for India — the story behind the brand." },
+      { title: "About us — FEA Glam" },
+      { name: "description", content: "FEA Glam curates authentic luxury beauty for India — the story behind the brand." },
     ],
   }),
   component: AboutPage,

@@ -3,8 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — FEAGlam" },
-      { name: "description", content: "The terms and conditions for shopping at FEAGlam." },
+      { title: "Terms of Service — FEA Glam" },
+      { name: "description", content: "The terms and conditions for shopping at FEA Glam." },
     ],
   }),
   component: TermsPage,
@@ -24,7 +24,7 @@ function TermsPage() {
         <section>
           <h2 className="font-serif text-2xl font-light text-foreground">Acceptance of terms</h2>
           <p className="mt-3">
-            By accessing and shopping at FEAGlam, you agree to these terms. If you do not agree, please do not use the
+            By accessing and shopping at FEA Glam, you agree to these terms. If you do not agree, please do not use the
             service.
           </p>
         </section>
@@ -52,7 +52,7 @@ function TermsPage() {
         <section>
           <h2 className="font-serif text-2xl font-light text-foreground">Limitation of liability</h2>
           <p className="mt-3">
-            FEAGlam is not liable for any indirect or consequential damages arising from the use of our products or
+            FEA Glam is not liable for any indirect or consequential damages arising from the use of our products or
             website, to the extent permitted by law.
           </p>
         </section>

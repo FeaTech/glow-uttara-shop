@@ -3,8 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — FEAGlam" },
-      { name: "description", content: "How FEAGlam collects, uses, and protects your personal information." },
+      { title: "Privacy Policy — FEA Glam" },
+      { name: "description", content: "How FEA Glam collects, uses, and protects your personal information." },
     ],
   }),
   component: PrivacyPage,

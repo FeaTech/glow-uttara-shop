@@ -14,8 +14,8 @@ const wishlistQueryOptions = () =>
 export const Route = createFileRoute("/_authenticated/wishlist")({
   head: () => ({
     meta: [
-      { title: "My wishlist — FEAGlam" },
-      { name: "description", content: "Your saved FEAGlam favourites." },
+      { title: "My wishlist — FEA Glam" },
+      { name: "description", content: "Your saved FEA Glam favourites." },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(wishlistQueryOptions()),

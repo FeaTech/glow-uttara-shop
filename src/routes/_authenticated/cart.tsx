@@ -14,8 +14,8 @@ const cartQueryOptions = () =>
 export const Route = createFileRoute("/_authenticated/cart")({
   head: () => ({
     meta: [
-      { title: "Shopping cart — FEAGlam" },
-      { name: "description", content: "Review your FEAGlam shopping cart." },
+      { title: "Shopping cart — FEA Glam" },
+      { name: "description", content: "Review your FEA Glam shopping cart." },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(cartQueryOptions()),

@@ -6,7 +6,7 @@ import { adminStats } from "@/lib/admin.functions";
 import { formatINR } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/")({
-  head: () => ({ meta: [{ title: "Admin dashboard — FEAGlam" }] }),
+  head: () => ({ meta: [{ title: "Admin dashboard — FEA Glam" }] }),
   component: AdminDashboard,
 });
 

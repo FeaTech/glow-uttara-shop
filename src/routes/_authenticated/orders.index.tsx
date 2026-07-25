@@ -14,8 +14,8 @@ const ordersQueryOptions = () =>
 export const Route = createFileRoute("/_authenticated/orders/")({
   head: () => ({
     meta: [
-      { title: "My orders — FEAGlam" },
-      { name: "description", content: "View your order history at FEAGlam." },
+      { title: "My orders — FEA Glam" },
+      { name: "description", content: "View your order history at FEA Glam." },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(ordersQueryOptions()),

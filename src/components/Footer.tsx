@@ -36,8 +36,8 @@ export function Footer() {
       <div className="container-luxe py-14">
         <div className="grid gap-12 md:grid-cols-4">
           <div className="md:col-span-1">
-            <Link to="/" className="inline-block" aria-label="FEAGlam home">
-              <img src={logo.url} alt="FEAGlam" className="h-28 w-auto" />
+            <Link to="/" className="inline-block" aria-label="FEA Glam home">
+              <img src={logo.url} alt="FEA Glam" className="h-28 w-auto" />
             </Link>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
               Curated cosmetics, skincare, and fragrances for the modern Indian beauty lover.
@@ -88,7 +88,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted-foreground md:flex-row">
-          <p>&copy; {new Date().getFullYear()} FEAGlam. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} FEA Glam. All rights reserved.</p>
           <div className="flex gap-6">
             <Link to="/privacy" className="hover:text-foreground">Privacy policy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms of service</Link>
@@ -106,7 +106,7 @@ function NewsletterForm() {
 
   const mutation = useMutation({
     mutationFn: subscribeFn,
-    onSuccess: () => { setDone(true); setEmail(""); toast.success("You're subscribed — welcome to FEAGlam!"); },
+    onSuccess: () => { setDone(true); setEmail(""); toast.success("You're subscribed — welcome to FEA Glam!"); },
     onError: (err: any) => toast.error(err?.message ?? "Could not subscribe"),
   });
 
