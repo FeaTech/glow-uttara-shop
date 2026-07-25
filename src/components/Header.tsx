@@ -86,7 +86,7 @@ export function Header() {
         scrolled ? "glass border-border shadow-sm" : "border-transparent bg-background",
       )}
     >
-      <div className="container-luxe relative flex h-36 items-center justify-between gap-4 md:h-40">
+      <div className="container-luxe relative flex h-32 items-center justify-between gap-4 md:h-36">
         {/* Mobile menu toggle — absolute left on small screens */}
         <button
           className="absolute left-4 top-1/2 -translate-y-1/2 md:hidden"
