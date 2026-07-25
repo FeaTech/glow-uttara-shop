@@ -16,6 +16,7 @@ import {
 import { useCartCount } from "@/hooks/use-cart-count";
 import { amIAdmin } from "@/lib/roles.functions";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/feaglam-logo.png.asset.json";
 
 const navLinks = [
   { to: "/products", search: {}, label: "Shop" },
