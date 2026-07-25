@@ -38,7 +38,7 @@ export const listReviews = createServerFn({ method: "GET" })
     const supabase = getPublicClient();
     const { data: reviews, error } = await supabase
       .from("reviews")
-      .select("id, rating, title, body, author_name, is_verified, created_at, user_id")
+      .select("id, rating, title, body, author_name, is_verified, created_at")
       .eq("product_id", data.productId)
       .order("created_at", { ascending: false });
     if (error) throw error;
