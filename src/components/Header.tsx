@@ -86,9 +86,9 @@ export function Header() {
         scrolled ? "glass border-border shadow-sm" : "border-transparent bg-background",
       )}
     >
-      <div className="container-luxe flex h-32 items-center gap-4">
+      <div className="container-luxe flex h-36 items-center gap-4">
         <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="FEAGlam home">
-          <img src={logo.url} alt="FEAGlam" className="h-28 w-auto md:h-32" />
+          <img src={logo.url} alt="FEAGlam" className="h-32 w-auto md:h-36" />
         </Link>
 
         <nav className="ml-2 hidden items-center gap-7 lg:flex">
