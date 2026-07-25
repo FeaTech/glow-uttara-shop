@@ -5,6 +5,7 @@ import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { getCart, removeCartItem, updateCartItem } from "@/lib/cart.functions";
 import { Button } from "@/components/ui/button";
 import { formatINR, productImage } from "@/lib/format";
+import { ProductImage } from "@/components/ProductImage";
 import { toast } from "sonner";
 
 const cartQueryOptions = () =>
@@ -70,7 +71,7 @@ function CartPage() {
               return (
                 <div key={item.id} className="card-luxe flex gap-4 p-4">
                   <Link to="/products/$slug" params={{ slug: product?.slug ?? "" }} className="h-24 w-24 shrink-0 overflow-hidden rounded-md bg-muted sm:h-28 sm:w-28">
-                    <img src={image} alt={product?.name} className="h-full w-full object-cover transition-transform hover:scale-105" />
+                    <ProductImage src={image} alt={product?.name ?? ""} className="h-full w-full object-cover transition-transform hover:scale-105" />
                   </Link>
                   <div className="flex flex-1 flex-col justify-between">
                     <div className="flex items-start justify-between gap-2">
