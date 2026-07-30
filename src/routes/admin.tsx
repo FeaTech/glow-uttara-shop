@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingCart, Ticket, Store, FolderTree, Star } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Ticket, Store, FolderTree, Star, Gift } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { amIAdmin } from "@/lib/roles.functions";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ const navItems = [
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart, exact: false },
   { to: "/admin/coupons", label: "Coupons", icon: Ticket, exact: false },
   { to: "/admin/reviews", label: "Reviews", icon: Star, exact: false },
+  { to: "/admin/referrals", label: "Referrals", icon: Gift, exact: false },
 ];
 
 function AdminLayout() {

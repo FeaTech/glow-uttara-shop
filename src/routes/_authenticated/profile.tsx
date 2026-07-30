@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Heart, Package, Pencil, Plus, X } from "lucide-react";
+import { Heart, Package, Pencil, Plus, X, Gift } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfile, getAddresses, createAddress, updateAddress, deleteAddress, updateProfile } from "@/lib/profile.functions";
 import { Button } from "@/components/ui/button";
@@ -80,7 +80,7 @@ function ProfilePage() {
         </div>
 
         {/* Quick links */}
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Link to="/orders" className="card-luxe card-hover flex items-center gap-3 p-4">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary"><Package className="h-5 w-5" /></span>
             <span className="font-medium text-foreground">My orders</span>
@@ -88,6 +88,10 @@ function ProfilePage() {
           <Link to="/wishlist" className="card-luxe card-hover flex items-center gap-3 p-4">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary"><Heart className="h-5 w-5" /></span>
             <span className="font-medium text-foreground">My wishlist</span>
+          </Link>
+          <Link to="/referrals" className="card-luxe card-hover flex items-center gap-3 p-4">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary"><Gift className="h-5 w-5" /></span>
+            <span className="font-medium text-foreground">Refer &amp; Earn</span>
           </Link>
         </div>
 

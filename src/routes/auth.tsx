@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 const authSearchSchema = (value: Record<string, unknown>) => ({
   redirect: typeof value.redirect === "string" ? value.redirect : undefined,
+  ref: typeof value.ref === "string" ? value.ref : undefined,
 });
 
 export const Route = createFileRoute("/auth")({
@@ -25,11 +26,12 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { redirect } = useSearch({ from: "/auth" });
-  const [tab, setTab] = useState("signin");
+  const { redirect, ref } = useSearch({ from: "/auth" });
+  const [tab, setTab] = useState(ref ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [referralCode, setReferralCode] = useState((ref ?? "").toUpperCase());
   const [loading, setLoading] = useState(false);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -44,7 +46,13 @@ function AuthPage() {
       } else {
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
+          options: {
+            data: {
+              full_name: fullName,
+              ...(referralCode.trim() ? { referral_code: referralCode.trim().toUpperCase() } : {}),
+            },
+            emailRedirectTo: window.location.origin,
+          },
         });
         if (error) throw error;
         toast.success("Account created. Please check your email to confirm.");
@@ -147,6 +155,17 @@ function AuthPage() {
                 <div>
                   <Label htmlFor="password2">Password</Label>
                   <Input id="password2" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" />
+                </div>
+                <div>
+                  <Label htmlFor="referral">Referral code <span className="text-muted-foreground">(optional)</span></Label>
+                  <Input
+                    id="referral"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. FEA1A2B3C4"
+                    className="mt-1.5 uppercase"
+                  />
+                  {ref && <p className="mt-1 text-xs text-primary">A friend referred you — you're all set!</p>}
                 </div>
                 <Button type="submit" className="btn-gold w-full" disabled={loading}>
                   {loading ? "Creating account…" : "Create account"}

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShoppingBag, User, Menu, X, LogOut, Heart, Search, Package, LayoutDashboard } from "lucide-react";
+import { ShoppingBag, User, Menu, X, LogOut, Heart, Search, Package, LayoutDashboard, Gift } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -169,6 +169,9 @@ export function Header() {
                 <DropdownMenuItem asChild>
                   <Link to="/wishlist"><Heart className="mr-2 h-4 w-4" />Wishlist</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/referrals"><Gift className="mr-2 h-4 w-4" />Refer &amp; Earn</Link>
+                </DropdownMenuItem>
                 {isAdmin && (
                   <>
                     <DropdownMenuSeparator />
@@ -223,6 +226,7 @@ export function Header() {
               <>
                 <Link to="/profile" onClick={() => setMobileOpen(false)} className="text-base font-medium">Profile</Link>
                 <Link to="/orders" onClick={() => setMobileOpen(false)} className="text-base font-medium">My orders</Link>
+                <Link to="/referrals" onClick={() => setMobileOpen(false)} className="text-base font-medium">Refer &amp; Earn</Link>
                 {isAdmin && (
                   <Link to="/admin" onClick={() => setMobileOpen(false)} className="text-base font-medium text-primary">Admin dashboard</Link>
                 )}
