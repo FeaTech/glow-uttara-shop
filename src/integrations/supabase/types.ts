@@ -304,10 +304,8 @@ export type Database = {
         Row: {
           coupon_code: string | null
           created_at: string
-          delivered_at: string | null
           discount_inr: number
           id: string
-          is_test: boolean
           notes: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           shipping_address: Json
@@ -320,10 +318,8 @@ export type Database = {
         Insert: {
           coupon_code?: string | null
           created_at?: string
-          delivered_at?: string | null
           discount_inr?: number
           id?: string
-          is_test?: boolean
           notes?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           shipping_address: Json
@@ -336,10 +332,8 @@ export type Database = {
         Update: {
           coupon_code?: string | null
           created_at?: string
-          delivered_at?: string | null
           discount_inr?: number
           id?: string
-          is_test?: boolean
           notes?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           shipping_address?: Json
@@ -496,6 +490,124 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_commission_audit: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          amount_delta: number
+          commission_id: string
+          created_at: string
+          id: string
+          new_status:
+            | Database["public"]["Enums"]["referral_commission_status"]
+            | null
+          previous_status:
+            | Database["public"]["Enums"]["referral_commission_status"]
+            | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          amount_delta?: number
+          commission_id: string
+          created_at?: string
+          id?: string
+          new_status?:
+            | Database["public"]["Enums"]["referral_commission_status"]
+            | null
+          previous_status?:
+            | Database["public"]["Enums"]["referral_commission_status"]
+            | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          amount_delta?: number
+          commission_id?: string
+          created_at?: string
+          id?: string
+          new_status?:
+            | Database["public"]["Enums"]["referral_commission_status"]
+            | null
+          previous_status?:
+            | Database["public"]["Enums"]["referral_commission_status"]
+            | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commission_audit_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "referral_commissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_commissions: {
+        Row: {
+          adjustment_amount: number
+          adjustment_reason: string | null
+          approved_at: string | null
+          beneficiary_user_id: string
+          cancelled_at: string | null
+          commission_amount: number
+          commission_percentage: number
+          created_at: string
+          eligible_order_amount: number
+          id: string
+          order_id: string
+          paid_at: string | null
+          purchasing_user_id: string
+          referral_level: number
+          status: Database["public"]["Enums"]["referral_commission_status"]
+        }
+        Insert: {
+          adjustment_amount?: number
+          adjustment_reason?: string | null
+          approved_at?: string | null
+          beneficiary_user_id: string
+          cancelled_at?: string | null
+          commission_amount?: number
+          commission_percentage: number
+          created_at?: string
+          eligible_order_amount?: number
+          id?: string
+          order_id: string
+          paid_at?: string | null
+          purchasing_user_id: string
+          referral_level: number
+          status?: Database["public"]["Enums"]["referral_commission_status"]
+        }
+        Update: {
+          adjustment_amount?: number
+          adjustment_reason?: string | null
+          approved_at?: string | null
+          beneficiary_user_id?: string
+          cancelled_at?: string | null
+          commission_amount?: number
+          commission_percentage?: number
+          created_at?: string
+          eligible_order_amount?: number
+          id?: string
+          order_id?: string
+          paid_at?: string | null
+          purchasing_user_id?: string
+          referral_level?: number
+          status?: Database["public"]["Enums"]["referral_commission_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_settings: {
         Row: {
           approval_waiting_days: number
@@ -528,115 +640,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
-      }
-      referral_commissions: {
-        Row: {
-          adjustment_amount: number
-          adjustment_reason: string | null
-          approved_at: string | null
-          beneficiary_user_id: string
-          cancelled_at: string | null
-          commission_amount: number
-          commission_percentage: number
-          created_at: string
-          eligible_order_amount: number
-          id: string
-          order_id: string
-          paid_at: string | null
-          purchasing_user_id: string
-          referral_level: number
-          status: Database["public"]["Enums"]["commission_status"]
-          updated_at: string
-        }
-        Insert: {
-          adjustment_amount?: number
-          adjustment_reason?: string | null
-          approved_at?: string | null
-          beneficiary_user_id: string
-          cancelled_at?: string | null
-          commission_amount: number
-          commission_percentage: number
-          created_at?: string
-          eligible_order_amount: number
-          id?: string
-          order_id: string
-          paid_at?: string | null
-          purchasing_user_id: string
-          referral_level: number
-          status?: Database["public"]["Enums"]["commission_status"]
-          updated_at?: string
-        }
-        Update: {
-          adjustment_amount?: number
-          adjustment_reason?: string | null
-          approved_at?: string | null
-          beneficiary_user_id?: string
-          cancelled_at?: string | null
-          commission_amount?: number
-          commission_percentage?: number
-          created_at?: string
-          eligible_order_amount?: number
-          id?: string
-          order_id?: string
-          paid_at?: string | null
-          purchasing_user_id?: string
-          referral_level?: number
-          status?: Database["public"]["Enums"]["commission_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "referral_commissions_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      referral_commission_audit: {
-        Row: {
-          action: string
-          actor_user_id: string | null
-          amount_delta: number | null
-          commission_id: string | null
-          created_at: string
-          id: string
-          new_status: Database["public"]["Enums"]["commission_status"] | null
-          previous_status: Database["public"]["Enums"]["commission_status"] | null
-          reason: string | null
-        }
-        Insert: {
-          action: string
-          actor_user_id?: string | null
-          amount_delta?: number | null
-          commission_id?: string | null
-          created_at?: string
-          id?: string
-          new_status?: Database["public"]["Enums"]["commission_status"] | null
-          previous_status?: Database["public"]["Enums"]["commission_status"] | null
-          reason?: string | null
-        }
-        Update: {
-          action?: string
-          actor_user_id?: string | null
-          amount_delta?: number | null
-          commission_id?: string | null
-          created_at?: string
-          id?: string
-          new_status?: Database["public"]["Enums"]["commission_status"] | null
-          previous_status?: Database["public"]["Enums"]["commission_status"] | null
-          reason?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "referral_commission_audit_commission_id_fkey"
-            columns: ["commission_id"]
-            isOneToOne: false
-            referencedRelation: "referral_commissions"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       reviews: {
         Row: {
@@ -740,6 +743,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_due_referral_commissions: { Args: never; Returns: number }
+      generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -747,18 +752,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      approve_due_referral_commissions: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      generate_referral_commissions: {
-        Args: { _order_id: string }
-        Returns: undefined
-      }
     }
     Enums: {
       app_role: "admin" | "customer"
-      commission_status: "pending" | "approved" | "paid" | "cancelled"
       discount_type: "percent" | "fixed"
       order_status:
         | "pending"
@@ -767,6 +763,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
       payment_status: "pending" | "paid" | "failed" | "refunded"
+      referral_commission_status: "pending" | "approved" | "paid" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -895,7 +892,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
-      commission_status: ["pending", "approved", "paid", "cancelled"],
       discount_type: ["percent", "fixed"],
       order_status: [
         "pending",
@@ -905,6 +901,7 @@ export const Constants = {
         "cancelled",
       ],
       payment_status: ["pending", "paid", "failed", "refunded"],
+      referral_commission_status: ["pending", "approved", "paid", "cancelled"],
     },
   },
 } as const
