@@ -6,11 +6,6 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Supa = SupabaseClient<Database>;
 
-async function admin() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
-}
-
 async function assertAdmin(supabase: Supa, userId: string) {
   const { data } = await supabase
     .from("user_roles")
@@ -46,7 +41,7 @@ export const getReferralDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { userId } = context;
-    const db = await admin();
+    const db = context.supabase;
 
     const { data: profile } = await db
       .from("profiles")
@@ -98,7 +93,7 @@ export const getReferralHistory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { userId } = context;
-    const db = await admin();
+    const db = context.supabase;
 
     const { data: rows } = await db
       .from("referral_commissions")
@@ -132,7 +127,7 @@ export const adminReferralSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
 
     const [{ count: referredCustomers }, { data: commissions }] = await Promise.all([
       db.from("profiles").select("id", { count: "exact", head: true }).not("referred_by_user_id", "is", null),
@@ -164,7 +159,7 @@ export const adminListCommissions = createServerFn({ method: "GET" })
   .inputValidator((input) => listSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
 
     let query = db
       .from("referral_commissions")
@@ -208,7 +203,7 @@ export const adminListRelationships = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: referred } = await db
       .from("profiles")
       .select("id, full_name, referral_code, referred_by_user_id, referral_registered_at")
@@ -235,7 +230,7 @@ export const adminListRelationships = createServerFn({ method: "GET" })
 const idSchema = z.object({ id: z.string().uuid() });
 
 async function writeAudit(
-  db: Awaited<ReturnType<typeof admin>>,
+  db: Supa,
   commissionId: string,
   action: string,
   prev: string | null,
@@ -260,7 +255,7 @@ export const adminApproveCommission = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: c } = await db.from("referral_commissions").select("*").eq("id", data.id).maybeSingle();
     if (!c) throw new Error("Commission not found");
     if (c.status !== "pending") throw new Error("Only pending commissions can be approved");
@@ -274,7 +269,7 @@ export const adminMarkPaid = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: c } = await db.from("referral_commissions").select("*").eq("id", data.id).maybeSingle();
     if (!c) throw new Error("Commission not found");
     if (c.status !== "approved") throw new Error("Only approved commissions can be paid");
@@ -290,7 +285,7 @@ export const adminCancelCommission = createServerFn({ method: "POST" })
   .inputValidator((input) => cancelSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: c } = await db.from("referral_commissions").select("*").eq("id", data.id).maybeSingle();
     if (!c) throw new Error("Commission not found");
     if (c.status === "cancelled") throw new Error("Already cancelled");
@@ -321,7 +316,7 @@ export const adminAdjustCommission = createServerFn({ method: "POST" })
   .inputValidator((input) => adjustSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: c } = await db.from("referral_commissions").select("*").eq("id", data.id).maybeSingle();
     if (!c) throw new Error("Commission not found");
     if (c.status === "cancelled") throw new Error("Cannot adjust a cancelled commission");
@@ -342,7 +337,7 @@ export const adminApproveDueCommissions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data, error } = await db.rpc("approve_due_referral_commissions");
     if (error) throw error;
     return { approved: (data as number) ?? 0 };
@@ -353,7 +348,7 @@ export const getReferralSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data } = await db.from("referral_settings").select("*").eq("id", true).maybeSingle();
     return data;
   });
@@ -371,7 +366,7 @@ export const adminUpdateReferralSettings = createServerFn({ method: "POST" })
   .inputValidator((input) => settingsSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { error } = await db.from("referral_settings").update({
       ...data,
       updated_by: context.userId,
