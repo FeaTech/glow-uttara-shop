@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
-const authSearchSchema = (value: Record<string, unknown>) => ({
-  redirect: typeof value.redirect === "string" ? value.redirect : undefined,
-  ref: typeof value.ref === "string" ? value.ref : undefined,
+const authSearchSchema = (value: Record<string, unknown>): { redirect?: string; ref?: string } => ({
+  ...(typeof value.redirect === "string" ? { redirect: value.redirect } : {}),
+  ...(typeof value.ref === "string" ? { ref: value.ref } : {}),
 });
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
