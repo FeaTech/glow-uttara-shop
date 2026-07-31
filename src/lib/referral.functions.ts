@@ -55,22 +55,9 @@ export const getReferralDashboard = createServerFn({ method: "GET" })
       .eq("id", true)
       .maybeSingle();
 
-    // Direct referrals.
-    const { data: directRows } = await db
-      .from("profiles")
-      .select("id")
-      .eq("referred_by_user_id", userId);
-    const directIds = (directRows ?? []).map((r) => r.id);
-
-    // Indirect referrals (children of direct referrals).
-    let indirectCount = 0;
-    if (directIds.length) {
-      const { count } = await db
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .in("referred_by_user_id", directIds);
-      indirectCount = count ?? 0;
-    }
+    // Direct + indirect referral counts (security-definer, scoped to auth.uid()).
+    const { data: counts } = await db.rpc("my_referral_counts");
+    const countRow = Array.isArray(counts) ? counts[0] : counts;
 
     const { data: commissions } = await db
       .from("referral_commissions")
@@ -83,8 +70,8 @@ export const getReferralDashboard = createServerFn({ method: "GET" })
       level1Percentage: Number(settings?.level_1_percentage ?? 10),
       level2Percentage: Number(settings?.level_2_percentage ?? 5),
       minimumPayout: settings?.minimum_payout_amount ?? 0,
-      directReferrals: directIds.length,
-      indirectReferrals: indirectCount,
+      directReferrals: countRow?.direct_count ?? 0,
+      indirectReferrals: countRow?.indirect_count ?? 0,
       earnings: sumEarnings((commissions ?? []) as EarningRow[]),
     };
   });
@@ -92,32 +79,23 @@ export const getReferralDashboard = createServerFn({ method: "GET" })
 export const getReferralHistory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { userId } = context;
     const db = context.supabase;
 
-    const { data: rows } = await db
-      .from("referral_commissions")
-      .select("id, order_id, purchasing_user_id, referral_level, commission_percentage, eligible_order_amount, commission_amount, adjustment_amount, status, created_at, orders(created_at)")
-      .eq("beneficiary_user_id", userId)
-      .order("created_at", { ascending: false });
-
-    const purchasingIds = [...new Set((rows ?? []).map((r) => r.purchasing_user_id))];
-    const { data: profiles } = purchasingIds.length
-      ? await db.from("profiles").select("id, full_name").in("id", purchasingIds)
-      : { data: [] as { id: string; full_name: string | null }[] };
-    const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+    const { data: rows, error } = await db.rpc("my_referral_history");
+    if (error) throw error;
 
     return (rows ?? []).map((r) => ({
       id: r.id,
       orderRef: r.order_id.slice(0, 8).toUpperCase(),
-      referredCustomer: maskName(nameById.get(r.purchasing_user_id), r.purchasing_user_id),
+      referredCustomer: r.referred_customer,
       level: r.referral_level,
-      orderDate: (r.orders as any)?.created_at ?? r.created_at,
+      orderDate: r.order_date,
       eligibleAmount: r.eligible_order_amount,
       percentage: Number(r.commission_percentage),
       commissionAmount: r.commission_amount + r.adjustment_amount,
       status: r.status,
     }));
+
   });
 
 // ===========================================================================
