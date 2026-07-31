@@ -752,6 +752,28 @@ export type Database = {
         }
         Returns: boolean
       }
+      my_referral_counts: {
+        Args: never
+        Returns: {
+          direct_count: number
+          indirect_count: number
+        }[]
+      }
+      my_referral_history: {
+        Args: never
+        Returns: {
+          adjustment_amount: number
+          commission_amount: number
+          commission_percentage: number
+          eligible_order_amount: number
+          id: string
+          order_date: string
+          order_id: string
+          referral_level: number
+          referred_customer: string
+          status: Database["public"]["Enums"]["referral_commission_status"]
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "customer"

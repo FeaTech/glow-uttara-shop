@@ -6,11 +6,6 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Supa = SupabaseClient<Database>;
 
-async function admin() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
-}
-
 async function assertAdmin(supabase: Supa, userId: string) {
   const { data } = await supabase
     .from("user_roles")
@@ -21,11 +16,8 @@ async function assertAdmin(supabase: Supa, userId: string) {
   if (!data) throw new Error("Forbidden: admin access required");
 }
 
-/** First name, or a masked id — never full PII. */
-function maskName(fullName: string | null | undefined, userId: string): string {
-  const first = (fullName ?? "").trim().split(/\s+/)[0];
-  return first || `Customer ${userId.slice(-4).toUpperCase()}`;
-}
+
+
 
 type EarningRow = { status: string; commission_amount: number; adjustment_amount: number };
 function sumEarnings(rows: EarningRow[]) {
@@ -46,7 +38,7 @@ export const getReferralDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { userId } = context;
-    const db = await admin();
+    const db = context.supabase;
 
     const { data: profile } = await db
       .from("profiles")
@@ -60,22 +52,9 @@ export const getReferralDashboard = createServerFn({ method: "GET" })
       .eq("id", true)
       .maybeSingle();
 
-    // Direct referrals.
-    const { data: directRows } = await db
-      .from("profiles")
-      .select("id")
-      .eq("referred_by_user_id", userId);
-    const directIds = (directRows ?? []).map((r) => r.id);
-
-    // Indirect referrals (children of direct referrals).
-    let indirectCount = 0;
-    if (directIds.length) {
-      const { count } = await db
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .in("referred_by_user_id", directIds);
-      indirectCount = count ?? 0;
-    }
+    // Direct + indirect referral counts (security-definer, scoped to auth.uid()).
+    const { data: counts } = await db.rpc("my_referral_counts");
+    const countRow = Array.isArray(counts) ? counts[0] : counts;
 
     const { data: commissions } = await db
       .from("referral_commissions")
@@ -88,8 +67,8 @@ export const getReferralDashboard = createServerFn({ method: "GET" })
       level1Percentage: Number(settings?.level_1_percentage ?? 10),
       level2Percentage: Number(settings?.level_2_percentage ?? 5),
       minimumPayout: settings?.minimum_payout_amount ?? 0,
-      directReferrals: directIds.length,
-      indirectReferrals: indirectCount,
+      directReferrals: countRow?.direct_count ?? 0,
+      indirectReferrals: countRow?.indirect_count ?? 0,
       earnings: sumEarnings((commissions ?? []) as EarningRow[]),
     };
   });
@@ -97,32 +76,23 @@ export const getReferralDashboard = createServerFn({ method: "GET" })
 export const getReferralHistory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { userId } = context;
-    const db = await admin();
+    const db = context.supabase;
 
-    const { data: rows } = await db
-      .from("referral_commissions")
-      .select("id, order_id, purchasing_user_id, referral_level, commission_percentage, eligible_order_amount, commission_amount, adjustment_amount, status, created_at, orders(created_at)")
-      .eq("beneficiary_user_id", userId)
-      .order("created_at", { ascending: false });
-
-    const purchasingIds = [...new Set((rows ?? []).map((r) => r.purchasing_user_id))];
-    const { data: profiles } = purchasingIds.length
-      ? await db.from("profiles").select("id, full_name").in("id", purchasingIds)
-      : { data: [] as { id: string; full_name: string | null }[] };
-    const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+    const { data: rows, error } = await db.rpc("my_referral_history");
+    if (error) throw error;
 
     return (rows ?? []).map((r) => ({
       id: r.id,
       orderRef: r.order_id.slice(0, 8).toUpperCase(),
-      referredCustomer: maskName(nameById.get(r.purchasing_user_id), r.purchasing_user_id),
+      referredCustomer: r.referred_customer,
       level: r.referral_level,
-      orderDate: (r.orders as any)?.created_at ?? r.created_at,
+      orderDate: r.order_date,
       eligibleAmount: r.eligible_order_amount,
       percentage: Number(r.commission_percentage),
       commissionAmount: r.commission_amount + r.adjustment_amount,
       status: r.status,
     }));
+
   });
 
 // ===========================================================================
@@ -132,7 +102,7 @@ export const adminReferralSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
 
     const [{ count: referredCustomers }, { data: commissions }] = await Promise.all([
       db.from("profiles").select("id", { count: "exact", head: true }).not("referred_by_user_id", "is", null),
@@ -164,7 +134,7 @@ export const adminListCommissions = createServerFn({ method: "GET" })
   .inputValidator((input) => listSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
 
     let query = db
       .from("referral_commissions")
@@ -208,7 +178,7 @@ export const adminListRelationships = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: referred } = await db
       .from("profiles")
       .select("id, full_name, referral_code, referred_by_user_id, referral_registered_at")
@@ -235,7 +205,7 @@ export const adminListRelationships = createServerFn({ method: "GET" })
 const idSchema = z.object({ id: z.string().uuid() });
 
 async function writeAudit(
-  db: Awaited<ReturnType<typeof admin>>,
+  db: Supa,
   commissionId: string,
   action: string,
   prev: string | null,
@@ -260,7 +230,7 @@ export const adminApproveCommission = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: c } = await db.from("referral_commissions").select("*").eq("id", data.id).maybeSingle();
     if (!c) throw new Error("Commission not found");
     if (c.status !== "pending") throw new Error("Only pending commissions can be approved");
@@ -274,7 +244,7 @@ export const adminMarkPaid = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: c } = await db.from("referral_commissions").select("*").eq("id", data.id).maybeSingle();
     if (!c) throw new Error("Commission not found");
     if (c.status !== "approved") throw new Error("Only approved commissions can be paid");
@@ -290,7 +260,7 @@ export const adminCancelCommission = createServerFn({ method: "POST" })
   .inputValidator((input) => cancelSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: c } = await db.from("referral_commissions").select("*").eq("id", data.id).maybeSingle();
     if (!c) throw new Error("Commission not found");
     if (c.status === "cancelled") throw new Error("Already cancelled");
@@ -321,7 +291,7 @@ export const adminAdjustCommission = createServerFn({ method: "POST" })
   .inputValidator((input) => adjustSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data: c } = await db.from("referral_commissions").select("*").eq("id", data.id).maybeSingle();
     if (!c) throw new Error("Commission not found");
     if (c.status === "cancelled") throw new Error("Cannot adjust a cancelled commission");
@@ -342,7 +312,7 @@ export const adminApproveDueCommissions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data, error } = await db.rpc("approve_due_referral_commissions");
     if (error) throw error;
     return { approved: (data as number) ?? 0 };
@@ -353,7 +323,7 @@ export const getReferralSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { data } = await db.from("referral_settings").select("*").eq("id", true).maybeSingle();
     return data;
   });
@@ -371,7 +341,7 @@ export const adminUpdateReferralSettings = createServerFn({ method: "POST" })
   .inputValidator((input) => settingsSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = await admin();
+    const db = context.supabase;
     const { error } = await db.from("referral_settings").update({
       ...data,
       updated_by: context.userId,
