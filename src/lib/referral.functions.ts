@@ -16,11 +16,8 @@ async function assertAdmin(supabase: Supa, userId: string) {
   if (!data) throw new Error("Forbidden: admin access required");
 }
 
-/** First name, or a masked id — never full PII. */
-function maskName(fullName: string | null | undefined, userId: string): string {
-  const first = (fullName ?? "").trim().split(/\s+/)[0];
-  return first || `Customer ${userId.slice(-4).toUpperCase()}`;
-}
+
+
 
 type EarningRow = { status: string; commission_amount: number; adjustment_amount: number };
 function sumEarnings(rows: EarningRow[]) {
