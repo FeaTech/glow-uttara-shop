@@ -347,6 +347,7 @@ export type Database = {
       }
       product_variants: {
         Row: {
+          compare_price_inr: number | null
           created_at: string
           id: string
           price_inr: number | null
@@ -357,6 +358,7 @@ export type Database = {
           variant_name: string
         }
         Insert: {
+          compare_price_inr?: number | null
           created_at?: string
           id?: string
           price_inr?: number | null
@@ -367,6 +369,7 @@ export type Database = {
           variant_name: string
         }
         Update: {
+          compare_price_inr?: number | null
           created_at?: string
           id?: string
           price_inr?: number | null
@@ -389,6 +392,7 @@ export type Database = {
       products: {
         Row: {
           attributes: Json
+          base_unit: string | null
           category_id: string | null
           compare_price_inr: number | null
           created_at: string
@@ -408,6 +412,7 @@ export type Database = {
         }
         Insert: {
           attributes?: Json
+          base_unit?: string | null
           category_id?: string | null
           compare_price_inr?: number | null
           created_at?: string
@@ -427,6 +432,7 @@ export type Database = {
         }
         Update: {
           attributes?: Json
+          base_unit?: string | null
           category_id?: string | null
           compare_price_inr?: number | null
           created_at?: string
