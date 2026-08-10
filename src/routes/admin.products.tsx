@@ -363,31 +363,34 @@ function VariantRow({
 }: {
   variant: Awaited<ReturnType<typeof adminListVariants>>[number];
   productId: string;
-  onSave: (patch: { variant_name: string; sku: string | null; price_inr: number | null; stock: number }) => void;
+  onSave: (patch: { variant_name: string; sku: string | null; price_inr: number | null; compare_price_inr: number | null; stock: number }) => void;
   onDelete: () => void;
 }) {
   const [form, setForm] = useState({
     variant_name: variant.variant_name,
     sku: variant.sku ?? "",
     price_inr: variant.price_inr?.toString() ?? "",
+    compare_price_inr: (variant as any).compare_price_inr?.toString() ?? "",
     stock: variant.stock.toString(),
   });
   const dirty =
     form.variant_name !== variant.variant_name ||
     form.sku !== (variant.sku ?? "") ||
     form.price_inr !== (variant.price_inr?.toString() ?? "") ||
+    form.compare_price_inr !== ((variant as any).compare_price_inr?.toString() ?? "") ||
     form.stock !== variant.stock.toString();
 
   return (
-    <div className="grid grid-cols-[1fr_1fr_80px_70px_auto] items-center gap-2">
+    <div className="grid grid-cols-[1fr_1fr_80px_90px_70px_auto] items-center gap-2">
       <Input value={form.variant_name} onChange={(e) => setForm({ ...form, variant_name: e.target.value })} className="h-9" />
       <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className="h-9" placeholder="SKU" />
       <Input type="number" value={form.price_inr} onChange={(e) => setForm({ ...form, price_inr: e.target.value })} className="h-9" placeholder="₹" />
+      <Input type="number" value={form.compare_price_inr} onChange={(e) => setForm({ ...form, compare_price_inr: e.target.value })} className="h-9" placeholder="MRP ₹" />
       <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="h-9" />
       <div className="flex gap-1">
         {dirty && (
           <Button type="button" size="icon" variant="ghost" className="h-9 w-9" aria-label="Save variant"
-            onClick={() => onSave({ variant_name: form.variant_name, sku: form.sku || null, price_inr: form.price_inr ? Number(form.price_inr) : null, stock: Number(form.stock) || 0 })}>
+            onClick={() => onSave({ variant_name: form.variant_name, sku: form.sku || null, price_inr: form.price_inr ? Number(form.price_inr) : null, compare_price_inr: form.compare_price_inr ? Number(form.compare_price_inr) : null, stock: Number(form.stock) || 0 })}>
             <Check className="h-4 w-4 text-primary" />
           </Button>
         )}
