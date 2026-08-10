@@ -97,6 +97,7 @@ export const createOrder = createServerFn({ method: "POST" })
       order_id: order.id,
       product_id: item.product_id,
       variant_id: item.variant_id,
+      variant_name: item.product_variants?.variant_name ?? null,
       quantity: item.quantity,
       price_inr: item.product_variants?.price_inr ?? item.products?.price_inr ?? 0,
       name: item.products?.name ?? "Product",
