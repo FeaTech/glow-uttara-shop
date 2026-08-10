@@ -118,7 +118,9 @@ function AdminOrders() {
                             <ul className="space-y-1 text-sm">
                               {o.order_items.map((it: any) => (
                                 <li key={it.id} className="flex justify-between">
-                                  <span className="text-muted-foreground">{it.name} × {it.quantity}</span>
+                                  <span className="text-muted-foreground">
+                                    {it.name}{it.variant_name ? ` — ${it.variant_name}` : ""} × {it.quantity}
+                                  </span>
                                   <span>{formatINR(it.price_inr * it.quantity)}</span>
                                 </li>
                               ))}

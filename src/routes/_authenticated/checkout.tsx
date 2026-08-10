@@ -175,7 +175,9 @@ function CheckoutPage() {
                 const price = item.product_variants?.price_inr ?? item.products?.price_inr ?? 0;
                 return (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{item.products?.name} × {item.quantity}</span>
+                    <span className="text-muted-foreground">
+                      {item.products?.name}{item.product_variants?.variant_name ? ` — ${item.product_variants.variant_name}` : ""} × {item.quantity}
+                    </span>
                     <span className="text-foreground">{formatINR(price * item.quantity)}</span>
                   </div>
                 );
