@@ -105,7 +105,13 @@ function ProductPage() {
   const variants = product.product_variants ?? [];
   const selectedVariant = variants.find((v) => v.id === selectedVariantId);
   const price = selectedVariant?.price_inr ?? product.price_inr ?? 0;
-  const compare = product.compare_price_inr;
+  // Discounts always compare against the selected variant's own MRP; only fall
+  // back to the product-level compare price when no variant is selected.
+  const compare = selectedVariant
+    ? ((selectedVariant as any).compare_price_inr ?? null)
+    : product.compare_price_inr;
+  const baseUnit = ((product as any).base_unit as string | null) ?? null;
+  const unitLabel = selectedVariant?.variant_name ?? baseUnit;
   const off = discountPercent(price, compare);
   const productImages = (product.images as string[] | undefined) ?? [];
   const images = productImages.length ? productImages : [PLACEHOLDER_IMAGE];
