@@ -202,19 +202,40 @@ function ProductPage() {
 
             {variants.length > 0 && (
               <div className="mt-6">
-                <label className="text-sm font-medium text-foreground">Variant</label>
-                <Select value={selectedVariantId} onValueChange={setSelectedVariantId}>
-                  <SelectTrigger className="mt-2 w-full max-w-xs"><SelectValue placeholder="Choose an option" /></SelectTrigger>
-                  <SelectContent>
-                    {variants.map((v) => (
-                      <SelectItem key={v.id} value={v.id}>
-                        {v.variant_name} — {formatINR(v.price_inr ?? 0)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-baseline justify-between">
+                  <label className="text-sm font-medium text-foreground">
+                    Size / Variant
+                    {selectedVariant && <span className="ml-2 text-muted-foreground">{selectedVariant.variant_name}</span>}
+                  </label>
+                  <span className="text-xs text-muted-foreground">{variants.length} options</span>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {variants.map((v) => {
+                    const soldOut = (v.stock ?? 0) <= 0;
+                    const active = v.id === selectedVariantId;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        disabled={soldOut}
+                        onClick={() => setSelectedVariantId(v.id)}
+                        className={cn(
+                          "rounded-full border px-4 py-2 text-sm transition-colors",
+                          active
+                            ? "border-primary bg-primary/10 text-foreground"
+                            : "border-input text-muted-foreground hover:border-primary/60 hover:text-foreground",
+                          soldOut && "cursor-not-allowed line-through opacity-50",
+                        )}
+                      >
+                        <span className="font-medium">{v.variant_name}</span>
+                        <span className="ml-2">{formatINR(v.price_inr ?? product.price_inr ?? 0)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
+
 
             {/* Quantity + actions */}
             <div className="mt-6 flex flex-wrap items-center gap-3">
