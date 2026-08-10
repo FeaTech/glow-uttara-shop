@@ -176,6 +176,16 @@ function ProductPage() {
             )}
             <h1 className="mt-2 font-serif text-4xl font-light text-foreground">{product.name}</h1>
 
+            {variants.length > 0 && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {selectedVariant ? (
+                  <>Size: <span className="font-medium text-foreground">{selectedVariant.variant_name}</span></>
+                ) : (
+                  <>Available in {variants.map((v) => v.variant_name).join(" · ")}</>
+                )}
+              </p>
+            )}
+
             {product.rating_count > 0 && (
               <div className="mt-3">
                 <RatingStars value={product.rating_avg} count={product.rating_count} size="md" showValue />
@@ -184,6 +194,9 @@ function ProductPage() {
 
             <div className="mt-5 flex items-center gap-3">
               <span className="text-3xl font-semibold text-foreground">{formatINR(price)}</span>
+              {selectedVariant && (
+                <span className="text-sm text-muted-foreground">/ {selectedVariant.variant_name}</span>
+              )}
               {off !== null && (
                 <>
                   <span className="text-lg text-muted-foreground line-through">{formatINR(compare)}</span>
@@ -191,6 +204,7 @@ function ProductPage() {
                 </>
               )}
             </div>
+
 
             {product.short_description && (
               <p className="mt-4 text-muted-foreground">{product.short_description}</p>
