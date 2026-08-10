@@ -58,6 +58,10 @@ export const createOrder = createServerFn({ method: "POST" })
       return sum + price * item.quantity;
     }, 0);
 
+    // Build a map of selected variant names so we can persist the size in the order.
+    const variantName = (item: (typeof items)[number]) =>
+      item.product_variants?.variant_name ?? null;
+
     // Authoritatively re-validate the coupon on the server.
     let discount = 0;
     let couponCode: string | null = null;
