@@ -210,14 +210,14 @@ function ProductDialog({
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.price_inr) return toast.error("Name and price are required");
+    if (!form.name) return toast.error("Name is required");
     mutation.mutate({
       data: {
         id: product?.id,
         name: form.name,
         slug: form.slug || undefined,
         category_id: form.category_id || null,
-        price_inr: Number(form.price_inr),
+        price_inr: Number(form.price_inr) || 0,
         compare_price_inr: form.compare_price_inr ? Number(form.compare_price_inr) : null,
         base_unit: form.base_unit.trim() || null,
         stock: Number(form.stock) || 0,
@@ -248,14 +248,11 @@ function ProductDialog({
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Price (₹)</Label><Input type="number" value={form.price_inr} onChange={(e) => set({ price_inr: e.target.value })} required /></div>
-          <div><Label>Compare-at price (₹)</Label><Input type="number" value={form.compare_price_inr} onChange={(e) => set({ compare_price_inr: e.target.value })} /></div>
-          <div><Label>Size / unit for base price</Label><Input value={form.base_unit} onChange={(e) => set({ base_unit: e.target.value })} placeholder="e.g. 100 ml, 50 g" /></div>
-          <div><Label>Stock</Label><Input type="number" value={form.stock} onChange={(e) => set({ stock: e.target.value })} /></div>
-          <div className="flex items-center gap-3 pt-6">
+          <div className="flex items-center gap-3 sm:col-span-2">
             <Switch checked={form.is_featured} onCheckedChange={(v) => set({ is_featured: v })} id="featured" />
             <Label htmlFor="featured" className="font-normal">Featured product</Label>
           </div>
+
           <div className="sm:col-span-2"><Label>Short description</Label><Input value={form.short_description} onChange={(e) => set({ short_description: e.target.value })} /></div>
           <div className="sm:col-span-2"><Label>Description</Label><Textarea rows={3} value={form.description} onChange={(e) => set({ description: e.target.value })} /></div>
           <div className="sm:col-span-2">
