@@ -186,6 +186,7 @@ function ProductDialog({
     category_id: product?.category_id ?? "",
     price_inr: product?.price_inr?.toString() ?? "",
     compare_price_inr: product?.compare_price_inr?.toString() ?? "",
+    base_unit: (product as any)?.base_unit ?? "",
     stock: product?.stock?.toString() ?? "0",
     is_featured: product?.is_featured ?? false,
     short_description: product?.short_description ?? "",
