@@ -219,6 +219,7 @@ function ProductDialog({
         category_id: form.category_id || null,
         price_inr: Number(form.price_inr),
         compare_price_inr: form.compare_price_inr ? Number(form.compare_price_inr) : null,
+        base_unit: form.base_unit.trim() || null,
         stock: Number(form.stock) || 0,
         is_featured: form.is_featured,
         short_description: form.short_description || null,
