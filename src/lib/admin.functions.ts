@@ -130,6 +130,7 @@ export const adminSaveProduct = createServerFn({ method: "POST" })
       description: data.description || null,
       price_inr: data.price_inr,
       compare_price_inr: data.compare_price_inr ?? null,
+      base_unit: data.base_unit?.trim() || null,
       category_id: data.category_id ?? null,
       images: data.images,
       stock: data.stock,
