@@ -105,7 +105,13 @@ function ProductPage() {
   const variants = product.product_variants ?? [];
   const selectedVariant = variants.find((v) => v.id === selectedVariantId);
   const price = selectedVariant?.price_inr ?? product.price_inr ?? 0;
-  const compare = product.compare_price_inr;
+  // Discounts always compare against the selected variant's own MRP; only fall
+  // back to the product-level compare price when no variant is selected.
+  const compare = selectedVariant
+    ? ((selectedVariant as any).compare_price_inr ?? null)
+    : product.compare_price_inr;
+  const baseUnit = ((product as any).base_unit as string | null) ?? null;
+  const unitLabel = selectedVariant?.variant_name ?? baseUnit;
   const off = discountPercent(price, compare);
   const productImages = (product.images as string[] | undefined) ?? [];
   const images = productImages.length ? productImages : [PLACEHOLDER_IMAGE];
@@ -176,12 +182,14 @@ function ProductPage() {
             )}
             <h1 className="mt-2 font-serif text-4xl font-light text-foreground">{product.name}</h1>
 
-            {variants.length > 0 && (
+            {(variants.length > 0 || baseUnit) && (
               <p className="mt-2 text-sm text-muted-foreground">
                 {selectedVariant ? (
                   <>Size: <span className="font-medium text-foreground">{selectedVariant.variant_name}</span></>
-                ) : (
+                ) : variants.length > 0 ? (
                   <>Available in {variants.map((v) => v.variant_name).join(" · ")}</>
+                ) : (
+                  <>Size: <span className="font-medium text-foreground">{baseUnit}</span></>
                 )}
               </p>
             )}
@@ -194,8 +202,8 @@ function ProductPage() {
 
             <div className="mt-5 flex items-center gap-3">
               <span className="text-3xl font-semibold text-foreground">{formatINR(price)}</span>
-              {selectedVariant && (
-                <span className="text-sm text-muted-foreground">/ {selectedVariant.variant_name}</span>
+              {unitLabel && (
+                <span className="text-sm text-muted-foreground">/ {unitLabel}</span>
               )}
               {off !== null && (
                 <>

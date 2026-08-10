@@ -107,6 +107,7 @@ const productInputSchema = z.object({
   description: z.string().max(4000).optional().nullable(),
   price_inr: z.number().int().min(0),
   compare_price_inr: z.number().int().min(0).nullable().optional(),
+  base_unit: z.string().max(40).nullable().optional(),
   category_id: z.string().uuid().nullable().optional(),
   images: z.array(z.string()).default([]),
   stock: z.number().int().min(0).default(0),
@@ -129,6 +130,7 @@ export const adminSaveProduct = createServerFn({ method: "POST" })
       description: data.description || null,
       price_inr: data.price_inr,
       compare_price_inr: data.compare_price_inr ?? null,
+      base_unit: data.base_unit?.trim() || null,
       category_id: data.category_id ?? null,
       images: data.images,
       stock: data.stock,
@@ -198,6 +200,7 @@ const variantInputSchema = z.object({
   variant_name: z.string().min(1).max(120),
   sku: z.string().max(80).optional().nullable(),
   price_inr: z.number().int().min(0).nullable().optional(),
+  compare_price_inr: z.number().int().min(0).nullable().optional(),
   stock: z.number().int().min(0).default(0),
 });
 
@@ -212,6 +215,7 @@ export const adminSaveVariant = createServerFn({ method: "POST" })
       variant_name: data.variant_name,
       sku: data.sku || null,
       price_inr: data.price_inr ?? null,
+      compare_price_inr: data.compare_price_inr ?? null,
       stock: data.stock,
     };
     if (data.id) {

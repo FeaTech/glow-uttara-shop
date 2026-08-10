@@ -186,6 +186,7 @@ function ProductDialog({
     category_id: product?.category_id ?? "",
     price_inr: product?.price_inr?.toString() ?? "",
     compare_price_inr: product?.compare_price_inr?.toString() ?? "",
+    base_unit: (product as any)?.base_unit ?? "",
     stock: product?.stock?.toString() ?? "0",
     is_featured: product?.is_featured ?? false,
     short_description: product?.short_description ?? "",
@@ -218,6 +219,7 @@ function ProductDialog({
         category_id: form.category_id || null,
         price_inr: Number(form.price_inr),
         compare_price_inr: form.compare_price_inr ? Number(form.compare_price_inr) : null,
+        base_unit: form.base_unit.trim() || null,
         stock: Number(form.stock) || 0,
         is_featured: form.is_featured,
         short_description: form.short_description || null,
@@ -248,6 +250,7 @@ function ProductDialog({
           </div>
           <div><Label>Price (₹)</Label><Input type="number" value={form.price_inr} onChange={(e) => set({ price_inr: e.target.value })} required /></div>
           <div><Label>Compare-at price (₹)</Label><Input type="number" value={form.compare_price_inr} onChange={(e) => set({ compare_price_inr: e.target.value })} /></div>
+          <div><Label>Size / unit for base price</Label><Input value={form.base_unit} onChange={(e) => set({ base_unit: e.target.value })} placeholder="e.g. 100 ml, 50 g" /></div>
           <div><Label>Stock</Label><Input type="number" value={form.stock} onChange={(e) => set({ stock: e.target.value })} /></div>
           <div className="flex items-center gap-3 pt-6">
             <Switch checked={form.is_featured} onCheckedChange={(v) => set({ is_featured: v })} id="featured" />
@@ -307,7 +310,7 @@ function VariantsManager({ productId }: { productId: string }) {
     onError: (err: any) => toast.error(err?.message ?? "Delete failed"),
   });
 
-  const [draft, setDraft] = useState({ variant_name: "", sku: "", price_inr: "", stock: "0" });
+  const [draft, setDraft] = useState({ variant_name: "", sku: "", price_inr: "", compare_price_inr: "", stock: "0" });
 
   const addVariant = () => {
     if (!draft.variant_name.trim()) return toast.error("Variant name is required");
@@ -317,15 +320,17 @@ function VariantsManager({ productId }: { productId: string }) {
         variant_name: draft.variant_name.trim(),
         sku: draft.sku || null,
         price_inr: draft.price_inr ? Number(draft.price_inr) : null,
+        compare_price_inr: draft.compare_price_inr ? Number(draft.compare_price_inr) : null,
         stock: Number(draft.stock) || 0,
       },
     });
-    setDraft({ variant_name: "", sku: "", price_inr: "", stock: "0" });
+    setDraft({ variant_name: "", sku: "", compare_price_inr: "", price_inr: "", stock: "0" });
   };
 
   return (
     <div>
       <p className="text-sm font-medium text-foreground">Variants</p>
+      <p className="mt-1 text-xs text-muted-foreground">Each variant can have its own compare-at price — the discount shown to customers uses the selected variant’s own prices.</p>
       <div className="mt-3 space-y-2">
         {(variants ?? []).map((v) => (
           <VariantRow
@@ -341,10 +346,11 @@ function VariantsManager({ productId }: { productId: string }) {
         )}
       </div>
 
-      <div className="mt-3 grid grid-cols-[1fr_1fr_80px_70px_auto] items-center gap-2">
+      <div className="mt-3 grid grid-cols-[1fr_1fr_80px_90px_70px_auto] items-center gap-2">
         <Input placeholder="Name (e.g. 50ml)" value={draft.variant_name} onChange={(e) => setDraft({ ...draft, variant_name: e.target.value })} className="h-9" />
         <Input placeholder="SKU" value={draft.sku} onChange={(e) => setDraft({ ...draft, sku: e.target.value })} className="h-9" />
         <Input type="number" placeholder="₹" value={draft.price_inr} onChange={(e) => setDraft({ ...draft, price_inr: e.target.value })} className="h-9" />
+        <Input type="number" placeholder="MRP ₹" value={draft.compare_price_inr} onChange={(e) => setDraft({ ...draft, compare_price_inr: e.target.value })} className="h-9" />
         <Input type="number" placeholder="Qty" value={draft.stock} onChange={(e) => setDraft({ ...draft, stock: e.target.value })} className="h-9" />
         <Button type="button" size="sm" variant="outline" onClick={addVariant} disabled={saveMutation.isPending}>Add</Button>
       </div>
@@ -357,31 +363,34 @@ function VariantRow({
 }: {
   variant: Awaited<ReturnType<typeof adminListVariants>>[number];
   productId: string;
-  onSave: (patch: { variant_name: string; sku: string | null; price_inr: number | null; stock: number }) => void;
+  onSave: (patch: { variant_name: string; sku: string | null; price_inr: number | null; compare_price_inr: number | null; stock: number }) => void;
   onDelete: () => void;
 }) {
   const [form, setForm] = useState({
     variant_name: variant.variant_name,
     sku: variant.sku ?? "",
     price_inr: variant.price_inr?.toString() ?? "",
+    compare_price_inr: (variant as any).compare_price_inr?.toString() ?? "",
     stock: variant.stock.toString(),
   });
   const dirty =
     form.variant_name !== variant.variant_name ||
     form.sku !== (variant.sku ?? "") ||
     form.price_inr !== (variant.price_inr?.toString() ?? "") ||
+    form.compare_price_inr !== ((variant as any).compare_price_inr?.toString() ?? "") ||
     form.stock !== variant.stock.toString();
 
   return (
-    <div className="grid grid-cols-[1fr_1fr_80px_70px_auto] items-center gap-2">
+    <div className="grid grid-cols-[1fr_1fr_80px_90px_70px_auto] items-center gap-2">
       <Input value={form.variant_name} onChange={(e) => setForm({ ...form, variant_name: e.target.value })} className="h-9" />
       <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className="h-9" placeholder="SKU" />
       <Input type="number" value={form.price_inr} onChange={(e) => setForm({ ...form, price_inr: e.target.value })} className="h-9" placeholder="₹" />
+      <Input type="number" value={form.compare_price_inr} onChange={(e) => setForm({ ...form, compare_price_inr: e.target.value })} className="h-9" placeholder="MRP ₹" />
       <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="h-9" />
       <div className="flex gap-1">
         {dirty && (
           <Button type="button" size="icon" variant="ghost" className="h-9 w-9" aria-label="Save variant"
-            onClick={() => onSave({ variant_name: form.variant_name, sku: form.sku || null, price_inr: form.price_inr ? Number(form.price_inr) : null, stock: Number(form.stock) || 0 })}>
+            onClick={() => onSave({ variant_name: form.variant_name, sku: form.sku || null, price_inr: form.price_inr ? Number(form.price_inr) : null, compare_price_inr: form.compare_price_inr ? Number(form.compare_price_inr) : null, stock: Number(form.stock) || 0 })}>
             <Check className="h-4 w-4 text-primary" />
           </Button>
         )}
