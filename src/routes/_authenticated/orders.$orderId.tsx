@@ -151,7 +151,9 @@ function OrderDetailPage() {
                     ) : (
                       <p className="font-medium text-foreground">{item.name}</p>
                     )}
-                    <p className="text-sm text-muted-foreground">Qty {item.quantity} · {formatINR(item.price_inr)} each</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.variant_name ? `${item.variant_name} · ` : ""}Qty {item.quantity} · {formatINR(item.price_inr)} each
+                    </p>
                   </div>
                   <span className="font-semibold text-foreground">{formatINR(item.price_inr * item.quantity)}</span>
                 </div>

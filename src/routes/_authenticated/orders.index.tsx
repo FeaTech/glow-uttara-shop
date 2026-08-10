@@ -82,7 +82,9 @@ function OrdersPage() {
                     <ul className="space-y-2">
                       {order.order_items.map((item: any) => (
                         <li key={item.id} className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{item.name} × {item.quantity}</span>
+                          <span className="text-muted-foreground">
+                            {item.name}{item.variant_name ? ` — ${item.variant_name}` : ""} × {item.quantity}
+                          </span>
                           <span className="text-foreground">{formatINR(item.price_inr * item.quantity)}</span>
                         </li>
                       ))}
