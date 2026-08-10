@@ -107,6 +107,7 @@ const productInputSchema = z.object({
   description: z.string().max(4000).optional().nullable(),
   price_inr: z.number().int().min(0),
   compare_price_inr: z.number().int().min(0).nullable().optional(),
+  base_unit: z.string().max(40).nullable().optional(),
   category_id: z.string().uuid().nullable().optional(),
   images: z.array(z.string()).default([]),
   stock: z.number().int().min(0).default(0),
