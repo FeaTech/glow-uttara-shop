@@ -66,6 +66,16 @@ function ProductPage() {
     if (product?.id) recordProductView(product.id);
   }, [product?.id]);
 
+  const variantList = product?.product_variants ?? [];
+  useEffect(() => {
+    if (!variantList.length) return;
+    setSelectedVariantId((cur) => {
+      if (cur && variantList.some((v) => v.id === cur)) return cur;
+      return (variantList.find((v) => (v.stock ?? 0) > 0) ?? variantList[0]).id;
+    });
+  }, [product?.id, variantList.length]);
+
+
   const addMutation = useMutation({
     mutationFn: addToCartFn,
     onSuccess: () => {
