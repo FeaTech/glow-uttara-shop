@@ -250,6 +250,7 @@ function ProductDialog({
           </div>
           <div><Label>Price (₹)</Label><Input type="number" value={form.price_inr} onChange={(e) => set({ price_inr: e.target.value })} required /></div>
           <div><Label>Compare-at price (₹)</Label><Input type="number" value={form.compare_price_inr} onChange={(e) => set({ compare_price_inr: e.target.value })} /></div>
+          <div><Label>Size / unit for base price</Label><Input value={form.base_unit} onChange={(e) => set({ base_unit: e.target.value })} placeholder="e.g. 100 ml, 50 g" /></div>
           <div><Label>Stock</Label><Input type="number" value={form.stock} onChange={(e) => set({ stock: e.target.value })} /></div>
           <div className="flex items-center gap-3 pt-6">
             <Switch checked={form.is_featured} onCheckedChange={(v) => set({ is_featured: v })} id="featured" />
