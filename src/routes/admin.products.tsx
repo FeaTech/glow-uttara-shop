@@ -310,7 +310,7 @@ function VariantsManager({ productId }: { productId: string }) {
     onError: (err: any) => toast.error(err?.message ?? "Delete failed"),
   });
 
-  const [draft, setDraft] = useState({ variant_name: "", sku: "", price_inr: "", stock: "0" });
+  const [draft, setDraft] = useState({ variant_name: "", sku: "", price_inr: "", compare_price_inr: "", stock: "0" });
 
   const addVariant = () => {
     if (!draft.variant_name.trim()) return toast.error("Variant name is required");
@@ -320,15 +320,17 @@ function VariantsManager({ productId }: { productId: string }) {
         variant_name: draft.variant_name.trim(),
         sku: draft.sku || null,
         price_inr: draft.price_inr ? Number(draft.price_inr) : null,
+        compare_price_inr: draft.compare_price_inr ? Number(draft.compare_price_inr) : null,
         stock: Number(draft.stock) || 0,
       },
     });
-    setDraft({ variant_name: "", sku: "", price_inr: "", stock: "0" });
+    setDraft({ variant_name: "", sku: "", compare_price_inr: "", price_inr: "", stock: "0" });
   };
 
   return (
     <div>
       <p className="text-sm font-medium text-foreground">Variants</p>
+      <p className="mt-1 text-xs text-muted-foreground">Each variant can have its own compare-at price — the discount shown to customers uses the selected variant’s own prices.</p>
       <div className="mt-3 space-y-2">
         {(variants ?? []).map((v) => (
           <VariantRow
@@ -344,10 +346,11 @@ function VariantsManager({ productId }: { productId: string }) {
         )}
       </div>
 
-      <div className="mt-3 grid grid-cols-[1fr_1fr_80px_70px_auto] items-center gap-2">
+      <div className="mt-3 grid grid-cols-[1fr_1fr_80px_90px_70px_auto] items-center gap-2">
         <Input placeholder="Name (e.g. 50ml)" value={draft.variant_name} onChange={(e) => setDraft({ ...draft, variant_name: e.target.value })} className="h-9" />
         <Input placeholder="SKU" value={draft.sku} onChange={(e) => setDraft({ ...draft, sku: e.target.value })} className="h-9" />
         <Input type="number" placeholder="₹" value={draft.price_inr} onChange={(e) => setDraft({ ...draft, price_inr: e.target.value })} className="h-9" />
+        <Input type="number" placeholder="MRP ₹" value={draft.compare_price_inr} onChange={(e) => setDraft({ ...draft, compare_price_inr: e.target.value })} className="h-9" />
         <Input type="number" placeholder="Qty" value={draft.stock} onChange={(e) => setDraft({ ...draft, stock: e.target.value })} className="h-9" />
         <Button type="button" size="sm" variant="outline" onClick={addVariant} disabled={saveMutation.isPending}>Add</Button>
       </div>
