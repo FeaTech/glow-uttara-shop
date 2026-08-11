@@ -93,7 +93,7 @@ function AdminDashboard() {
               <p className="text-sm text-muted-foreground">All products well stocked.</p>
             )}
           </div>
-          <Link to="/admin/products" className="mt-4 inline-block text-xs font-medium text-primary hover:underline">
+          <Link to="/admin/inventory" className="mt-4 inline-block text-xs font-medium text-primary hover:underline">
             Manage inventory →
           </Link>
         </div>

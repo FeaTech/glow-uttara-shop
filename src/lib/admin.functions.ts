@@ -5,6 +5,18 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 type GlamSupabase = SupabaseClient<Database>;
+type AdminInventoryItem = {
+  id: string;
+  productId: string;
+  productName: string;
+  productSlug: string;
+  images: Database["public"]["Tables"]["products"]["Row"]["images"];
+  categoryName: string | null;
+  kind: "product" | "variant";
+  variantName: string | null;
+  sku: string | null;
+  stock: number;
+};
 
 /** Throw unless the caller holds the 'admin' role (checked with their own RLS client). */
 async function assertAdmin(supabase: GlamSupabase, userId: string) {
@@ -38,7 +50,7 @@ export const adminStats = createServerFn({ method: "GET" })
       db.from("orders").select("total_inr, status, created_at"),
       db.from("products").select("id", { count: "exact", head: true }),
       db.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "customer"),
-      db.from("products").select("id, name, slug, stock, product_variants(stock)"),
+      db.from("products").select("id, name, slug, stock, product_variants(id, variant_name, stock)"),
     ]);
 
     const revenue = (orders ?? [])
@@ -67,16 +79,22 @@ export const adminStats = createServerFn({ method: "GET" })
     }
 
     const lowStock = (inventoryProducts ?? [])
-      .map((product) => {
+      .flatMap((product) => {
         const variants = product.product_variants ?? [];
-        return {
+        if (variants.length) {
+          return variants.map((variant) => ({
+            id: variant.id,
+            name: `${product.name} — ${variant.variant_name}`,
+            slug: product.slug,
+            stock: variant.stock,
+          }));
+        }
+        return [{
           id: product.id,
           name: product.name,
           slug: product.slug,
-          stock: variants.length
-            ? variants.reduce((total, variant) => total + variant.stock, 0)
-            : product.stock,
-        };
+          stock: product.stock,
+        }];
       })
       .filter((product) => product.stock <= 10)
       .sort((a, b) => a.stock - b.stock)
@@ -111,12 +129,59 @@ export const adminListProducts = createServerFn({ method: "GET" })
       const variantCount = variants.length;
       return {
         ...product,
-        inventoryStock: variantCount
-          ? variants.reduce((total, variant) => total + variant.stock, 0)
-          : product.stock,
+        inventoryStock: product.stock,
         variantCount,
+        variantsInStock: variants.filter((variant) => variant.stock > 0).length,
+        variantsSoldOut: variants.filter((variant) => variant.stock === 0).length,
       };
     });
+  });
+
+export const adminListInventory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = context.supabase;
+    const { data, error } = await db
+      .from("products")
+      .select("id, name, slug, images, stock, categories(name), product_variants(id, variant_name, sku, stock)")
+      .order("name", { ascending: true });
+    if (error) throw error;
+
+    const inventory: AdminInventoryItem[] = [];
+    for (const product of data ?? []) {
+      const common = {
+        productId: product.id,
+        productName: product.name,
+        productSlug: product.slug,
+        images: product.images,
+        categoryName: product.categories?.name ?? null,
+      };
+      const variants = [...(product.product_variants ?? [])].sort((a, b) =>
+        a.variant_name.localeCompare(b.variant_name),
+      );
+
+      if (variants.length) {
+        inventory.push(...variants.map((variant) => ({
+          ...common,
+          id: variant.id,
+          kind: "variant" as const,
+          variantName: variant.variant_name,
+          sku: variant.sku,
+          stock: variant.stock,
+        })));
+      } else {
+        inventory.push({
+          ...common,
+          id: product.id,
+          kind: "product",
+          variantName: null,
+          sku: null,
+          stock: product.stock,
+        });
+      }
+    }
+    return inventory;
   });
 
 const productInputSchema = z.object({
@@ -192,6 +257,64 @@ export const adminUpdateStock = createServerFn({ method: "POST" })
     const { error } = await db.from("products").update({ stock: data.stock }).eq("id", data.id);
     if (error) throw error;
     return { ok: true };
+  });
+
+const inventoryStockSchema = z.object({
+  id: z.string().uuid(),
+  productId: z.string().uuid(),
+  kind: z.enum(["product", "variant"]),
+  stock: z.number().int().min(0),
+});
+
+export const adminUpdateInventoryStock = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => inventoryStockSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = context.supabase;
+
+    if (data.kind === "product") {
+      if (data.id !== data.productId) throw new Error("Invalid product inventory item");
+      const { count, error: countError } = await db
+        .from("product_variants")
+        .select("id", { count: "exact", head: true })
+        .eq("product_id", data.productId);
+      if (countError) throw countError;
+      if ((count ?? 0) > 0) throw new Error("Variant products must be updated by variant");
+
+      const { data: updated, error } = await db
+        .from("products")
+        .update({ stock: data.stock })
+        .eq("id", data.id)
+        .select("id")
+        .single();
+      if (error) throw error;
+      return { ok: true, id: updated.id };
+    }
+
+    const { data: updated, error } = await db
+      .from("product_variants")
+      .update({ stock: data.stock })
+      .eq("id", data.id)
+      .eq("product_id", data.productId)
+      .select("id")
+      .single();
+    if (error) throw error;
+
+    // Keep the legacy product stock mirror aligned for older storefront builds.
+    const { data: variants, error: variantsError } = await db
+      .from("product_variants")
+      .select("stock")
+      .eq("product_id", data.productId);
+    if (variantsError) throw variantsError;
+    const productStock = (variants ?? []).reduce((total, variant) => total + variant.stock, 0);
+    const { error: productError } = await db
+      .from("products")
+      .update({ stock: productStock })
+      .eq("id", data.productId);
+    if (productError) throw productError;
+
+    return { ok: true, id: updated.id };
   });
 
 // ---------------------------------------------------------------------------

@@ -114,7 +114,7 @@ function AdminProducts() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{(p.categories as any)?.name ?? "—"}</TableCell>
                   <TableCell className="whitespace-nowrap">{formatINR(p.price_inr)}</TableCell>
-                  <TableCell>{p.variantCount ? <div><p className="font-medium text-foreground">{p.inventoryStock}</p><p className="text-xs text-muted-foreground">across {p.variantCount} variant{p.variantCount === 1 ? "" : "s"}</p></div> : <StockEditor id={p.id} stock={p.inventoryStock} />}</TableCell>
+                  <TableCell>{p.variantCount ? <div><p className="font-medium text-foreground">{p.variantsInStock} of {p.variantCount} available</p><p className={p.variantsSoldOut ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>{p.variantsSoldOut ? `${p.variantsSoldOut} sold out` : "All variants in stock"}</p></div> : <StockEditor id={p.id} stock={p.inventoryStock} />}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(p)} aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
