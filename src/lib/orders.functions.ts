@@ -100,7 +100,11 @@ export const createOrder = createServerFn({ method: "POST" })
     }));
 
     const { error: orderItemsError } = await supabase.from("order_items").insert(orderItems);
-    if (orderItemsError) throw orderItemsError;
+    if (orderItemsError) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.from("orders").delete().eq("id", order.id);
+      throw orderItemsError;
+    }
 
     // Increment coupon usage (service role — coupons table is private).
     if (couponCode) {
@@ -170,7 +174,7 @@ export const cancelOrder = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Restore stock for each line.
+    // Restore variant stock and its product-level inventory mirror.
     for (const item of order.order_items ?? []) {
       if (item.variant_id) {
         const { data: v } = await supabaseAdmin

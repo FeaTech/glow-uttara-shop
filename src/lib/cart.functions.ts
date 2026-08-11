@@ -21,6 +21,28 @@ const removeCartItemSchema = z.object({
 
 type GlamSupabase = SupabaseClient<Database>;
 
+async function validateVariantSelection(supabase: GlamSupabase, productId: string, variantId?: string) {
+  if (variantId) {
+    const { data: variant, error } = await supabase
+      .from("product_variants")
+      .select("id")
+      .eq("id", variantId)
+      .eq("product_id", productId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!variant) throw new Error("That variant is no longer available");
+    return;
+  }
+  const { data: variant, error } = await supabase
+    .from("product_variants")
+    .select("id")
+    .eq("product_id", productId)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (variant) throw new Error("Please select a product variant");
+}
+
 async function ensureCart(supabase: GlamSupabase, userId: string) {
   const { data: existing } = await supabase
     .from("cart")
@@ -70,6 +92,7 @@ export const addToCart = createServerFn({ method: "POST" })
   .inputValidator((input) => addToCartSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    await validateVariantSelection(supabase, data.productId, data.variantId);
     const cartId = await ensureCart(supabase, userId);
 
     let existingQuery = supabase

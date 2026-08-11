@@ -34,10 +34,11 @@ export const adminStats = createServerFn({ method: "GET" })
     await assertAdmin(context.supabase, context.userId);
     const db = context.supabase;
 
-    const [{ data: orders }, { count: productCount }, { count: customerCount }] = await Promise.all([
+    const [{ data: orders }, { count: productCount }, { count: customerCount }, { data: inventoryProducts }] = await Promise.all([
       db.from("orders").select("total_inr, status, created_at"),
       db.from("products").select("id", { count: "exact", head: true }),
       db.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "customer"),
+      db.from("products").select("id, name, slug, stock, product_variants(stock)"),
     ]);
 
     const revenue = (orders ?? [])
@@ -65,12 +66,21 @@ export const adminStats = createServerFn({ method: "GET" })
       });
     }
 
-    const { data: lowStock } = await db
-      .from("products")
-      .select("id, name, slug, stock")
-      .lte("stock", 10)
-      .order("stock", { ascending: true })
-      .limit(8);
+    const lowStock = (inventoryProducts ?? [])
+      .map((product) => {
+        const variants = product.product_variants ?? [];
+        return {
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          stock: variants.length
+            ? variants.reduce((total, variant) => total + variant.stock, 0)
+            : product.stock,
+        };
+      })
+      .filter((product) => product.stock <= 10)
+      .sort((a, b) => a.stock - b.stock)
+      .slice(0, 8);
 
     return {
       revenue,
@@ -79,7 +89,7 @@ export const adminStats = createServerFn({ method: "GET" })
       productCount: productCount ?? 0,
       customerCount: customerCount ?? 0,
       revenueByDay: days,
-      lowStock: lowStock ?? [],
+      lowStock,
     };
   });
 
@@ -93,10 +103,20 @@ export const adminListProducts = createServerFn({ method: "GET" })
     const db = context.supabase;
     const { data, error } = await db
       .from("products")
-      .select("*, categories(name, slug)")
+      .select("*, categories(name, slug), product_variants(stock)")
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map((product) => {
+      const variants = product.product_variants ?? [];
+      const variantCount = variants.length;
+      return {
+        ...product,
+        inventoryStock: variantCount
+          ? variants.reduce((total, variant) => total + variant.stock, 0)
+          : product.stock,
+        variantCount,
+      };
+    });
   });
 
 const productInputSchema = z.object({

@@ -26,6 +26,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatINR, productImage } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/products")({
@@ -37,6 +38,8 @@ type ProductRow = Awaited<ReturnType<typeof adminListProducts>>[number];
 
 function AdminProducts() {
   const queryClient = useQueryClient();
+  useRealtimeInvalidate({ channel: "admin-product-inventory", table: "product_variants", invalidate: [["admin", "products"], ["admin", "stats"]] });
+  useRealtimeInvalidate({ channel: "admin-product-stock", table: "products", invalidate: [["admin", "products"], ["admin", "stats"]] });
   const { data: products, isLoading } = useQuery({
     queryKey: ["admin", "products"],
     queryFn: () => adminListProducts({ data: undefined }),
@@ -87,7 +90,7 @@ function AdminProducts() {
               <TableHead>Product</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Price</TableHead>
-              <TableHead>Stock</TableHead>
+              <TableHead>Inventory</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -111,7 +114,7 @@ function AdminProducts() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{(p.categories as any)?.name ?? "—"}</TableCell>
                   <TableCell className="whitespace-nowrap">{formatINR(p.price_inr)}</TableCell>
-                  <TableCell><StockEditor id={p.id} stock={p.stock} /></TableCell>
+                  <TableCell>{p.variantCount ? <div><p className="font-medium text-foreground">{p.inventoryStock}</p><p className="text-xs text-muted-foreground">across {p.variantCount} variant{p.variantCount === 1 ? "" : "s"}</p></div> : <StockEditor id={p.id} stock={p.inventoryStock} />}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(p)} aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
@@ -259,7 +262,11 @@ function ProductDialog({
             <Label>Images</Label>
             <ImageManager images={form.images} onChange={(imgs) => set({ images: imgs })} />
           </div>
-          <div className="sm:col-span-2"><Label>Tags (comma separated)</Label><Input value={form.tags} onChange={(e) => set({ tags: e.target.value })} placeholder="serum, skincare" /></div>
+           <div className="sm:col-span-2"><Label>Tags (comma separated)</Label><Input value={form.tags} onChange={(e) => set({ tags: e.target.value })} placeholder="serum, skincare" /></div>
+          <div><Label>Base price (₹)</Label><Input type="number" min="0" value={form.price_inr} onChange={(e) => set({ price_inr: e.target.value })} required /></div>
+          <div><Label>Base MRP (₹)</Label><Input type="number" min="0" value={form.compare_price_inr} onChange={(e) => set({ compare_price_inr: e.target.value })} /></div>
+          <div><Label>Base unit</Label><Input value={form.base_unit} onChange={(e) => set({ base_unit: e.target.value })} placeholder="e.g. 50ml" /></div>
+          <div><Label>Stock (no variants)</Label><Input type="number" min="0" value={form.stock} onChange={(e) => set({ stock: e.target.value })} /></div>
         </div>
         <DialogFooter>
           <Button type="submit" className="btn-gold" disabled={mutation.isPending}>
@@ -329,6 +336,7 @@ function VariantsManager({ productId }: { productId: string }) {
       <p className="text-sm font-medium text-foreground">Variants</p>
       <p className="mt-1 text-xs text-muted-foreground">Each variant can have its own compare-at price — the discount shown to customers uses the selected variant’s own prices.</p>
       <div className="mt-3 space-y-2">
+        {(variants ?? []).length > 0 && <div className="grid grid-cols-[1fr_1fr_80px_90px_70px_auto] gap-2 px-1 text-xs font-medium text-muted-foreground"><span>Name</span><span>SKU</span><span>Price</span><span>MRP</span><span>Stock</span><span className="sr-only">Actions</span></div>}
         {(variants ?? []).map((v) => (
           <VariantRow
             key={v.id}
