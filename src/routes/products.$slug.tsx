@@ -248,7 +248,11 @@ function ProductPage() {
                         key={v.id}
                         type="button"
                         disabled={soldOut}
-                        onClick={() => setSelectedVariantId(v.id)}
+                        onClick={() => {
+                          if (v.id === selectedVariantId) return;
+                          setSelectedVariantId(v.id);
+                          setQuantity(1);
+                        }}
                         className={cn(
                           "rounded-full border px-4 py-2 text-sm transition-colors",
                           active
