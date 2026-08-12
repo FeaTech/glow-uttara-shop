@@ -31,13 +31,28 @@ export function RealtimeProvider() {
     if (!userId) return;
     const invalidate = (key: unknown[]) => queryClient.invalidateQueries({ queryKey: key });
 
+    /**
+     * Skip refetching while a mutation is still in flight.
+     *
+     * Clicking cart +/- fires an optimistic update, the mutation, AND a
+     * realtime cart_items event. If that event's refetch resolved before the
+     * mutation committed, the server returned the pre-change quantity and the
+     * UI visibly snapped back and then forward again — which reads as lag.
+     * The mutation's own onSettled already revalidates, so deferring here
+     * loses nothing.
+     */
+    const invalidateIfIdle = (key: unknown[]) => {
+      if (queryClient.isMutating() > 0) return;
+      invalidate(key);
+    };
+
     /* eslint-disable @typescript-eslint/no-explicit-any */
     const pg = "postgres_changes" as any;
     const channel = supabase
       .channel(`realtime-user-${userId}`)
       // Cart (items scoped to the user's cart via RLS).
-      .on(pg, { event: "*", schema: "public", table: "cart_items" } as any, () => invalidate(["cart"]))
-      .on(pg, { event: "*", schema: "public", table: "cart" } as any, () => invalidate(["cart"]))
+      .on(pg, { event: "*", schema: "public", table: "cart_items" } as any, () => invalidateIfIdle(["cart"]))
+      .on(pg, { event: "*", schema: "public", table: "cart" } as any, () => invalidateIfIdle(["cart"]))
       // Orders — live status/payment updates pushed by admins.
       .on(
         pg,
@@ -57,8 +72,8 @@ export function RealtimeProvider() {
         pg,
         { event: "*", schema: "public", table: "wishlist_items", filter: `user_id=eq.${userId}` } as any,
         () => {
-          invalidate(["wishlist", "ids"]);
-          invalidate(["wishlist", "full"]);
+          invalidateIfIdle(["wishlist", "ids"]);
+          invalidateIfIdle(["wishlist", "full"]);
         },
       )
       .subscribe();
