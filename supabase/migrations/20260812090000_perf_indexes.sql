@@ -23,6 +23,7 @@ create index if not exists orders_payment_status_idx on public.orders (payment_s
 -- RLS policy's correlated EXISTS subquery into orders.
 create index if not exists order_items_order_id_idx on public.order_items (order_id);
 create index if not exists order_items_product_id_idx on public.order_items (product_id);
+create index if not exists order_items_variant_id_idx on public.order_items (variant_id);
 
 -- ---- Product variants: joined on every product detail page + admin inventory -
 create index if not exists product_variants_product_id_idx on public.product_variants (product_id);
@@ -36,13 +37,18 @@ create index if not exists products_price_idx on public.products (price_inr);
 create index if not exists products_rating_idx on public.products (rating_avg desc, rating_count desc);
 
 -- ---- Cart item foreign keys -------------------------------------------------
+-- Full (not partial) indexes: Postgres needs a complete index to satisfy the
+-- foreign-key referential-action scans, which a partial index cannot serve.
 create index if not exists cart_items_product_id_idx on public.cart_items (product_id);
-create index if not exists cart_items_variant_id_idx on public.cart_items (variant_id) where variant_id is not null;
+create index if not exists cart_items_variant_id_idx on public.cart_items (variant_id);
 
--- ---- Addresses / profiles / reviews ----------------------------------------
+-- ---- Addresses / profiles / reviews / wishlist / audit ----------------------
 create index if not exists addresses_profile_id_idx on public.addresses (profile_id);
-create index if not exists profiles_referred_by_idx on public.profiles (referred_by_user_id) where referred_by_user_id is not null;
+create index if not exists profiles_referred_by_idx on public.profiles (referred_by_user_id);
 create index if not exists reviews_user_id_idx on public.reviews (user_id);
+create index if not exists wishlist_items_product_id_idx on public.wishlist_items (product_id);
+create index if not exists referral_commission_audit_commission_idx
+  on public.referral_commission_audit (commission_id);
 
 -- ---- Product search --------------------------------------------------------
 -- listProducts/quickSearchProducts use ILIKE '%term%', which cannot use a
