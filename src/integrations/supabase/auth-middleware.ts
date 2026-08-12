@@ -30,9 +30,34 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
+/**
+ * A single long-lived client used ONLY to verify tokens.
+ *
+ * Previously every server function built a brand-new client and called
+ * getClaims() on it, which threw away the JWKS cache on each request and forced
+ * the key set to be re-fetched. Hoisting this to module scope lets the JWKS be
+ * fetched once per server instance and reused, so verification becomes a local
+ * signature check instead of a network round trip in front of every action.
+ *
+ * This is only a verifier — the token is passed explicitly to getClaims and the
+ * per-request client below still carries the user's Authorization header, so
+ * RLS scoping is unchanged.
+ */
+let verifierClient: ReturnType<typeof createClient<Database>> | undefined;
+
+function getVerifierClient(url: string, key: string) {
+  if (!verifierClient) {
+    verifierClient = createClient<Database>(url, key, {
+      global: { fetch: createSupabaseFetch(key) },
+      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    });
+  }
+  return verifierClient;
+}
+
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
-    
+
     const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
@@ -89,7 +114,11 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       }
     );
 
-    const { data, error } = await supabase.auth.getClaims(token);
+    // Verified on the shared client so the JWKS cache survives between requests.
+    const { data, error } = await getVerifierClient(
+      SUPABASE_URL!,
+      SUPABASE_PUBLISHABLE_KEY!,
+    ).auth.getClaims(token);
     if (error || !data?.claims) {
       throw new Error('Unauthorized: Invalid token');
     }

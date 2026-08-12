@@ -38,8 +38,11 @@ type ProductRow = Awaited<ReturnType<typeof adminListProducts>>[number];
 
 function AdminProducts() {
   const queryClient = useQueryClient();
-  useRealtimeInvalidate({ channel: "admin-product-inventory", table: "product_variants", invalidate: [["admin", "products"], ["admin", "stats"]] });
-  useRealtimeInvalidate({ channel: "admin-product-stock", table: "products", invalidate: [["admin", "products"], ["admin", "stats"]] });
+  // Only refresh the product list here. These used to also invalidate
+  // ["admin","stats"], so every variant/stock change triggered a full dashboard
+  // stats recomputation — on a page that doesn't even display those stats.
+  useRealtimeInvalidate({ channel: "admin-product-inventory", table: "product_variants", invalidate: [["admin", "products"]] });
+  useRealtimeInvalidate({ channel: "admin-product-stock", table: "products", invalidate: [["admin", "products"]] });
   const { data: products, isLoading } = useQuery({
     queryKey: ["admin", "products"],
     queryFn: () => adminListProducts({ data: undefined }),

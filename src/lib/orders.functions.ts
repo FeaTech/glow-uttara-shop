@@ -106,21 +106,19 @@ export const createOrder = createServerFn({ method: "POST" })
       throw orderItemsError;
     }
 
-    // Increment coupon usage (service role — coupons table is private).
-    if (couponCode) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: c } = await supabaseAdmin
-        .from("coupons")
-        .select("id, used_count")
-        .eq("code", couponCode)
-        .maybeSingle();
-      if (c) {
-        await supabaseAdmin.from("coupons").update({ used_count: c.used_count + 1 }).eq("id", c.id);
-      }
-    }
-
-    await supabase.from("cart_items").delete().eq("cart_id", cart.id);
-    await supabase.from("cart").update({ status: "converted" }).eq("id", cart.id);
+    // Coupon usage increment and cart teardown are independent of each other —
+    // run them concurrently instead of in series. The coupon increment is now a
+    // single atomic RPC (was SELECT + UPDATE, which could also lose a
+    // concurrent redemption).
+    await Promise.all([
+      couponCode
+        ? import("@/integrations/supabase/client.server").then(({ supabaseAdmin }) =>
+            supabaseAdmin.rpc("increment_coupon_usage", { _code: couponCode! }),
+          )
+        : Promise.resolve(),
+      supabase.from("cart_items").delete().eq("cart_id", cart.id),
+      supabase.from("cart").update({ status: "converted" }).eq("id", cart.id),
+    ]);
 
     return { orderId: order.id };
   });
@@ -174,33 +172,13 @@ export const cancelOrder = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Restore variant stock and its product-level inventory mirror.
-    for (const item of order.order_items ?? []) {
-      if (item.variant_id) {
-        const { data: v } = await supabaseAdmin
-          .from("product_variants")
-          .select("stock")
-          .eq("id", item.variant_id)
-          .maybeSingle();
-        if (v) {
-          await supabaseAdmin
-            .from("product_variants")
-            .update({ stock: v.stock + item.quantity })
-            .eq("id", item.variant_id);
-        }
-      }
-      const { data: p } = await supabaseAdmin
-        .from("products")
-        .select("stock")
-        .eq("id", item.product_id)
-        .maybeSingle();
-      if (p) {
-        await supabaseAdmin
-          .from("products")
-          .update({ stock: p.stock + item.quantity })
-          .eq("id", item.product_id);
-      }
-    }
+    // Restore variant stock and its product-level inventory mirror in one
+    // atomic statement. This previously looped per line item with a SELECT +
+    // UPDATE each (an N+1, and a read-modify-write race).
+    const { error: restoreError } = await supabaseAdmin.rpc("restore_order_stock", {
+      _order_id: order.id,
+    });
+    if (restoreError) throw restoreError;
 
     await supabaseAdmin.from("orders").update({ status: "cancelled" }).eq("id", order.id);
     return { ok: true };

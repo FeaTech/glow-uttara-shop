@@ -752,6 +752,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_dashboard_stats: { Args: never; Returns: Json }
+      restore_order_stock: { Args: { _order_id: string }; Returns: undefined }
+      increment_coupon_usage: { Args: { _code: string }; Returns: undefined }
       approve_due_referral_commissions: { Args: never; Returns: number }
       generate_referral_code: { Args: never; Returns: string }
       has_role: {

@@ -43,71 +43,30 @@ const slugify = (s: string) =>
 export const adminStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.supabase, context.userId);
-    const db = context.supabase;
+    // Aggregated entirely in Postgres (admin_dashboard_stats) — previously this
+    // transferred every order and the whole catalog to aggregate in JS.
+    // The RPC enforces the admin check itself, so no extra assertAdmin round trip.
+    const { data, error } = await context.supabase.rpc("admin_dashboard_stats");
+    if (error) throw error;
 
-    const [{ data: orders }, { count: productCount }, { count: customerCount }, { data: inventoryProducts }] = await Promise.all([
-      db.from("orders").select("total_inr, status, created_at"),
-      db.from("products").select("id", { count: "exact", head: true }),
-      db.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "customer"),
-      db.from("products").select("id, name, slug, stock, product_variants(id, variant_name, stock)"),
-    ]);
-
-    const revenue = (orders ?? [])
-      .filter((o) => o.status !== "cancelled")
-      .reduce((sum, o) => sum + o.total_inr, 0);
-
-    const pending = (orders ?? []).filter((o) => o.status === "pending").length;
-
-    // Revenue for the last 7 days (for the dashboard chart).
-    const days: { date: string; revenue: number; orders: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setHours(0, 0, 0, 0);
-      d.setDate(d.getDate() - i);
-      const next = new Date(d);
-      next.setDate(next.getDate() + 1);
-      const dayOrders = (orders ?? []).filter((o) => {
-        const t = new Date(o.created_at).getTime();
-        return t >= d.getTime() && t < next.getTime() && o.status !== "cancelled";
-      });
-      days.push({
-        date: d.toLocaleDateString("en-IN", { weekday: "short" }),
-        revenue: dayOrders.reduce((s, o) => s + o.total_inr, 0),
-        orders: dayOrders.length,
-      });
-    }
-
-    const lowStock = (inventoryProducts ?? [])
-      .flatMap((product) => {
-        const variants = product.product_variants ?? [];
-        if (variants.length) {
-          return variants.map((variant) => ({
-            id: variant.id,
-            name: `${product.name} — ${variant.variant_name}`,
-            slug: product.slug,
-            stock: variant.stock,
-          }));
-        }
-        return [{
-          id: product.id,
-          name: product.name,
-          slug: product.slug,
-          stock: product.stock,
-        }];
-      })
-      .filter((product) => product.stock <= 10)
-      .sort((a, b) => a.stock - b.stock)
-      .slice(0, 8);
+    const stats = (data ?? {}) as {
+      revenue?: number;
+      orderCount?: number;
+      pendingCount?: number;
+      productCount?: number;
+      customerCount?: number;
+      revenueByDay?: { date: string; revenue: number; orders: number }[];
+      lowStock?: { id: string; name: string; slug: string; stock: number }[];
+    };
 
     return {
-      revenue,
-      orderCount: (orders ?? []).length,
-      pendingCount: pending,
-      productCount: productCount ?? 0,
-      customerCount: customerCount ?? 0,
-      revenueByDay: days,
-      lowStock,
+      revenue: Number(stats.revenue ?? 0),
+      orderCount: Number(stats.orderCount ?? 0),
+      pendingCount: Number(stats.pendingCount ?? 0),
+      productCount: Number(stats.productCount ?? 0),
+      customerCount: Number(stats.customerCount ?? 0),
+      revenueByDay: stats.revenueByDay ?? [],
+      lowStock: stats.lowStock ?? [],
     };
   });
 

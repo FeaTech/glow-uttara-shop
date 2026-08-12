@@ -40,26 +40,29 @@ export const getReferralDashboard = createServerFn({ method: "GET" })
     const { userId } = context;
     const db = context.supabase;
 
-    const { data: profile } = await db
-      .from("profiles")
-      .select("referral_code")
-      .eq("id", userId)
-      .maybeSingle();
+    // These four reads are independent — previously they ran strictly in
+    // series, so the dashboard cost 4 sequential database round trips.
+    const [
+      { data: profile },
+      { data: settings },
+      { data: counts },
+      { data: commissions },
+    ] = await Promise.all([
+      db.from("profiles").select("referral_code").eq("id", userId).maybeSingle(),
+      db
+        .from("referral_settings")
+        .select("program_enabled, level_1_percentage, level_2_percentage, minimum_payout_amount")
+        .eq("id", true)
+        .maybeSingle(),
+      // Direct + indirect referral counts (security-definer, scoped to auth.uid()).
+      db.rpc("my_referral_counts"),
+      db
+        .from("referral_commissions")
+        .select("status, commission_amount, adjustment_amount")
+        .eq("beneficiary_user_id", userId),
+    ]);
 
-    const { data: settings } = await db
-      .from("referral_settings")
-      .select("program_enabled, level_1_percentage, level_2_percentage, minimum_payout_amount")
-      .eq("id", true)
-      .maybeSingle();
-
-    // Direct + indirect referral counts (security-definer, scoped to auth.uid()).
-    const { data: counts } = await db.rpc("my_referral_counts");
     const countRow = Array.isArray(counts) ? counts[0] : counts;
-
-    const { data: commissions } = await db
-      .from("referral_commissions")
-      .select("status, commission_amount, adjustment_amount")
-      .eq("beneficiary_user_id", userId);
 
     return {
       referralCode: profile?.referral_code ?? "",

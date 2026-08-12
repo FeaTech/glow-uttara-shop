@@ -22,22 +22,60 @@ export const Route = createFileRoute("/_authenticated/cart")({
   component: CartPage,
 });
 
+type CartData = Awaited<ReturnType<typeof getCart>>;
+
+/** Recompute the cart total the same way the server does. */
+function recalcTotal(items: CartData["items"]): number {
+  return items.reduce((sum, item) => {
+    const price = item.product_variants?.price_inr ?? item.products?.price_inr ?? 0;
+    return sum + price * item.quantity;
+  }, 0);
+}
+
 function CartPage() {
   const { data: cart } = useSuspenseQuery(cartQueryOptions());
   const queryClient = useQueryClient();
   const removeItem = useServerFn(removeCartItem);
   const updateItem = useServerFn(updateCartItem);
 
+  /**
+   * Apply a change to the cached cart immediately so the UI responds on click
+   * instead of after two serialised server round trips. The mutation still runs
+   * and revalidates in the background; onError rolls the cache back.
+   */
+  const optimistic = async (mutate: (items: CartData["items"]) => CartData["items"]) => {
+    await queryClient.cancelQueries({ queryKey: ["cart"] });
+    const previous = queryClient.getQueryData<CartData>(["cart"]);
+    if (previous) {
+      const items = mutate(previous.items);
+      queryClient.setQueryData<CartData>(["cart"], { items, total: recalcTotal(items) });
+    }
+    return { previous };
+  };
+
+  const rollback = (ctx: { previous?: CartData } | undefined, message: string) => (err: any) => {
+    if (ctx?.previous) queryClient.setQueryData(["cart"], ctx.previous);
+    toast.error(err?.message ?? message);
+  };
+
   const removeMutation = useMutation({
     mutationFn: removeItem,
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["cart"] }); toast.success("Item removed"); },
-    onError: (err: any) => toast.error(err?.message ?? "Could not remove item"),
+    onMutate: ({ data }) => optimistic((items) => items.filter((i) => i.id !== data.itemId)),
+    onSuccess: () => toast.success("Item removed"),
+    onError: (err: any, _vars, ctx) => rollback(ctx, "Could not remove item")(err),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 
   const updateMutation = useMutation({
     mutationFn: updateItem,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
-    onError: (err: any) => toast.error(err?.message ?? "Could not update item"),
+    onMutate: ({ data }) =>
+      optimistic((items) =>
+        data.quantity === 0
+          ? items.filter((i) => i.id !== data.itemId)
+          : items.map((i) => (i.id === data.itemId ? { ...i, quantity: data.quantity } : i)),
+      ),
+    onError: (err: any, _vars, ctx) => rollback(ctx, "Could not update item")(err),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 
   if (!cart.items.length) {
