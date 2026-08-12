@@ -429,17 +429,32 @@ export const adminDeleteCategory = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 // Orders
 // ---------------------------------------------------------------------------
+const listOrdersSchema = z.object({
+  page: z.number().int().min(0).default(0),
+  pageSize: z.number().int().min(1).max(100).default(25),
+  status: z.enum(["pending", "processing", "shipped", "delivered", "cancelled"]).optional(),
+});
+
 export const adminListOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input) => listOrdersSchema.parse(input ?? {}))
+  .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const db = context.supabase;
-    const { data: orders, error } = await db
+
+    // Paginated — this previously fetched every order with every line item on
+    // each load, which grows without bound as the store takes orders.
+    const from = data.page * data.pageSize;
+    let query = db
       .from("orders")
-      .select("*, order_items(*)")
-      .order("created_at", { ascending: false });
+      .select("*, order_items(*)", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, from + data.pageSize - 1);
+    if (data.status) query = query.eq("status", data.status);
+
+    const { data: orders, error, count } = await query;
     if (error) throw error;
-    if (!orders?.length) return [];
+    if (!orders?.length) return { orders: [], total: count ?? 0, page: data.page, pageSize: data.pageSize };
 
     // No direct FK between orders and profiles (both reference auth.users),
     // so fetch the customer profiles separately and merge them in.
@@ -450,10 +465,12 @@ export const adminListOrders = createServerFn({ method: "GET" })
       .in("id", userIds);
     const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
 
-    return orders.map((o) => ({
-      ...o,
-      profiles: byId.get(o.user_id) ?? null,
-    }));
+    return {
+      orders: orders.map((o) => ({ ...o, profiles: byId.get(o.user_id) ?? null })),
+      total: count ?? orders.length,
+      page: data.page,
+      pageSize: data.pageSize,
+    };
   });
 
 const orderStatusSchema = z.object({

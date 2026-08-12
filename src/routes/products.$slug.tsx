@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Check, Heart, Minus, Plus, ShoppingBag, Truck, RefreshCw, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { getProductBySlug, getRelatedProducts } from "@/lib/products.functions";
-import { addToCart } from "@/lib/cart.functions";
+import { useAddToCart } from "@/hooks/use-add-to-cart";
 import { listReviews, submitReview } from "@/lib/reviews.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,6 @@ function ProductPage() {
   const { data: product } = useSuspenseQuery(productQueryOptions(slug));
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const addToCartFn = useServerFn(addToCart);
   const { isWishlisted, toggle } = useWishlist();
 
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
@@ -75,21 +74,8 @@ function ProductPage() {
   }, [product?.id, variantList.length]);
 
 
-  const addMutation = useMutation({
-    mutationFn: addToCartFn,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      toast.success("Added to cart");
-    },
-    onError: (err: any) => {
-      if (err?.message?.includes("Unauthorized")) {
-        toast.error("Please sign in to shop");
-        navigate({ to: "/auth" });
-      } else {
-        toast.error(err?.message ?? "Could not add to cart");
-      }
-    },
-  });
+  // Optimistic — cart updates on click rather than after two round trips.
+  const addMutation = useAddToCart();
 
   if (!product) {
     return (
@@ -122,7 +108,20 @@ function ProductPage() {
 
   const doAdd = (goToCheckout = false) => {
     addMutation.mutate(
-      { data: { productId: product.id, variantId: selectedVariantId, quantity } },
+      {
+        product: {
+          id: product.id,
+          slug: product.slug,
+          name: product.name,
+          price_inr: product.price_inr,
+          compare_price_inr: product.compare_price_inr,
+          images: product.images,
+        },
+        variantId: selectedVariantId,
+        variantPrice: selectedVariant?.price_inr ?? null,
+        variantName: selectedVariant?.variant_name ?? null,
+        quantity,
+      },
       { onSuccess: () => goToCheckout && navigate({ to: "/checkout" }) },
     );
   };

@@ -1,9 +1,6 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { ShoppingBag } from "lucide-react";
-import { toast } from "sonner";
-import { addToCart } from "@/lib/cart.functions";
+import { useAddToCart } from "@/hooks/use-add-to-cart";
 import { RatingStars } from "@/components/RatingStars";
 import { WishlistButton } from "@/components/WishlistButton";
 import { discountPercent, formatINR, productImage } from "@/lib/format";
@@ -25,31 +22,14 @@ export interface ProductCardProduct {
 }
 
 export function ProductCard({ product, index = 0 }: { product: ProductCardProduct; index?: number }) {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const addToCartFn = useServerFn(addToCart);
-
   const price = product.price_inr ?? 0;
   const compare = product.compare_price_inr;
   const off = discountPercent(price, compare);
   const image = productImage(product.images);
   const outOfStock = typeof product.stock === "number" && product.stock <= 0;
 
-  const addMutation = useMutation({
-    mutationFn: addToCartFn,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      toast.success("Added to cart");
-    },
-    onError: (err: any) => {
-      if (err?.message?.includes("Unauthorized")) {
-        toast.error("Please sign in to shop");
-        navigate({ to: "/auth" });
-      } else {
-        toast.error(err?.message ?? "Could not add to cart");
-      }
-    },
-  });
+  // Optimistic — the cart badge updates on click, not after two round trips.
+  const addMutation = useAddToCart();
 
   return (
     <div
@@ -102,7 +82,7 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
               disabled={addMutation.isPending}
               onClick={(e) => {
                 e.preventDefault();
-                addMutation.mutate({ data: { productId: product.id, quantity: 1 } });
+                addMutation.mutate({ product, quantity: 1 });
               }}
               className="btn-gold w-full py-2 text-sm"
             >

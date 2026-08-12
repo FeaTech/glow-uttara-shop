@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Fragment, useState } from "react";
 import { adminListOrders, adminUpdateOrder } from "@/lib/admin.functions";
@@ -27,13 +27,20 @@ const STATUS_DOT: Record<string, string> = {
   cancelled: "bg-rose-500",
 };
 
+const PAGE_SIZE = 25;
+
 function AdminOrders() {
   const queryClient = useQueryClient();
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ["admin", "orders"],
-    queryFn: () => adminListOrders({ data: undefined }),
+  const [page, setPage] = useState(0);
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["admin", "orders", page],
+    queryFn: () => adminListOrders({ data: { page, pageSize: PAGE_SIZE } }),
+    placeholderData: keepPreviousData,
     retry: false,
   });
+  const orders = data?.orders;
+  const total = data?.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const [expanded, setExpanded] = useState<string | null>(null);
   const updateFn = useServerFn(adminUpdateOrder);
 
@@ -57,7 +64,7 @@ function AdminOrders() {
   return (
     <div>
       <h1 className="font-serif text-3xl font-light text-foreground">Orders</h1>
-      <p className="mt-1 text-muted-foreground">{orders?.length ?? 0} orders · update fulfilment &amp; payment status</p>
+      <p className="mt-1 text-muted-foreground">{total} orders · update fulfilment &amp; payment status</p>
 
       <div className="card-luxe mt-8 overflow-x-auto">
         <Table>
@@ -150,6 +157,28 @@ function AdminOrders() {
           </TableBody>
         </Table>
       </div>
+
+      {pageCount > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Page {page + 1} of {pageCount}
+            {isFetching && <span className="ml-2 opacity-60">updating…</span>}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= pageCount - 1}
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

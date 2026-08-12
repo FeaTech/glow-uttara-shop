@@ -65,22 +65,14 @@ function AdminInventory() {
     retry: false,
   });
 
+  // One channel for both tables (was two). Stats are intentionally not
+  // invalidated here — the dashboard refetches them on its own.
   useRealtimeInvalidate({
-    channel: "admin-inventory-variants",
-    table: "product_variants",
+    channel: "admin-inventory",
+    table: ["products", "product_variants"],
     invalidate: [
       ["admin", "inventory"],
       ["admin", "products"],
-      ["admin", "stats"],
-    ],
-  });
-  useRealtimeInvalidate({
-    channel: "admin-inventory-products",
-    table: "products",
-    invalidate: [
-      ["admin", "inventory"],
-      ["admin", "products"],
-      ["admin", "stats"],
     ],
   });
 
