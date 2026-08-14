@@ -753,8 +753,6 @@ export type Database = {
     }
     Functions: {
       admin_dashboard_stats: { Args: never; Returns: Json }
-      restore_order_stock: { Args: { _order_id: string }; Returns: undefined }
-      increment_coupon_usage: { Args: { _code: string }; Returns: undefined }
       approve_due_referral_commissions: { Args: never; Returns: number }
       generate_referral_code: { Args: never; Returns: string }
       has_role: {
@@ -764,6 +762,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_coupon_usage: { Args: { _code: string }; Returns: undefined }
       my_referral_counts: {
         Args: never
         Returns: {
@@ -786,6 +785,9 @@ export type Database = {
           status: Database["public"]["Enums"]["referral_commission_status"]
         }[]
       }
+      restore_order_stock: { Args: { _order_id: string }; Returns: undefined }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "customer"
