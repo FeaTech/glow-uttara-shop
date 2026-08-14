@@ -59,7 +59,7 @@ function CartPage() {
   };
 
   const removeMutation = useMutation({
-    mutationFn: removeItem,
+    mutationFn: (vars: { data: { itemId: string } }) => removeItem(vars),
     onMutate: ({ data }) => optimistic((items) => items.filter((i) => i.id !== data.itemId)),
     onSuccess: () => toast.success("Item removed"),
     onError: (err: any, _vars, ctx) => rollback(ctx, "Could not remove item")(err),
@@ -67,7 +67,7 @@ function CartPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: updateItem,
+    mutationFn: (vars: { data: { itemId: string; quantity: number } }) => updateItem(vars),
     onMutate: ({ data }) =>
       optimistic((items) =>
         data.quantity === 0
