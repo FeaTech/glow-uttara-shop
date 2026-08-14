@@ -29,8 +29,8 @@ import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminReferralsRouteImport } from './routes/admin.referrals'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
-import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AuthenticatedWishlistRouteImport } from './routes/_authenticated/wishlist'
@@ -141,14 +141,14 @@ const AdminProductsRoute = AdminProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminInventoryRoute = AdminInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInventoryRoute = AdminInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCouponsRoute = AdminCouponsRouteImport.update({
@@ -561,18 +561,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/inventory': {
-      id: '/admin/inventory'
-      path: '/inventory'
-      fullPath: '/admin/inventory'
-      preLoaderRoute: typeof AdminInventoryRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/orders': {
       id: '/admin/orders'
       path: '/orders'
       fullPath: '/admin/orders'
       preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/inventory': {
+      id: '/admin/inventory'
+      path: '/inventory'
+      fullPath: '/admin/inventory'
+      preLoaderRoute: typeof AdminInventoryRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/coupons': {
@@ -739,3 +739,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
