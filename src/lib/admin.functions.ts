@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { rangeStartISO } from "@/lib/date-range";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -523,6 +524,7 @@ const listOrdersSchema = z.object({
   page: z.number().int().min(0).default(0),
   pageSize: z.number().int().min(1).max(100).default(25),
   status: z.enum(["pending", "processing", "shipped", "delivered", "cancelled"]).optional(),
+  range: z.string().optional(),
 });
 
 export const adminListOrders = createServerFn({ method: "GET" })
@@ -541,6 +543,8 @@ export const adminListOrders = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .range(from, from + data.pageSize - 1);
     if (data.status) query = query.eq("status", data.status);
+    const rangeStart = rangeStartISO(data.range);
+    if (rangeStart) query = query.gte("created_at", rangeStart);
 
     const { data: orders, error, count } = await query;
     if (error) throw error;
