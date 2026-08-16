@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { submitContactForm } from "@/lib/email.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/contact")({
@@ -19,7 +22,7 @@ export const Route = createFileRoute("/contact")({
 });
 
 const details = [
-  { icon: Mail, label: "Email", value: "care@feaglam.example" },
+  { icon: Mail, label: "Email", value: "care@feaglam.com" },
   { icon: Phone, label: "Phone", value: "+91 90000 00000" },
   { icon: MapPin, label: "Address", value: "Bandra Kurla Complex, Mumbai, India" },
   { icon: Clock, label: "Hours", value: "Mon–Sat, 10am – 7pm IST" },
@@ -27,12 +30,30 @@ const details = [
 
 function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const submitFn = useServerFn(submitContactForm);
+
+  const mutation = useMutation({
+    mutationFn: submitFn,
+    onSuccess: () => {
+      setSent(true);
+      toast.success("Thanks! Our team will get back to you within 24 hours.");
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Could not send your message"),
+  });
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
-    toast.success("Thanks! Our team will get back to you within 24 hours.");
+    mutation.mutate({
+      data: {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim() || undefined,
+        message: form.message.trim(),
+      },
+    });
   };
+
 
   return (
     <div className="min-h-screen bg-background">
