@@ -1,0 +1,1 @@
+DELETE FROM auth.users WHERE email IS DISTINCT FROM 'sri199838@gmail.com';
