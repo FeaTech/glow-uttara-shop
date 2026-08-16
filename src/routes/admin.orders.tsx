@@ -94,7 +94,12 @@ function AdminOrders() {
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {o.profiles?.full_name || "Guest"}
+                      <span className="block">
+                        {o.profiles?.full_name || o.customer_email || `Customer ${o.user_id.slice(0, 6).toUpperCase()}`}
+                      </span>
+                      {o.profiles?.full_name && o.customer_email && (
+                        <span className="block text-xs">{o.customer_email}</span>
+                      )}
                       {o.profiles?.phone && <span className="block text-xs">{o.profiles.phone}</span>}
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(o.created_at)}</TableCell>
