@@ -465,8 +465,33 @@ export const adminListOrders = createServerFn({ method: "GET" })
       .in("id", userIds);
     const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
 
+    // Orders placed before customer_email existed have no address on the row.
+    // Resolve those from the registered account and backfill once.
+    const emailByUser = new Map<string, string>();
+    for (const o of orders) if (o.customer_email) emailByUser.set(o.user_id, o.customer_email);
+    const missing = userIds.filter((id) => !emailByUser.has(id));
+    if (missing.length) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        for (const id of missing) {
+          const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(id);
+          const email = authUser?.user?.email;
+          if (email) {
+            emailByUser.set(id, email);
+            await supabaseAdmin.from("orders").update({ customer_email: email }).eq("user_id", id).is("customer_email", null);
+          }
+        }
+      } catch (err) {
+        console.error("[admin] could not resolve customer emails", err);
+      }
+    }
+
     return {
-      orders: orders.map((o) => ({ ...o, profiles: byId.get(o.user_id) ?? null })),
+      orders: orders.map((o) => ({
+        ...o,
+        customer_email: o.customer_email ?? emailByUser.get(o.user_id) ?? null,
+        profiles: byId.get(o.user_id) ?? null,
+      })),
       total: count ?? orders.length,
       page: data.page,
       pageSize: data.pageSize,
