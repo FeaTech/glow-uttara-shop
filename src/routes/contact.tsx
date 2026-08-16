@@ -88,12 +88,12 @@ function ContactPage() {
             ) : (
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div><Label>Name</Label><Input required className="mt-1.5" /></div>
-                  <div><Label>Email</Label><Input type="email" required className="mt-1.5" /></div>
+                  <div><Label>Name</Label><Input required className="mt-1.5" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></div>
+                  <div><Label>Email</Label><Input type="email" required className="mt-1.5" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} /></div>
                 </div>
-                <div><Label>Subject</Label><Input className="mt-1.5" /></div>
-                <div><Label>Message</Label><Textarea required rows={5} className="mt-1.5" /></div>
-                <Button type="submit" className="btn-gold w-full">Send message</Button>
+                <div><Label>Subject</Label><Input className="mt-1.5" value={form.subject} onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))} /></div>
+                <div><Label>Message</Label><Textarea required rows={5} minLength={5} className="mt-1.5" value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} /></div>
+                <Button type="submit" className="btn-gold w-full" disabled={mutation.isPending}>{mutation.isPending ? "Sending…" : "Send message"}</Button>
               </>
             )}
           </form>
