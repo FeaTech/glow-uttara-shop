@@ -123,6 +123,31 @@ export const createOrder = createServerFn({ method: "POST" })
       supabase.from("cart").update({ status: "converted" }).eq("id", cart.id),
     ]);
 
+    if (customerEmail) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", userId)
+        .maybeSingle();
+      const { sendEmailSafe, orderConfirmationEmail } = await import("@/lib/email.server");
+      const mail = orderConfirmationEmail({
+        orderId: order.id,
+        items: orderItems.map((i) => ({
+          name: i.name,
+          variantName: i.variant_name,
+          quantity: i.quantity,
+          priceInr: i.price_inr,
+        })),
+        subtotalInr: subtotal,
+        discountInr: discount,
+        totalInr: total,
+        customerName: profile?.full_name ?? null,
+        shippingAddress: data.shippingAddress,
+      });
+      await sendEmailSafe({ to: customerEmail, subject: mail.subject, html: mail.html });
+    }
+
+
     return { orderId: order.id };
   });
 
