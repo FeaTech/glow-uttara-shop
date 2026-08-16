@@ -56,7 +56,16 @@ function AuthPage() {
             emailRedirectTo: window.location.origin,
           },
         });
-        if (error) throw error;
+        if (error) {
+          if (/already registered|already exists|User already/i.test(error.message)) {
+            throw new Error("An account with this email already exists. Please sign in instead.");
+          }
+          throw error;
+        }
+        // Supabase obfuscates existing users: a user with no identities means the email is taken.
+        if (signUpData.user && (signUpData.user.identities?.length ?? 0) === 0) {
+          throw new Error("An account with this email already exists. Please sign in instead.");
+        }
         if (signUpData.session) {
           // Signed in immediately (auto-confirm) — send the welcome email.
           void sendWelcomeEmail({ data: undefined }).catch(() => {});
