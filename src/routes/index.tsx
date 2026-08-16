@@ -43,6 +43,14 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
+const categoryImages: Record<string, string> = {
+  makeup: "/categories/makeup.jpg",
+  skincare: "/categories/skincare.jpg",
+  haircare: "/categories/haircare.jpg",
+  fragrances: "/categories/fragrances.jpg",
+  "beauty-accessories": "/categories/accessories.jpg",
+};
+
 const testimonials = [
   { name: "Ananya R.", city: "Mumbai", text: "The foundation shade range is perfect for Indian skin. Finally a store that gets it!", rating: 5 },
   { name: "Priya S.", city: "Bengaluru", text: "Fast delivery and everything is 100% authentic. My vitamin C serum arrived beautifully packed.", rating: 5 },
@@ -107,8 +115,12 @@ function HomePage() {
                 search={{ category: cat.slug }}
                 className="group card-luxe card-hover flex h-full flex-col items-center justify-center gap-4 p-8 text-center"
               >
-                <span className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-primary/15 to-accent/40 font-serif text-2xl text-primary transition-transform duration-300 group-hover:scale-110">
-                  {cat.name.charAt(0)}
+                <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-primary/15 to-accent/40 transition-transform duration-300 group-hover:scale-110">
+                  <img
+                    src={categoryImages[cat.slug] ?? cat.image_url ?? undefined}
+                    alt={cat.name}
+                    className="h-full w-full object-cover"
+                  />
                 </span>
                 <span className="font-medium text-foreground group-hover:text-primary">{cat.name}</span>
               </Link>

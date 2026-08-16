@@ -133,12 +133,17 @@ function AdminOrders() {
                       </Select>
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Select value={o.payment_status} onValueChange={(v) => mutation.mutate({ data: { orderId: o.id, paymentStatus: v as any } })}>
-                        <SelectTrigger className="h-8 w-28 capitalize"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {PAYMENT_STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs font-medium uppercase text-muted-foreground">
+                          {o.payment_method === "online" ? "Online" : "COD"}
+                        </span>
+                        <Select value={o.payment_status} onValueChange={(v) => mutation.mutate({ data: { orderId: o.id, paymentStatus: v as any } })}>
+                          <SelectTrigger className="h-8 w-28 capitalize"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {PAYMENT_STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </TableCell>
                   </TableRow>
                   {expanded === o.id && (

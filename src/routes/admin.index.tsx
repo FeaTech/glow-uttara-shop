@@ -93,11 +93,11 @@ function AdminDashboard() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="card-luxe p-6 lg:col-span-2">
-          <h2 className="font-heading text-lg font-medium text-foreground">Revenue · last 7 days</h2>
+          <h2 className="font-heading text-lg font-medium text-foreground">Revenue · {rangeLabel(range).toLowerCase()}</h2>
           <div className="mt-4 h-64">
-            {data && (
+            {scoped?.revenueChart && (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.revenueByDay} margin={{ left: -12, right: 8, top: 8 }}>
+                <AreaChart data={scoped.revenueChart} margin={{ left: -12, right: 8, top: 8 }}>
                   <defs>
                     <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />

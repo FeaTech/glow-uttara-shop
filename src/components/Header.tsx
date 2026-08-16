@@ -16,7 +16,7 @@ import {
 import { useCartCount } from "@/hooks/use-cart-count";
 import { amIAdmin } from "@/lib/roles.functions";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/feaglam-logo.png.asset.json";
+import logoUrl from "@/assets/feaglam-logo.png";
 
 const navLinks = [
   { to: "/products", search: {}, label: "Shop" },
@@ -102,7 +102,7 @@ export function Header() {
           className="mx-auto flex shrink-0 items-center gap-2 md:mx-0"
           aria-label="FEA Glam home"
         >
-          <img src={logo.url} alt="FEA Glam" className="h-24 w-auto md:h-28" />
+          <img src={logoUrl} alt="FEA Glam" className="h-24 w-auto md:h-28" />
         </Link>
 
         {/* Desktop nav */}

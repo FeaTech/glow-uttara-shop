@@ -91,6 +91,7 @@ export const createOrder = createServerFn({ method: "POST" })
         total_inr: total,
         shipping_address: data.shippingAddress,
         customer_email: customerEmail,
+        payment_method: data.paymentMethod,
         payment_status: "pending",
         status: "pending",
       })

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { rangeStartISO } from "@/lib/date-range";
+import { rangeInterval } from "@/lib/date-range";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -74,34 +74,138 @@ export const adminStats = createServerFn({ method: "GET" })
 // Range-scoped KPIs for the dashboard (the RPC above is all-time).
 const rangeSchema = z.object({ range: z.string().optional() });
 
+/** Determine grouping strategy based on the total number of days in the range. */
+function chartGrouping(totalDays: number): "day" | "week" | "month" {
+  if (totalDays <= 31) return "day";
+  if (totalDays <= 120) return "week";
+  return "month";
+}
+
+/** Local-date string YYYY-MM-DD (avoids UTC shift from toISOString). */
+function localDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** Format a Date into the bucket key for the given grouping (local time). */
+function bucketKey(date: Date, grouping: "day" | "week" | "month"): string {
+  if (grouping === "day") {
+    return localDateStr(date);
+  }
+  if (grouping === "week") {
+    // Use Monday of the ISO week (local time)
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    return localDateStr(d);
+  }
+  // month
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Format bucket key into a readable chart label. */
+function bucketLabel(key: string, grouping: "day" | "week" | "month"): string {
+  if (grouping === "day") {
+    const d = new Date(key + "T00:00:00");
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  }
+  if (grouping === "week") {
+    const d = new Date(key + "T00:00:00");
+    return "W " + d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  }
+  // month
+  const [y, m] = key.split("-");
+  const d = new Date(Number(y), Number(m) - 1);
+  return d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" });
+}
+
+/** Build chart data points from orders, filling gaps between start and end. */
+function buildRevenueChart(
+  validOrders: { total_inr: number | null; created_at: string }[],
+  rangeStart: Date,
+  rangeEnd: Date,
+  grouping: "day" | "week" | "month",
+): { date: string; revenue: number }[] {
+  // Aggregate revenue by bucket
+  const map = new Map<string, number>();
+  for (const o of validOrders) {
+    const key = bucketKey(new Date(o.created_at), grouping);
+    map.set(key, (map.get(key) ?? 0) + Number(o.total_inr ?? 0));
+  }
+
+  // Generate all bucket keys in the range
+  const points: { date: string; revenue: number }[] = [];
+  const cursor = new Date(rangeStart);
+  cursor.setHours(0, 0, 0, 0);
+  const endDate = new Date(rangeEnd);
+  endDate.setHours(23, 59, 59, 999);
+
+  const seen = new Set<string>();
+  while (cursor <= endDate) {
+    const key = bucketKey(cursor, grouping);
+    if (!seen.has(key)) {
+      seen.add(key);
+      points.push({ date: bucketLabel(key, grouping), revenue: map.get(key) ?? 0 });
+    }
+    // Advance cursor
+    if (grouping === "day") cursor.setDate(cursor.getDate() + 1);
+    else if (grouping === "week") cursor.setDate(cursor.getDate() + 7);
+    else cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return points;
+}
+
 export const adminRangeStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => rangeSchema.parse(input ?? {}))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const db = context.supabase;
-    const start = rangeStartISO(data.range);
+    const { start, end } = rangeInterval(data.range);
 
-    let ordersQuery = db.from("orders").select("id, total_inr, status, created_at");
+    let ordersQuery = db.from("orders").select("id, total_inr, status, payment_status, created_at");
     if (start) ordersQuery = ordersQuery.gte("created_at", start);
+    if (end) ordersQuery = ordersQuery.lte("created_at", end);
     const { data: orders, error } = await ordersQuery;
     if (error) throw error;
 
     const rows = orders ?? [];
-    const revenue = rows
-      .filter((o) => o.status !== "cancelled")
-      .reduce((sum, o) => sum + Number(o.total_inr ?? 0), 0);
+    // Revenue logic:
+    // - Online/prepaid: count when payment_status === "paid"
+    // - COD: count when order status === "delivered" (payment collected on delivery)
+    // - Exclude: cancelled, failed, or refunded orders entirely
+    const validOrders = rows.filter(
+      (o) =>
+        o.status !== "cancelled" &&
+        o.payment_status !== "failed" &&
+        o.payment_status !== "refunded" &&
+        (o.payment_status === "paid" || o.status === "delivered"),
+    );
+    const revenue = validOrders.reduce((sum, o) => sum + Number(o.total_inr ?? 0), 0);
+
+    // Build chart data
+    const rangeStart = start ? new Date(start) : (rows.length ? new Date(Math.min(...rows.map((o) => new Date(o.created_at).getTime()))) : new Date());
+    const rangeEnd = end ? new Date(end) : new Date();
+    const totalDays = Math.max(1, Math.ceil((rangeEnd.getTime() - rangeStart.getTime()) / 86400000));
+    const grouping = chartGrouping(totalDays);
+    const revenueChart = buildRevenueChart(validOrders, rangeStart, rangeEnd, grouping);
 
     let customersQuery = db.from("profiles").select("id", { count: "exact", head: true });
     if (start) customersQuery = customersQuery.gte("created_at", start);
+    if (end) customersQuery = customersQuery.lte("created_at", end);
     const { count: customerCount } = await customersQuery;
 
     let productsQuery = db.from("products").select("id", { count: "exact", head: true });
     if (start) productsQuery = productsQuery.gte("created_at", start);
+    if (end) productsQuery = productsQuery.lte("created_at", end);
     const { count: productCount } = await productsQuery;
 
     return {
       revenue,
+      revenueChart,
       orderCount: rows.length,
       pendingCount: rows.filter((o) => o.status === "pending").length,
       customerCount: customerCount ?? 0,
@@ -118,13 +222,14 @@ export const adminListCustomers = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const db = context.supabase;
-    const start = rangeStartISO(data.range);
+    const { start, end } = rangeInterval(data.range);
 
     let profileQuery = db
       .from("profiles")
       .select("id, full_name, phone, created_at")
       .order("created_at", { ascending: false });
     if (start) profileQuery = profileQuery.gte("created_at", start);
+    if (end) profileQuery = profileQuery.lte("created_at", end);
     const { data: profiles, error } = await profileQuery;
     if (error) throw error;
     if (!profiles?.length) return [];
@@ -543,8 +648,9 @@ export const adminListOrders = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .range(from, from + data.pageSize - 1);
     if (data.status) query = query.eq("status", data.status);
-    const rangeStart = rangeStartISO(data.range);
+    const { start: rangeStart, end: rangeEnd } = rangeInterval(data.range);
     if (rangeStart) query = query.gte("created_at", rangeStart);
+    if (rangeEnd) query = query.lte("created_at", rangeEnd);
 
     const { data: orders, error, count } = await query;
     if (error) throw error;
