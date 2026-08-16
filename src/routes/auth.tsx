@@ -76,7 +76,15 @@ function AuthPage() {
         }
       }
     } catch (err: any) {
-      toast.error(err.message ?? "Authentication failed");
+      const raw = String(err?.message ?? err?.error_description ?? "").trim();
+      let msg = raw;
+      if (!msg || msg === "{}") msg = "Something went wrong. Please try again.";
+      if (/hook|unexpected_failure|authorization token/i.test(raw)) {
+        msg = "We couldn't send your confirmation email right now. Please try again in a few minutes.";
+      } else if (/rate limit/i.test(raw)) {
+        msg = "Too many attempts. Please wait a few minutes and try again.";
+      }
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
