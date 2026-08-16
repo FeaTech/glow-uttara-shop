@@ -71,9 +71,10 @@ function AdminDashboard() {
           <Link
             key={c.label}
             to={c.to}
-            search={{ range }}
+            search={(c.to === "/admin/products" ? undefined : { range }) as never}
             className="card-luxe group p-5 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
+
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{c.label}</span>
               <c.icon className="h-4 w-4 text-primary" />
