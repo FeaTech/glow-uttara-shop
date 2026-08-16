@@ -491,6 +491,20 @@ export const adminUpdateOrder = createServerFn({ method: "POST" })
     if (Object.keys(patch).length === 0) return { ok: true };
     const { error } = await db.from("orders").update(patch as any).eq("id", data.orderId);
     if (error) throw error;
+
+    // Notify the customer when the fulfilment status changes.
+    if (data.status) {
+      const { data: order } = await db
+        .from("orders")
+        .select("customer_email")
+        .eq("id", data.orderId)
+        .maybeSingle();
+      if (order?.customer_email) {
+        const { sendEmailSafe, orderStatusEmail } = await import("@/lib/email.server");
+        const mail = orderStatusEmail({ orderId: data.orderId, status: data.status });
+        await sendEmailSafe({ to: order.customer_email, subject: mail.subject, html: mail.html });
+      }
+    }
     return { ok: true };
   });
 

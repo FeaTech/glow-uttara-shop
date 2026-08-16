@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-r
 import { useState } from "react";
 import { ShieldCheck, Truck, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendWelcomeEmail } from "@/lib/email.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +46,7 @@ function AuthPage() {
         toast.success("Welcome back!");
         navigate({ to: redirect ?? "/" });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email, password,
           options: {
             data: {
@@ -56,7 +57,14 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. Please check your email to confirm.");
+        if (signUpData.session) {
+          // Signed in immediately (auto-confirm) — send the welcome email.
+          void sendWelcomeEmail({ data: undefined }).catch(() => {});
+          toast.success("Welcome to FEA Glam!");
+          navigate({ to: redirect ?? "/" });
+        } else {
+          toast.success("Account created. Please check your email to confirm.");
+        }
       }
     } catch (err: any) {
       toast.error(err.message ?? "Authentication failed");

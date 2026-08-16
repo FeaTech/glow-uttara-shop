@@ -73,6 +73,8 @@ export const createOrder = createServerFn({ method: "POST" })
 
     const total = Math.max(0, subtotal - discount);
 
+    const customerEmail = (context.claims as { email?: string }).email ?? null;
+
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -82,6 +84,7 @@ export const createOrder = createServerFn({ method: "POST" })
         coupon_code: couponCode,
         total_inr: total,
         shipping_address: data.shippingAddress,
+        customer_email: customerEmail,
         payment_status: "pending",
         status: "pending",
       })
@@ -119,6 +122,31 @@ export const createOrder = createServerFn({ method: "POST" })
       supabase.from("cart_items").delete().eq("cart_id", cart.id),
       supabase.from("cart").update({ status: "converted" }).eq("id", cart.id),
     ]);
+
+    if (customerEmail) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", userId)
+        .maybeSingle();
+      const { sendEmailSafe, orderConfirmationEmail } = await import("@/lib/email.server");
+      const mail = orderConfirmationEmail({
+        orderId: order.id,
+        items: orderItems.map((i) => ({
+          name: i.name,
+          variantName: i.variant_name,
+          quantity: i.quantity,
+          priceInr: i.price_inr,
+        })),
+        subtotalInr: subtotal,
+        discountInr: discount,
+        totalInr: total,
+        customerName: profile?.full_name ?? null,
+        shippingAddress: data.shippingAddress,
+      });
+      await sendEmailSafe({ to: customerEmail, subject: mail.subject, html: mail.html });
+    }
+
 
     return { orderId: order.id };
   });
