@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Fragment, useState } from "react";
@@ -10,9 +10,14 @@ import { Button } from "@/components/ui/button";
 import { formatDate, formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { RangeFilter } from "@/components/admin/RangeFilter";
+import { normalizeRange, rangeLabel, type RangeValue } from "@/lib/date-range";
 
 export const Route = createFileRoute("/admin/orders")({
   head: () => ({ meta: [{ title: "Orders — Admin — FEA Glam" }] }),
+  validateSearch: (search: Record<string, unknown>): { range?: RangeValue } => ({
+    range: search.range ? normalizeRange(search.range as string) : undefined,
+  }),
   component: AdminOrders,
 });
 
@@ -31,10 +36,12 @@ const PAGE_SIZE = 25;
 
 function AdminOrders() {
   const queryClient = useQueryClient();
+  const range = normalizeRange(Route.useSearch().range);
+  const navigate = useNavigate({ from: "/admin/orders" });
   const [page, setPage] = useState(0);
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["admin", "orders", page],
-    queryFn: () => adminListOrders({ data: { page, pageSize: PAGE_SIZE } }),
+    queryKey: ["admin", "orders", page, range],
+    queryFn: () => adminListOrders({ data: { page, pageSize: PAGE_SIZE, range } }),
     placeholderData: keepPreviousData,
     retry: false,
   });
@@ -63,8 +70,21 @@ function AdminOrders() {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl font-light text-foreground">Orders</h1>
-      <p className="mt-1 text-muted-foreground">{total} orders · update fulfilment &amp; payment status</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-3xl font-light text-foreground">Orders</h1>
+          <p className="mt-1 text-muted-foreground">
+            {total} orders · {rangeLabel(range)} · update fulfilment &amp; payment status
+          </p>
+        </div>
+        <RangeFilter
+          value={range}
+          onChange={(v) => {
+            setPage(0);
+            navigate({ search: { range: v } });
+          }}
+        />
+      </div>
 
       <div className="card-luxe mt-8 overflow-x-auto">
         <Table>
