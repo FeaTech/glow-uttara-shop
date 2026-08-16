@@ -73,6 +73,8 @@ export const createOrder = createServerFn({ method: "POST" })
 
     const total = Math.max(0, subtotal - discount);
 
+    const customerEmail = (context.claims as { email?: string }).email ?? null;
+
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -82,6 +84,7 @@ export const createOrder = createServerFn({ method: "POST" })
         coupon_code: couponCode,
         total_inr: total,
         shipping_address: data.shippingAddress,
+        customer_email: customerEmail,
         payment_status: "pending",
         status: "pending",
       })
