@@ -40,6 +40,7 @@ import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/cart'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders.index'
+import { Route as ApiPublicAuthEmailHookRouteImport } from './routes/api/public/auth-email-hook'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 
 const TermsRoute = TermsRouteImport.update({
@@ -197,6 +198,11 @@ const AuthenticatedOrdersIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedOrdersRoute,
   } as any)
+const ApiPublicAuthEmailHookRoute = ApiPublicAuthEmailHookRouteImport.update({
+  id: '/api/public/auth-email-hook',
+  path: '/api/public/auth-email-hook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedOrdersOrderIdRoute =
   AuthenticatedOrdersOrderIdRouteImport.update({
     id: '/$orderId',
@@ -235,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
+  '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/products': typeof ProductsIndexRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
+  '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
 }
 export interface FileRoutesById {
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
+  '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
 }
 export interface FileRouteTypes {
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/products/'
     | '/orders/$orderId'
+    | '/api/public/auth-email-hook'
     | '/orders/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/products'
     | '/orders/$orderId'
+    | '/api/public/auth-email-hook'
     | '/orders'
   id:
     | '__root__'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/products/'
     | '/_authenticated/orders/$orderId'
+    | '/api/public/auth-email-hook'
     | '/_authenticated/orders/'
   fileRoutesById: FileRoutesById
 }
@@ -417,6 +429,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  ApiPublicAuthEmailHookRoute: typeof ApiPublicAuthEmailHookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -638,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersIndexRouteImport
       parentRoute: typeof AuthenticatedOrdersRoute
     }
+    '/api/public/auth-email-hook': {
+      id: '/api/public/auth-email-hook'
+      path: '/api/public/auth-email-hook'
+      fullPath: '/api/public/auth-email-hook'
+      preLoaderRoute: typeof ApiPublicAuthEmailHookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/orders/$orderId': {
       id: '/_authenticated/orders/$orderId'
       path: '/$orderId'
@@ -735,6 +755,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  ApiPublicAuthEmailHookRoute: ApiPublicAuthEmailHookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -57,9 +57,10 @@ export const Route = createFileRoute("/api/public/auth-email-hook")({
 
         const siteUrl = data.site_url || "https://feaglam.com";
         const action = data.email_action_type || "magiclink";
+        const authBase = (process.env["SUPABASE_URL"] || "").replace(/\/$/, "");
         const url =
-          data.token_hash
-            ? `${siteUrl}/auth/v1/verify?token=${encodeURIComponent(data.token_hash)}&type=${encodeURIComponent(action)}&redirect_to=${encodeURIComponent(data.redirect_to || siteUrl)}`
+          data.token_hash && authBase
+            ? `${authBase}/auth/v1/verify?token=${encodeURIComponent(data.token_hash)}&type=${encodeURIComponent(action)}&redirect_to=${encodeURIComponent(data.redirect_to || siteUrl)}`
             : "";
 
         const { sendEmailSafe, authActionEmail } = await import("@/lib/email.server");
