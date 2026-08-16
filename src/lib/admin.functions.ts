@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { rangeStartISO } from "@/lib/date-range";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -69,6 +70,96 @@ export const adminStats = createServerFn({ method: "GET" })
       lowStock: stats.lowStock ?? [],
     };
   });
+
+// Range-scoped KPIs for the dashboard (the RPC above is all-time).
+const rangeSchema = z.object({ range: z.string().optional() });
+
+export const adminRangeStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => rangeSchema.parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = context.supabase;
+    const start = rangeStartISO(data.range);
+
+    let ordersQuery = db.from("orders").select("id, total_inr, status, created_at");
+    if (start) ordersQuery = ordersQuery.gte("created_at", start);
+    const { data: orders, error } = await ordersQuery;
+    if (error) throw error;
+
+    const rows = orders ?? [];
+    const revenue = rows
+      .filter((o) => o.status !== "cancelled")
+      .reduce((sum, o) => sum + Number(o.total_inr ?? 0), 0);
+
+    let customersQuery = db.from("profiles").select("id", { count: "exact", head: true });
+    if (start) customersQuery = customersQuery.gte("created_at", start);
+    const { count: customerCount } = await customersQuery;
+
+    let productsQuery = db.from("products").select("id", { count: "exact", head: true });
+    if (start) productsQuery = productsQuery.gte("created_at", start);
+    const { count: productCount } = await productsQuery;
+
+    return {
+      revenue,
+      orderCount: rows.length,
+      pendingCount: rows.filter((o) => o.status === "pending").length,
+      customerCount: customerCount ?? 0,
+      productCount: productCount ?? 0,
+    };
+  });
+
+// ---------------------------------------------------------------------------
+// Customers
+// ---------------------------------------------------------------------------
+export const adminListCustomers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => rangeSchema.parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = context.supabase;
+    const start = rangeStartISO(data.range);
+
+    let profileQuery = db
+      .from("profiles")
+      .select("id, full_name, phone, created_at")
+      .order("created_at", { ascending: false });
+    if (start) profileQuery = profileQuery.gte("created_at", start);
+    const { data: profiles, error } = await profileQuery;
+    if (error) throw error;
+    if (!profiles?.length) return [];
+
+    const ids = profiles.map((p) => p.id);
+    const { data: orders } = await db
+      .from("orders")
+      .select("user_id, total_inr, status, customer_email, created_at")
+      .in("user_id", ids);
+
+    const byUser = new Map<string, { orders: number; spent: number; email: string | null; last: string | null }>();
+    for (const o of orders ?? []) {
+      const entry = byUser.get(o.user_id) ?? { orders: 0, spent: 0, email: null, last: null };
+      entry.orders += 1;
+      if (o.status !== "cancelled") entry.spent += Number(o.total_inr ?? 0);
+      entry.email = entry.email ?? o.customer_email ?? null;
+      if (!entry.last || o.created_at > entry.last) entry.last = o.created_at;
+      byUser.set(o.user_id, entry);
+    }
+
+    return profiles.map((p) => {
+      const agg = byUser.get(p.id);
+      return {
+        id: p.id,
+        full_name: p.full_name,
+        phone: p.phone,
+        created_at: p.created_at,
+        email: agg?.email ?? null,
+        orderCount: agg?.orders ?? 0,
+        totalSpent: agg?.spent ?? 0,
+        lastOrderAt: agg?.last ?? null,
+      };
+    });
+  });
+
 
 // ---------------------------------------------------------------------------
 // Products
@@ -433,6 +524,7 @@ const listOrdersSchema = z.object({
   page: z.number().int().min(0).default(0),
   pageSize: z.number().int().min(1).max(100).default(25),
   status: z.enum(["pending", "processing", "shipped", "delivered", "cancelled"]).optional(),
+  range: z.string().optional(),
 });
 
 export const adminListOrders = createServerFn({ method: "GET" })
@@ -451,6 +543,8 @@ export const adminListOrders = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .range(from, from + data.pageSize - 1);
     if (data.status) query = query.eq("status", data.status);
+    const rangeStart = rangeStartISO(data.range);
+    if (rangeStart) query = query.gte("created_at", rangeStart);
 
     const { data: orders, error, count } = await query;
     if (error) throw error;

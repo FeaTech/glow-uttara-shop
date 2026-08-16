@@ -1,48 +1,95 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { IndianRupee, ShoppingCart, Package, Users, AlertTriangle } from "lucide-react";
-import { adminStats } from "@/lib/admin.functions";
+import { IndianRupee, ShoppingCart, Package, Users, AlertTriangle, ArrowRight } from "lucide-react";
+import { adminStats, adminRangeStats } from "@/lib/admin.functions";
 import { formatINR } from "@/lib/format";
+import { RangeFilter } from "@/components/admin/RangeFilter";
+import { normalizeRange, rangeLabel, type RangeValue } from "@/lib/date-range";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin dashboard — FEA Glam" }] }),
+  validateSearch: (search: Record<string, unknown>): { range?: RangeValue } => ({
+    range: search.range ? normalizeRange(search.range as string) : undefined,
+  }),
   component: AdminDashboard,
 });
 
 function AdminDashboard() {
+  const range = normalizeRange(Route.useSearch().range);
+  const navigate = useNavigate({ from: "/admin" });
+
+
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "stats"],
     queryFn: () => adminStats({ data: undefined }),
     retry: false,
   });
 
-  const cards = [
-    { label: "Revenue", value: data ? formatINR(data.revenue) : "—", icon: IndianRupee },
-    { label: "Orders", value: data?.orderCount ?? "—", icon: ShoppingCart, hint: data ? `${data.pendingCount} pending` : undefined },
-    { label: "Products", value: data?.productCount ?? "—", icon: Package },
-    { label: "Customers", value: data?.customerCount ?? "—", icon: Users },
+  const { data: scoped, isLoading: scopedLoading } = useQuery({
+    queryKey: ["admin", "stats", "range", range],
+    queryFn: () => adminRangeStats({ data: { range } }),
+    retry: false,
+  });
+
+  const busy = isLoading || scopedLoading;
+
+  const cards: {
+    label: string;
+    value: string | number;
+    icon: typeof IndianRupee;
+    hint?: string;
+    to: string;
+  }[] = [
+    { label: "Revenue", value: scoped ? formatINR(scoped.revenue) : "—", icon: IndianRupee, to: "/admin/orders" },
+    {
+      label: "Orders",
+      value: scoped?.orderCount ?? "—",
+      icon: ShoppingCart,
+      hint: scoped ? `${scoped.pendingCount} pending` : undefined,
+      to: "/admin/orders",
+    },
+    { label: "Products", value: data?.productCount ?? "—", icon: Package, to: "/admin/products" },
+    { label: "Customers", value: scoped?.customerCount ?? "—", icon: Users, to: "/admin/customers" },
   ];
 
   return (
     <div>
-      <h1 className="font-serif text-3xl font-light text-foreground">Dashboard</h1>
-      <p className="mt-1 text-muted-foreground">Store performance at a glance.</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-3xl font-light text-foreground">Dashboard</h1>
+          <p className="mt-1 text-muted-foreground">Store performance · {rangeLabel(range)}.</p>
+        </div>
+        <RangeFilter
+          value={range}
+          onChange={(v: RangeValue) => navigate({ search: { range: v } })}
+        />
+      </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {cards.map((c) => (
-          <div key={c.label} className="card-luxe p-5">
+          <Link
+            key={c.label}
+            to={c.to}
+            search={(c.to === "/admin/products" ? undefined : { range }) as never}
+            className="card-luxe group p-5 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{c.label}</span>
               <c.icon className="h-4 w-4 text-primary" />
             </div>
             <p className="mt-2 font-serif text-2xl font-medium text-foreground">
-              {isLoading ? <span className="inline-block h-6 w-20 rounded skeleton-luxe" /> : c.value}
+              {busy ? <span className="inline-block h-6 w-20 rounded skeleton-luxe" /> : c.value}
             </p>
-            {c.hint && <p className="mt-1 text-xs text-muted-foreground">{c.hint}</p>}
-          </div>
+            <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+              {c.hint ?? "View details"}
+              <ArrowRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+            </span>
+          </Link>
         ))}
       </div>
+
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="card-luxe p-6 lg:col-span-2">
