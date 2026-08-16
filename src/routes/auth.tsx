@@ -85,7 +85,6 @@ function AuthPage() {
         msg = "Too many attempts. Please wait a few minutes and try again.";
       }
       toast.error(msg);
-    }
     } finally {
       setLoading(false);
     }
