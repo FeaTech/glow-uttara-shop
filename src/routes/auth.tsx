@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-r
 import { useState } from "react";
 import { ShieldCheck, Truck, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendWelcomeEmail } from "@/lib/email.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
