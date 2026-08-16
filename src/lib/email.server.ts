@@ -291,3 +291,76 @@ export function contactAckEmail(args: { name: string }) {
   `;
   return { subject: "We've received your message — FEA Glam", html: layout("Message received", body) };
 }
+
+// ---------------------------------------------------------------------------
+// Auth emails (Supabase Auth "Send Email" hook)
+// ---------------------------------------------------------------------------
+export type AuthEmailAction =
+  | "signup"
+  | "magiclink"
+  | "recovery"
+  | "invite"
+  | "email_change"
+  | "email_change_current"
+  | "email_change_new"
+  | "reauthentication";
+
+const AUTH_COPY: Record<string, { subject: string; title: string; intro: string; cta: string }> = {
+  signup: {
+    subject: "Confirm your email — FEA Glam",
+    title: "Confirm your email",
+    intro: "Welcome to FEA Glam! Confirm your email address to activate your account and start shopping authentic beauty.",
+    cta: "Confirm my email",
+  },
+  magiclink: {
+    subject: "Your FEA Glam sign-in link",
+    title: "Sign in to FEA Glam",
+    intro: "Use the secure link below to sign in. It expires shortly and can be used only once.",
+    cta: "Sign in",
+  },
+  recovery: {
+    subject: "Reset your FEA Glam password",
+    title: "Reset your password",
+    intro: "We received a request to reset your password. If this wasn't you, you can safely ignore this email.",
+    cta: "Set a new password",
+  },
+  invite: {
+    subject: "You're invited to FEA Glam",
+    title: "You're invited",
+    intro: "You've been invited to join FEA Glam. Accept the invitation to set up your account.",
+    cta: "Accept invitation",
+  },
+  email_change: {
+    subject: "Confirm your new email — FEA Glam",
+    title: "Confirm your new email",
+    intro: "Confirm this address to finish updating the email on your FEA Glam account.",
+    cta: "Confirm email change",
+  },
+  reauthentication: {
+    subject: "Your FEA Glam verification code",
+    title: "Verify it's you",
+    intro: "Enter the verification code below to continue.",
+    cta: "",
+  },
+};
+
+export function authActionEmail(args: { action: string; url: string; token?: string }) {
+  const copy = AUTH_COPY[args.action] ?? AUTH_COPY.magiclink;
+  const codeBlock = args.token
+    ? `<table role="presentation" width="100%" style="border:1px dashed ${GOLD};border-radius:10px;background:${CREAM};margin:6px 0 18px;">
+        <tr><td align="center" style="padding:16px;font-family:Arial,Helvetica,sans-serif;">
+          <div style="font-size:11px;letter-spacing:2px;color:${MUTED};text-transform:uppercase;">Verification code</div>
+          <div style="font-size:26px;letter-spacing:6px;color:${GOLD};font-weight:700;margin-top:8px;">${escapeHtml(args.token)}</div>
+        </td></tr></table>`
+    : "";
+
+  const body = `
+    ${h1(copy.title)}
+    ${p(copy.intro)}
+    ${codeBlock}
+    ${copy.cta && args.url ? button(args.url, copy.cta) : ""}
+    ${args.url ? p(`If the button doesn't work, copy and paste this link into your browser:<br /><a href="${args.url}" style="color:${GOLD};word-break:break-all;">${escapeHtml(args.url)}</a>`, "margin-top:22px;font-size:12px;") : ""}
+    ${p("This link is valid for a limited time and can be used once. If you didn't request it, no action is needed.", "font-size:12px;margin-bottom:0;")}
+  `;
+  return { subject: copy.subject, html: layout(copy.title, body, copy.intro) };
+}
