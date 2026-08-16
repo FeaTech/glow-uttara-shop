@@ -496,13 +496,30 @@ export const adminUpdateOrder = createServerFn({ method: "POST" })
     if (data.status) {
       const { data: order } = await db
         .from("orders")
-        .select("customer_email")
+        .select("customer_email, user_id")
         .eq("id", data.orderId)
         .maybeSingle();
-      if (order?.customer_email) {
+
+      // Older orders were stored without a customer_email — fall back to the
+      // registered account address so status updates still reach the customer.
+      let recipient = order?.customer_email ?? null;
+      if (!recipient && order?.user_id) {
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(order.user_id);
+          recipient = authUser?.user?.email ?? null;
+          if (recipient) {
+            await supabaseAdmin.from("orders").update({ customer_email: recipient }).eq("id", data.orderId);
+          }
+        } catch (err) {
+          console.error("[email] could not resolve customer email", err);
+        }
+      }
+
+      if (recipient) {
         const { sendEmailSafe, orderStatusEmail } = await import("@/lib/email.server");
         const mail = orderStatusEmail({ orderId: data.orderId, status: data.status });
-        await sendEmailSafe({ to: order.customer_email, subject: mail.subject, html: mail.html });
+        await sendEmailSafe({ to: recipient, subject: mail.subject, html: mail.html });
       }
     }
     return { ok: true };
