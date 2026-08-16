@@ -9,15 +9,16 @@ import { normalizeRange, rangeLabel, type RangeValue } from "@/lib/date-range";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin dashboard — FEA Glam" }] }),
-  validateSearch: (search: Record<string, unknown>) => ({
-    range: normalizeRange(search.range as string | undefined),
+  validateSearch: (search: Record<string, unknown>): { range?: RangeValue } => ({
+    range: search.range ? normalizeRange(search.range as string) : undefined,
   }),
   component: AdminDashboard,
 });
 
 function AdminDashboard() {
-  const { range } = Route.useSearch();
+  const range = normalizeRange(Route.useSearch().range);
   const navigate = useNavigate({ from: "/admin" });
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "stats"],
