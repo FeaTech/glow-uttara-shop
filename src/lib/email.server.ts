@@ -79,7 +79,7 @@ const INK = "#1c1917";
 const MUTED = "#78716c";
 const LINE = "#eee7dd";
 const CREAM = "#faf7f2";
-const LOGO_URL = `${SITE_URL}/images/feaglam-logo.png`;
+const LOGO_URL = "https://www.feaglam.com/__l5e/assets-v1/4bf6311a-a521-4f4a-8f49-e63953f0dbc8/feaglam-logo.png";
 
 function button(href: string, label: string) {
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px auto 0;"><tr>
