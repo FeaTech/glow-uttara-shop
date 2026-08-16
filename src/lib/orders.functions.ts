@@ -73,7 +73,13 @@ export const createOrder = createServerFn({ method: "POST" })
 
     const total = Math.max(0, subtotal - discount);
 
-    const customerEmail = (context.claims as { email?: string }).email ?? null;
+    // Some Supabase JWTs omit `email` from the claims, which silently skipped
+    // every confirmation email — fall back to the authenticated user record.
+    let customerEmail = (context.claims as { email?: string }).email ?? null;
+    if (!customerEmail) {
+      const { data: authUser } = await supabase.auth.getUser();
+      customerEmail = authUser?.user?.email ?? null;
+    }
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
