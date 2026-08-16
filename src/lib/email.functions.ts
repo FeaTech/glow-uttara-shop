@@ -28,7 +28,11 @@ export const submitContactForm = createServerFn({ method: "POST" })
 export const sendWelcomeEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const email = (context.claims as { email?: string }).email;
+    let email = (context.claims as { email?: string }).email ?? null;
+    if (!email) {
+      const { data: authUser } = await context.supabase.auth.getUser();
+      email = authUser?.user?.email ?? null;
+    }
     if (!email) return { ok: false };
 
     const { data: profile } = await context.supabase
