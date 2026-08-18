@@ -187,34 +187,3 @@ export const getOrderById = createServerFn({ method: "GET" })
     if (error) throw error;
     return order;
   });
-
-/** Cancel a still-pending order and restore stock. Ownership verified before mutating. */
-export const cancelOrder = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) => getOrderSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { data: order } = await supabase
-      .from("orders")
-      .select("id, status, order_items(product_id, variant_id, quantity)")
-      .eq("id", data.orderId)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (!order) throw new Error("Order not found");
-    if (order.status !== "pending" && order.status !== "processing") {
-      throw new Error("This order can no longer be cancelled");
-    }
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    // Restore variant stock and its product-level inventory mirror in one
-    // atomic statement. This previously looped per line item with a SELECT +
-    // UPDATE each (an N+1, and a read-modify-write race).
-    const { error: restoreError } = await supabaseAdmin.rpc("restore_order_stock", {
-      _order_id: order.id,
-    });
-    if (restoreError) throw restoreError;
-
-    await supabaseAdmin.from("orders").update({ status: "cancelled" }).eq("id", order.id);
-    return { ok: true };
-  });
