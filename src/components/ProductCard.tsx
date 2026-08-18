@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, SlidersHorizontal } from "lucide-react";
 import { useAddToCart } from "@/hooks/use-add-to-cart";
 import { RatingStars } from "@/components/RatingStars";
 import { WishlistButton } from "@/components/WishlistButton";
