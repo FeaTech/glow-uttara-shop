@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, SlidersHorizontal } from "lucide-react";
 import { useAddToCart } from "@/hooks/use-add-to-cart";
 import { RatingStars } from "@/components/RatingStars";
 import { WishlistButton } from "@/components/WishlistButton";
@@ -19,6 +19,7 @@ export interface ProductCardProduct {
   rating_avg?: number;
   rating_count?: number;
   categories?: { name?: string | null } | null;
+  product_variants?: { id: string }[] | null;
 }
 
 export function ProductCard({ product, index = 0 }: { product: ProductCardProduct; index?: number }) {
@@ -27,9 +28,11 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
   const off = discountPercent(price, compare);
   const image = productImage(product.images);
   const outOfStock = typeof product.stock === "number" && product.stock <= 0;
+  const hasVariants = (product.product_variants?.length ?? 0) > 0;
 
   // Optimistic — the cart badge updates on click, not after two round trips.
   const addMutation = useAddToCart();
+
 
   return (
     <div
@@ -74,23 +77,31 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
           </div>
         )}
 
-        {/* Quick add — slides up on hover (desktop) */}
+        {/* Quick add / Options — slides up on hover (desktop) */}
         {!outOfStock && (
           <div className="absolute inset-x-3 bottom-3 translate-y-[130%] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-            <button
-              type="button"
-              disabled={addMutation.isPending}
-              onClick={(e) => {
-                e.preventDefault();
-                addMutation.mutate({ product, quantity: 1 });
-              }}
-              className="btn-gold w-full py-2 text-sm"
-            >
-              <ShoppingBag className="h-4 w-4" />
-              {addMutation.isPending ? "Adding…" : "Quick add"}
-            </button>
+            {hasVariants ? (
+              <span className="btn-gold flex w-full items-center justify-center gap-2 py-2 text-sm">
+                <SlidersHorizontal className="h-4 w-4" />
+                Options
+              </span>
+            ) : (
+              <button
+                type="button"
+                disabled={addMutation.isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  addMutation.mutate({ product, quantity: 1 });
+                }}
+                className="btn-gold w-full py-2 text-sm"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                {addMutation.isPending ? "Adding…" : "Quick add"}
+              </button>
+            )}
           </div>
         )}
+
       </Link>
 
       <Link

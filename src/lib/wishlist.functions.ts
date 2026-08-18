@@ -11,7 +11,7 @@ export const getWishlist = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("wishlist_items")
-      .select("id, created_at, products(*, categories(name, slug))")
+      .select("id, created_at, products(*, categories(name, slug), product_variants(id))")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
     if (error) throw error;

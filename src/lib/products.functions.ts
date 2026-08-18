@@ -73,7 +73,9 @@ export const listProducts = createServerFn({ method: "GET" })
   .inputValidator((input) => listProductsSchema.parse(input))
   .handler(async ({ data }) => {
     const supabase = getPublicClient();
-    const select = data.category ? "*, categories!inner(name, slug)" : "*, categories(name, slug)";
+    const select = data.category
+      ? "*, categories!inner(name, slug), product_variants(id)"
+      : "*, categories(name, slug), product_variants(id)";
     let query = supabase.from("products").select(select);
 
     if (data.category) query = query.eq("categories.slug", data.category);
@@ -125,7 +127,7 @@ export const getRelatedProducts = createServerFn({ method: "GET" })
     const supabase = getPublicClient();
     let query = supabase
       .from("products")
-      .select("*, categories(name, slug)")
+      .select("*, categories(name, slug), product_variants(id)")
       .neq("id", data.productId)
       .limit(data.limit ?? 4);
     if (data.categoryId) query = query.eq("category_id", data.categoryId);
@@ -144,7 +146,7 @@ export const getProductsByIds = createServerFn({ method: "GET" })
     const supabase = getPublicClient();
     const { data: products, error } = await supabase
       .from("products")
-      .select("*, categories(name, slug)")
+      .select("*, categories(name, slug), product_variants(id)")
       .in("id", data.ids);
     if (error) throw error;
     return products ?? [];
