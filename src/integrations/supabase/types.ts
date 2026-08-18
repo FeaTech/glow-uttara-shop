@@ -313,6 +313,8 @@ export type Database = {
           notes: string | null
           payment_method: string
           payment_status: Database["public"]["Enums"]["payment_status"]
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
           shipping_address: Json
           status: Database["public"]["Enums"]["order_status"]
           subtotal_inr: number | null
@@ -329,6 +331,8 @@ export type Database = {
           notes?: string | null
           payment_method?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           shipping_address: Json
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_inr?: number | null
@@ -345,6 +349,8 @@ export type Database = {
           notes?: string | null
           payment_method?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           shipping_address?: Json
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_inr?: number | null
