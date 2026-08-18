@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { addToCart, getCart } from "@/lib/cart.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type CartData = Awaited<ReturnType<typeof getCart>>;
 type CartItem = CartData["items"][number];
@@ -47,8 +48,13 @@ export function useAddToCart() {
   const addToCartFn = useServerFn(addToCart);
 
   const mutation = useMutation({
-    mutationFn: ({ product, variantId, quantity = 1 }: AddArgs) =>
-      addToCartFn({ data: { productId: product.id, variantId, quantity } }),
+    mutationFn: async ({ product, variantId, quantity = 1 }: AddArgs) => {
+      // Guard: calling the protected server fn while signed out throws an
+      // unhandled "Unauthorized" runtime error, which blanks the screen.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error("Unauthorized");
+      return addToCartFn({ data: { productId: product.id, variantId, quantity } });
+    },
 
     onMutate: async ({ product, variantId, variantPrice, variantName, quantity = 1 }: AddArgs) => {
       await queryClient.cancelQueries({ queryKey: ["cart"] });
