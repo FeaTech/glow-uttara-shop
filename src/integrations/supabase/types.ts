@@ -311,7 +311,7 @@ export type Database = {
           discount_inr: number
           id: string
           notes: string | null
-          payment_method: "cod" | "online"
+          payment_method: string
           payment_status: Database["public"]["Enums"]["payment_status"]
           shipping_address: Json
           status: Database["public"]["Enums"]["order_status"]
@@ -327,7 +327,7 @@ export type Database = {
           discount_inr?: number
           id?: string
           notes?: string | null
-          payment_method?: "cod" | "online"
+          payment_method?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
           shipping_address: Json
           status?: Database["public"]["Enums"]["order_status"]
@@ -343,7 +343,7 @@ export type Database = {
           discount_inr?: number
           id?: string
           notes?: string | null
-          payment_method?: "cod" | "online"
+          payment_method?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
           shipping_address?: Json
           status?: Database["public"]["Enums"]["order_status"]
