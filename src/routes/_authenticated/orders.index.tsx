@@ -1,12 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Package } from "lucide-react";
-import { getOrders, cancelOrder } from "@/lib/orders.functions";
+import { getOrders } from "@/lib/orders.functions";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 const ordersQueryOptions = () =>
   queryOptions({ queryKey: ["orders"], queryFn: () => getOrders({ data: undefined }) });
@@ -32,14 +30,6 @@ const STATUS_STYLES: Record<string, string> = {
 
 function OrdersPage() {
   const { data: orders } = useSuspenseQuery(ordersQueryOptions());
-  const queryClient = useQueryClient();
-  const cancelFn = useServerFn(cancelOrder);
-
-  const cancelMutation = useMutation({
-    mutationFn: cancelFn,
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["orders"] }); toast.success("Order cancelled"); },
-    onError: (err: any) => toast.error(err?.message ?? "Could not cancel order"),
-  });
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -55,7 +45,6 @@ function OrdersPage() {
         ) : (
           <div className="mt-10 space-y-6">
             {orders.map((order) => {
-              const canCancel = order.status === "pending" || order.status === "processing";
               return (
                 <div key={order.id} className="card-luxe overflow-hidden">
                   <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-secondary/30 px-6 py-4">
@@ -100,17 +89,6 @@ function OrdersPage() {
                         Payment: {order.payment_status}
                       </span>
                       <div className="flex items-center gap-1">
-                        {canCancel && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => cancelMutation.mutate({ data: { orderId: order.id } })}
-                            disabled={cancelMutation.isPending}
-                          >
-                            Cancel
-                          </Button>
-                        )}
                         <Button asChild variant="outline" size="sm">
                           <Link to="/orders/$orderId" params={{ orderId: order.id }}>View details</Link>
                         </Button>

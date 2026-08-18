@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Check, Package, Truck, Home, Clock, XCircle, RotateCcw } from "lucide-react";
-import { getOrderById, cancelOrder } from "@/lib/orders.functions";
+import { getOrderById } from "@/lib/orders.functions";
 import { reorderToCart } from "@/lib/cart.functions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatINR, productImage } from "@/lib/format";
@@ -32,18 +32,7 @@ function OrderDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const cancelFn = useServerFn(cancelOrder);
   const reorderFn = useServerFn(reorderToCart);
-
-  const cancelMutation = useMutation({
-    mutationFn: cancelFn,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["orders", orderId] });
-      toast.success("Order cancelled");
-    },
-    onError: (err: any) => toast.error(err?.message ?? "Could not cancel order"),
-  });
 
   const reorderMutation = useMutation({
     mutationFn: reorderFn,
@@ -67,7 +56,6 @@ function OrderDetailPage() {
   }
 
   const cancelled = order.status === "cancelled";
-  const canCancel = order.status === "pending" || order.status === "processing";
   const currentStep = TIMELINE.findIndex((s) => s.key === order.status);
   const address = order.shipping_address as any;
 
@@ -89,11 +77,6 @@ function OrderDetailPage() {
             <Button variant="outline" onClick={() => reorderMutation.mutate({ data: { orderId: order.id } })} disabled={reorderMutation.isPending}>
               <RotateCcw className="h-4 w-4" /> Reorder
             </Button>
-            {canCancel && (
-              <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => cancelMutation.mutate({ data: { orderId: order.id } })} disabled={cancelMutation.isPending}>
-                Cancel order
-              </Button>
-            )}
           </div>
         </div>
 
