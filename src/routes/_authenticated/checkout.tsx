@@ -43,6 +43,8 @@ function CheckoutPage() {
   const queryClient = useQueryClient();
   const createOrderFn = useServerFn(createOrder);
   const validateCouponFn = useServerFn(validateCoupon);
+  const createRazorpayOrderFn = useServerFn(createRazorpayOrder);
+  const verifyRazorpayPaymentFn = useServerFn(verifyRazorpayPayment);
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(addresses[0]?.id);
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
@@ -73,14 +75,40 @@ function CheckoutPage() {
   });
 
   const orderMutation = useMutation({
-    mutationFn: createOrderFn,
-    onSuccess: () => {
+    mutationFn: async (variables: Parameters<typeof createOrderFn>[0]) => {
+      const { orderId } = await createOrderFn(variables);
+      if (variables.data.paymentMethod !== "online") return { orderId, paid: false };
+
+      const loaded = await loadRazorpayScript();
+      if (!loaded) throw new Error("Could not load the payment gateway. Please try again.");
+
+      const session = await createRazorpayOrderFn({ data: { orderId } });
+      const result = await openRazorpayCheckout(session);
+      if (!result) {
+        throw new Error("Payment cancelled — your order is saved as pending payment.");
+      }
+
+      await verifyRazorpayPaymentFn({
+        data: {
+          orderId,
+          razorpayOrderId: result.razorpay_order_id,
+          razorpayPaymentId: result.razorpay_payment_id,
+          razorpaySignature: result.razorpay_signature,
+        },
+      });
+      return { orderId, paid: true };
+    },
+    onSuccess: ({ paid }) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-      toast.success("Order placed successfully!");
+      toast.success(paid ? "Payment successful — order confirmed!" : "Order placed successfully!");
       navigate({ to: "/orders" });
     },
-    onError: (err: any) => toast.error(err?.message ?? "Could not place order"),
+    onError: (err: any) => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast.error(err?.message ?? "Could not place order");
+    },
   });
 
   if (!cart.items.length) {
