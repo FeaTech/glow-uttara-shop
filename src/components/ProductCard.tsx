@@ -19,6 +19,7 @@ export interface ProductCardProduct {
   rating_avg?: number;
   rating_count?: number;
   categories?: { name?: string | null } | null;
+  product_variants?: { id: string }[] | null;
 }
 
 export function ProductCard({ product, index = 0 }: { product: ProductCardProduct; index?: number }) {
@@ -27,9 +28,11 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
   const off = discountPercent(price, compare);
   const image = productImage(product.images);
   const outOfStock = typeof product.stock === "number" && product.stock <= 0;
+  const hasVariants = (product.product_variants?.length ?? 0) > 0;
 
   // Optimistic — the cart badge updates on click, not after two round trips.
   const addMutation = useAddToCart();
+
 
   return (
     <div
