@@ -6,6 +6,8 @@ import { Tag, X, Check } from "lucide-react";
 import { getCart } from "@/lib/cart.functions";
 import { getAddresses } from "@/lib/profile.functions";
 import { createOrder } from "@/lib/orders.functions";
+import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
+import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay-checkout";
 import { validateCoupon } from "@/lib/coupons.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
