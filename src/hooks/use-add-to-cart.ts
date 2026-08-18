@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { addToCart, getCart } from "@/lib/cart.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type CartData = Awaited<ReturnType<typeof getCart>>;
 type CartItem = CartData["items"][number];
