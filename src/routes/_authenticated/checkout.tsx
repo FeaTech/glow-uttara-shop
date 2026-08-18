@@ -75,7 +75,21 @@ function CheckoutPage() {
   });
 
   const orderMutation = useMutation({
-    mutationFn: async (variables: Parameters<typeof createOrderFn>[0]) => {
+    mutationFn: async (variables: {
+      data: {
+        shippingAddress: {
+          label?: string;
+          line1: string;
+          line2?: string;
+          city: string;
+          state: string;
+          pincode: string;
+          country: string;
+        };
+        paymentMethod: "cod" | "online";
+        couponCode?: string;
+      };
+    }) => {
       const { orderId } = await createOrderFn(variables);
       if (variables.data.paymentMethod !== "online") return { orderId, paid: false };
 
