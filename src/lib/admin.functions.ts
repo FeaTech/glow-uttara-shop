@@ -265,6 +265,24 @@ export const adminListCustomers = createServerFn({ method: "GET" })
     });
   });
 
+export const adminGetCustomerDetails = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ customerId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const db = context.supabase;
+    const [{ data: profile, error: profileError }, { data: addresses, error: addressesError }, { data: orders, error: ordersError }] = await Promise.all([
+      db.from("profiles").select("*").eq("id", data.customerId).maybeSingle(),
+      db.from("addresses").select("*").eq("profile_id", data.customerId).order("is_default", { ascending: false }),
+      db.from("orders").select("id, status, total_inr, payment_status, shipping_address, created_at, order_items(name, quantity, price_inr), customer_email").eq("user_id", data.customerId).order("created_at", { ascending: false }),
+    ]);
+    if (profileError) throw profileError;
+    if (addressesError) throw addressesError;
+    if (ordersError) throw ordersError;
+    const email = orders?.find((order) => order.customer_email)?.customer_email ?? null;
+    return { profile, addresses: addresses ?? [], orders: orders ?? [], email };
+  });
+
 
 // ---------------------------------------------------------------------------
 // Products
@@ -757,7 +775,7 @@ export const adminListCoupons = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = context.supabase;
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { data, error } = await db.from("coupons").select("*").order("created_at", { ascending: false });
     if (error) throw error;
     return data ?? [];
@@ -771,6 +789,11 @@ const couponInputSchema = z.object({
   discount_value: z.number().int().min(1),
   min_order_inr: z.number().int().min(0).default(0),
   max_discount_inr: z.number().int().min(0).nullable().optional(),
+  starts_at: z.string().datetime().nullable().optional(),
+  expires_at: z.string().datetime().nullable().optional(),
+  customer_monthly_limit: z.number().int().min(1).nullable().optional(),
+  customer_lifetime_limit: z.number().int().min(1).nullable().optional(),
+  eligibility: z.enum(["everyone", "new_customers", "selected_customers"]).default("everyone"),
   active: z.boolean().default(true),
   usage_limit: z.number().int().min(1).nullable().optional(),
 });
@@ -780,7 +803,7 @@ export const adminSaveCoupon = createServerFn({ method: "POST" })
   .inputValidator((input) => couponInputSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = context.supabase;
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const payload = {
       code: data.code.trim().toUpperCase(),
       description: data.description || null,
@@ -788,6 +811,11 @@ export const adminSaveCoupon = createServerFn({ method: "POST" })
       discount_value: data.discount_value,
       min_order_inr: data.min_order_inr,
       max_discount_inr: data.max_discount_inr ?? null,
+      starts_at: data.starts_at ?? null,
+      expires_at: data.expires_at ?? null,
+      customer_monthly_limit: data.customer_monthly_limit ?? null,
+      customer_lifetime_limit: data.customer_lifetime_limit ?? null,
+      eligibility: data.eligibility,
       active: data.active,
       usage_limit: data.usage_limit ?? null,
     };
@@ -806,7 +834,7 @@ export const adminDeleteCoupon = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const db = context.supabase;
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { error } = await db.from("coupons").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };

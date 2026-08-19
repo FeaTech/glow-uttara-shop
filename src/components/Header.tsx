@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCartCount } from "@/hooks/use-cart-count";
 import { amIAdmin } from "@/lib/roles.functions";
+import { getProfile } from "@/lib/profile.functions";
 import { cn } from "@/lib/utils";
 import logoUrl from "@/assets/feaglam-logo.png";
 
@@ -56,6 +57,16 @@ export function Header() {
   }, []);
 
   const user = session?.user ?? null;
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: () => getProfile({ data: undefined }),
+    enabled: Boolean(user),
+    retry: false,
+    throwOnError: false,
+    staleTime: 5 * 60_000,
+  });
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "there";
 
   const { data: adminData } = useQuery({
     queryKey: ["me", "admin"],
@@ -153,8 +164,9 @@ export function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Account" className="hidden md:inline-flex">
+                <Button variant="ghost" aria-label="Account" className="hidden h-10 gap-2 px-2 md:inline-flex">
                   <User className="h-5 w-5" />
+                  <span className="hidden max-w-40 truncate text-sm font-medium lg:inline">Welcome, {displayName}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">

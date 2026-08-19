@@ -8,7 +8,7 @@ import { getAddresses } from "@/lib/profile.functions";
 import { createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay-checkout";
-import { validateCoupon } from "@/lib/coupons.functions";
+import { releaseOrderCoupon, validateCoupon } from "@/lib/coupons.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +43,7 @@ function CheckoutPage() {
   const queryClient = useQueryClient();
   const createOrderFn = useServerFn(createOrder);
   const validateCouponFn = useServerFn(validateCoupon);
+  const releaseOrderCouponFn = useServerFn(releaseOrderCoupon);
   const createRazorpayOrderFn = useServerFn(createRazorpayOrder);
   const verifyRazorpayPaymentFn = useServerFn(verifyRazorpayPayment);
 
@@ -99,6 +100,7 @@ function CheckoutPage() {
       const session = await createRazorpayOrderFn({ data: { orderId } });
       const result = await openRazorpayCheckout(session);
       if (!result) {
+        await releaseOrderCouponFn({ data: { orderId } });
         throw new Error("Payment cancelled — your order is saved as pending payment.");
       }
 

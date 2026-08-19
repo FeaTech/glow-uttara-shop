@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { evaluateCoupon } from "@/lib/coupons.functions";
+import { evaluateCoupon, reserveCouponUsage } from "@/lib/coupons.functions";
 
 const addressSchema = z.object({
   label: z.string().optional(),
@@ -62,7 +62,7 @@ export const createOrder = createServerFn({ method: "POST" })
     let discount = 0;
     let couponCode: string | null = null;
     if (data.couponCode) {
-      const result = await evaluateCoupon(data.couponCode, subtotal);
+      const result = await evaluateCoupon(data.couponCode, subtotal, userId);
       if (result.valid) {
         discount = result.discount;
         couponCode = result.code;
@@ -116,16 +116,22 @@ export const createOrder = createServerFn({ method: "POST" })
       throw orderItemsError;
     }
 
+    if (couponCode) {
+      try {
+        await reserveCouponUsage(couponCode, userId, order.id);
+      } catch (error) {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        await supabaseAdmin.rpc("restore_order_stock", { _order_id: order.id });
+        await supabaseAdmin.from("orders").delete().eq("id", order.id);
+        throw error;
+      }
+    }
+
     // Coupon usage increment and cart teardown are independent of each other —
     // run them concurrently instead of in series. The coupon increment is now a
     // single atomic RPC (was SELECT + UPDATE, which could also lose a
     // concurrent redemption).
     await Promise.all([
-      couponCode
-        ? import("@/integrations/supabase/client.server").then(({ supabaseAdmin }) =>
-            supabaseAdmin.rpc("increment_coupon_usage", { _code: couponCode! }),
-          )
-        : Promise.resolve(),
       supabase.from("cart_items").delete().eq("cart_id", cart.id),
       supabase.from("cart").update({ status: "converted" }).eq("id", cart.id),
     ]);

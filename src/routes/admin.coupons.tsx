@@ -133,6 +133,11 @@ function CouponDialog({ coupon, onDone }: { coupon: CouponRow | null; onDone: ()
     min_order_inr: coupon?.min_order_inr?.toString() ?? "0",
     max_discount_inr: coupon?.max_discount_inr?.toString() ?? "",
     usage_limit: coupon?.usage_limit?.toString() ?? "",
+    customer_monthly_limit: coupon?.customer_monthly_limit?.toString() ?? "",
+    customer_lifetime_limit: coupon?.customer_lifetime_limit?.toString() ?? "",
+    starts_at: toDateTimeLocal(coupon?.starts_at),
+    expires_at: toDateTimeLocal(coupon?.expires_at),
+    eligibility: (coupon?.eligibility ?? "everyone") as "everyone" | "new_customers" | "selected_customers",
     active: coupon?.active ?? true,
   });
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
@@ -160,6 +165,11 @@ function CouponDialog({ coupon, onDone }: { coupon: CouponRow | null; onDone: ()
         min_order_inr: Number(form.min_order_inr) || 0,
         max_discount_inr: form.max_discount_inr ? Number(form.max_discount_inr) : null,
         usage_limit: form.usage_limit ? Number(form.usage_limit) : null,
+        customer_monthly_limit: form.customer_monthly_limit ? Number(form.customer_monthly_limit) : null,
+        customer_lifetime_limit: form.customer_lifetime_limit ? Number(form.customer_lifetime_limit) : null,
+        starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : null,
+        expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
+        eligibility: form.eligibility,
         active: form.active,
       },
     });
@@ -188,6 +198,11 @@ function CouponDialog({ coupon, onDone }: { coupon: CouponRow | null; onDone: ()
             <div><Label>Max discount (₹)</Label><Input type="number" value={form.max_discount_inr} onChange={(e) => set({ max_discount_inr: e.target.value })} placeholder="No cap" /></div>
           )}
           <div><Label>Usage limit</Label><Input type="number" value={form.usage_limit} onChange={(e) => set({ usage_limit: e.target.value })} placeholder="Unlimited" /></div>
+          <div><Label>Uses per customer / month</Label><Input type="number" value={form.customer_monthly_limit} onChange={(e) => set({ customer_monthly_limit: e.target.value })} placeholder="Unlimited" /></div>
+          <div><Label>Uses per customer / lifetime</Label><Input type="number" value={form.customer_lifetime_limit} onChange={(e) => set({ customer_lifetime_limit: e.target.value })} placeholder="Unlimited" /></div>
+          <div><Label>Starts at</Label><Input type="datetime-local" value={form.starts_at} onChange={(e) => set({ starts_at: e.target.value })} /></div>
+          <div><Label>Expires at</Label><Input type="datetime-local" value={form.expires_at} onChange={(e) => set({ expires_at: e.target.value })} /></div>
+          <div className="sm:col-span-2"><Label>Customer eligibility</Label><Select value={form.eligibility} onValueChange={(v) => set({ eligibility: v as typeof form.eligibility })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="everyone">Everyone</SelectItem><SelectItem value="new_customers">New customers (ready for future rules)</SelectItem><SelectItem value="selected_customers">Selected customers (ready for future rules)</SelectItem></SelectContent></Select><p className="mt-1 text-xs text-muted-foreground">Eligibility rules beyond everyone will be enabled in a future release.</p></div>
           <div className="flex items-center gap-3 pt-6">
             <Switch checked={form.active} onCheckedChange={(v) => set({ active: v })} id="active" />
             <Label htmlFor="active" className="font-normal">Active</Label>
@@ -201,4 +216,8 @@ function CouponDialog({ coupon, onDone }: { coupon: CouponRow | null; onDone: ()
       </form>
     </DialogContent>
   );
+}
+
+function toDateTimeLocal(value?: string | null) {
+  return value ? new Date(value).toISOString().slice(0, 16) : "";
 }
