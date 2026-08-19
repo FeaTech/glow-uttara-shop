@@ -88,7 +88,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted-foreground md:flex-row">
-          <p>&copy; {new Date().getFullYear()} FEA Glam. All rights reserved.</p>
+          <p>&copy; <span suppressHydrationWarning>{new Date().getFullYear()}</span> FEA Glam. All rights reserved.</p>
           <div className="flex gap-6">
             <Link to="/privacy" className="hover:text-foreground">Privacy policy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms of service</Link>
