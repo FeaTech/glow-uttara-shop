@@ -98,7 +98,7 @@ function layout(title: string, body: string, preheader?: string) {
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border:1px solid ${LINE};border-radius:14px;overflow:hidden;">
         <tr><td style="background:#12100e;padding:26px 24px;text-align:center;">
           <img src="${LOGO_URL}" width="180" alt="FEA Glam" style="display:block;margin:0 auto;max-width:180px;height:auto;border:0;" />
-          <div style="font-size:10px;letter-spacing:3px;color:${GOLD};margin-top:10px;font-family:Arial,Helvetica,sans-serif;">BE YOUR OWN KIND OF BEAUTIFUL</div>
+          <div style="font-size:10px;letter-spacing:3px;color:${GOLD};margin-top:10px;font-family:Arial,Helvetica,sans-serif;">KOREAN BEAUTY INSPIRED</div>
         </td></tr>
         <tr><td style="height:3px;background:linear-gradient(90deg,#d9b98a,${GOLD},#8a6b3c);"></td></tr>
         <tr><td style="padding:34px 32px 36px;font-size:15px;line-height:1.65;color:${INK};">${body}</td></tr>
