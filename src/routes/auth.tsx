@@ -38,6 +38,10 @@ function AuthPage() {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tab === "signup" && !fullName.trim()) {
+      toast.error("Please enter your full name.");
+      return;
+    }
     setLoading(true);
     try {
       if (tab === "signin") {
@@ -50,7 +54,7 @@ function AuthPage() {
           email, password,
           options: {
             data: {
-              full_name: fullName,
+              full_name: fullName.trim(),
               ...(referralCode.trim() ? { referral_code: referralCode.trim().toUpperCase() } : {}),
             },
             emailRedirectTo: window.location.origin,
@@ -69,7 +73,7 @@ function AuthPage() {
         if (signUpData.session) {
           // Signed in immediately (auto-confirm) — send the welcome email.
           void sendWelcomeEmail({ data: undefined }).catch(() => {});
-          toast.success("Welcome to FEA Glam!");
+          toast.success(`Welcome to FEA Glam, ${fullName.trim().split(" ")[0]}!`);
           navigate({ to: redirect ?? "/" });
         } else {
           toast.success("Account created. Please check your email to confirm.");
@@ -172,7 +176,7 @@ function AuthPage() {
               <TabsContent value="signup" className="space-y-4">
                 <div>
                   <Label htmlFor="fullName">Full name</Label>
-                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1.5" />
+                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="mt-1.5" />
                 </div>
                 <div>
                   <Label htmlFor="email2">Email</Label>
