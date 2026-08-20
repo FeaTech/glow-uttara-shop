@@ -181,8 +181,6 @@ export type Database = {
           active: boolean
           code: string
           created_at: string
-          customer_lifetime_limit: number | null
-          customer_monthly_limit: number | null
           description: string | null
           discount_type: Database["public"]["Enums"]["discount_type"]
           discount_value: number
@@ -194,14 +192,11 @@ export type Database = {
           updated_at: string
           usage_limit: number | null
           used_count: number
-          eligibility: string
         }
         Insert: {
           active?: boolean
           code: string
           created_at?: string
-          customer_lifetime_limit?: number | null
-          customer_monthly_limit?: number | null
           description?: string | null
           discount_type: Database["public"]["Enums"]["discount_type"]
           discount_value: number
@@ -213,14 +208,11 @@ export type Database = {
           updated_at?: string
           usage_limit?: number | null
           used_count?: number
-          eligibility?: string
         }
         Update: {
           active?: boolean
           code?: string
           created_at?: string
-          customer_lifetime_limit?: number | null
-          customer_monthly_limit?: number | null
           description?: string | null
           discount_type?: Database["public"]["Enums"]["discount_type"]
           discount_value?: number
@@ -232,70 +224,6 @@ export type Database = {
           updated_at?: string
           usage_limit?: number | null
           used_count?: number
-          eligibility?: string
-        }
-        Relationships: []
-      }
-      coupon_customer_usage: {
-        Row: {
-          coupon_id: string
-          customer_id: string
-          created_at: string
-          lifetime_used_count: number
-          monthly_used_count: number
-          updated_at: string
-          usage_month: string
-        }
-        Insert: {
-          coupon_id: string
-          customer_id: string
-          created_at?: string
-          lifetime_used_count?: number
-          monthly_used_count?: number
-          updated_at?: string
-          usage_month: string
-        }
-        Update: {
-          coupon_id?: string
-          customer_id?: string
-          created_at?: string
-          lifetime_used_count?: number
-          monthly_used_count?: number
-          updated_at?: string
-          usage_month?: string
-        }
-        Relationships: []
-      }
-      coupon_redemptions: {
-        Row: {
-          coupon_id: string
-          created_at: string
-          customer_id: string
-          id: string
-          order_id: string
-          released_at: string | null
-          status: string
-          usage_month: string
-        }
-        Insert: {
-          coupon_id: string
-          created_at?: string
-          customer_id: string
-          id?: string
-          order_id: string
-          released_at?: string | null
-          status?: string
-          usage_month: string
-        }
-        Update: {
-          coupon_id?: string
-          created_at?: string
-          customer_id?: string
-          id?: string
-          order_id?: string
-          released_at?: string | null
-          status?: string
-          usage_month?: string
         }
         Relationships: []
       }
@@ -847,8 +775,6 @@ export type Database = {
         Returns: boolean
       }
       increment_coupon_usage: { Args: { _code: string }; Returns: undefined }
-      reserve_coupon_usage: { Args: { _code: string; _customer_id: string; _order_id: string }; Returns: undefined }
-      release_coupon_usage: { Args: { _order_id: string }; Returns: undefined }
       my_referral_counts: {
         Args: never
         Returns: {
