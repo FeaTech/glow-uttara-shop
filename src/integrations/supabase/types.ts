@@ -176,14 +176,103 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_customer_usage: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          customer_id: string
+          lifetime_used_count: number
+          monthly_used_count: number
+          updated_at: string
+          usage_month: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          customer_id: string
+          lifetime_used_count?: number
+          monthly_used_count?: number
+          updated_at?: string
+          usage_month: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          customer_id?: string
+          lifetime_used_count?: number
+          monthly_used_count?: number
+          updated_at?: string
+          usage_month?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_customer_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_redemptions: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          order_id: string
+          released_at: string | null
+          status: string
+          usage_month: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          order_id: string
+          released_at?: string | null
+          status?: string
+          usage_month: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          order_id?: string
+          released_at?: string | null
+          status?: string
+          usage_month?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupons: {
         Row: {
           active: boolean
           code: string
           created_at: string
+          customer_lifetime_limit: number | null
+          customer_monthly_limit: number | null
           description: string | null
           discount_type: Database["public"]["Enums"]["discount_type"]
           discount_value: number
+          eligibility: string
           expires_at: string | null
           id: string
           max_discount_inr: number | null
@@ -197,9 +286,12 @@ export type Database = {
           active?: boolean
           code: string
           created_at?: string
+          customer_lifetime_limit?: number | null
+          customer_monthly_limit?: number | null
           description?: string | null
           discount_type: Database["public"]["Enums"]["discount_type"]
           discount_value: number
+          eligibility?: string
           expires_at?: string | null
           id?: string
           max_discount_inr?: number | null
@@ -213,9 +305,12 @@ export type Database = {
           active?: boolean
           code?: string
           created_at?: string
+          customer_lifetime_limit?: number | null
+          customer_monthly_limit?: number | null
           description?: string | null
           discount_type?: Database["public"]["Enums"]["discount_type"]
           discount_value?: number
+          eligibility?: string
           expires_at?: string | null
           id?: string
           max_discount_inr?: number | null
@@ -796,6 +891,11 @@ export type Database = {
           referred_customer: string
           status: Database["public"]["Enums"]["referral_commission_status"]
         }[]
+      }
+      release_coupon_usage: { Args: { _order_id: string }; Returns: undefined }
+      reserve_coupon_usage: {
+        Args: { _code: string; _customer_id: string; _order_id: string }
+        Returns: undefined
       }
       restore_order_stock: { Args: { _order_id: string }; Returns: undefined }
       show_limit: { Args: never; Returns: number }
