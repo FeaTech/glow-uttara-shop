@@ -176,7 +176,7 @@ function AuthPage() {
               <TabsContent value="signup" className="space-y-4">
                 <div>
                   <Label htmlFor="fullName">Full name</Label>
-                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1.5" />
+                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="mt-1.5" />
                 </div>
                 <div>
                   <Label htmlFor="email2">Email</Label>
