@@ -66,8 +66,6 @@ export function Header() {
     throwOnError: false,
     staleTime: 5 * 60_000,
   });
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "there";
-
   const { data: adminData } = useQuery({
     queryKey: ["me", "admin"],
     queryFn: () => amIAdmin({ data: undefined }),
@@ -77,6 +75,11 @@ export function Header() {
     staleTime: 5 * 60_000,
   });
   const isAdmin = adminData?.isAdmin ?? false;
+
+  const displayName = isAdmin
+    ? "Admin"
+    : profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "there";
+
 
   async function handleSignOut() {
     await supabase.auth.signOut();
