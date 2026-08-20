@@ -52,18 +52,14 @@ export async function evaluateCoupon(code: string, subtotal: number, customerId:
   monthStart.setHours(0, 0, 0, 0);
   const { data: usage } = await supabaseAdmin
     .from("coupon_customer_usage")
-    .select("usage_month, monthly_used_count, lifetime_used_count")
+    .select("usage_month, monthly_used_count")
     .eq("coupon_id", coupon.id)
     .eq("customer_id", customerId)
     .maybeSingle();
   const currentMonth = monthStart.toISOString().slice(0, 10);
   const monthlyUsed = usage?.usage_month === currentMonth ? usage.monthly_used_count : 0;
-  const lifetimeUsed = usage?.lifetime_used_count ?? 0;
   if (coupon.customer_monthly_limit !== null && monthlyUsed >= coupon.customer_monthly_limit) {
     return { valid: false, message: "You have reached this coupon's monthly limit" };
-  }
-  if (coupon.customer_lifetime_limit !== null && lifetimeUsed >= coupon.customer_lifetime_limit) {
-    return { valid: false, message: "You have reached this coupon's lifetime limit" };
   }
   if (subtotal < coupon.min_order_inr) {
     return {
