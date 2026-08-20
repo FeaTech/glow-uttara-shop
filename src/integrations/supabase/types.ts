@@ -181,6 +181,7 @@ export type Database = {
           coupon_id: string
           created_at: string
           customer_id: string
+          lifetime_used_count: number
           monthly_used_count: number
           updated_at: string
           usage_month: string
@@ -189,6 +190,7 @@ export type Database = {
           coupon_id: string
           created_at?: string
           customer_id: string
+          lifetime_used_count?: number
           monthly_used_count?: number
           updated_at?: string
           usage_month: string
@@ -197,6 +199,7 @@ export type Database = {
           coupon_id?: string
           created_at?: string
           customer_id?: string
+          lifetime_used_count?: number
           monthly_used_count?: number
           updated_at?: string
           usage_month?: string
@@ -264,6 +267,7 @@ export type Database = {
           active: boolean
           code: string
           created_at: string
+          customer_lifetime_limit: number | null
           customer_monthly_limit: number | null
           description: string | null
           discount_type: Database["public"]["Enums"]["discount_type"]
@@ -282,6 +286,7 @@ export type Database = {
           active?: boolean
           code: string
           created_at?: string
+          customer_lifetime_limit?: number | null
           customer_monthly_limit?: number | null
           description?: string | null
           discount_type: Database["public"]["Enums"]["discount_type"]
@@ -300,6 +305,7 @@ export type Database = {
           active?: boolean
           code?: string
           created_at?: string
+          customer_lifetime_limit?: number | null
           customer_monthly_limit?: number | null
           description?: string | null
           discount_type?: Database["public"]["Enums"]["discount_type"]
