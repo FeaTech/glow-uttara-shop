@@ -134,6 +134,7 @@ export function orderConfirmationEmail(args: {
   items: OrderEmailItem[];
   subtotalInr: number;
   discountInr: number;
+  taxesInr: number;
   totalInr: number;
   customerName?: string | null;
   shippingAddress: { line1: string; line2?: string; city: string; state: string; pincode: string; country?: string };
