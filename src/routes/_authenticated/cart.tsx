@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { formatINR, productImage } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
 import { toast } from "sonner";
-import { calculateOnlineFee } from "@/lib/payment-fees";
+import { useQuery } from "@tanstack/react-query";
+import { getPricingConfig } from "@/lib/pricing.functions";
+import { DEFAULT_PRICING_CONFIG, bpsToPercentLabel, computeOrderTotals } from "@/lib/pricing";
+import { formatPaise } from "@/lib/format";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const cartQueryOptions = () =>
@@ -36,6 +39,11 @@ function recalcTotal(items: CartData["items"]): number {
 
 function CartPage() {
   const { data: cart } = useSuspenseQuery(cartQueryOptions());
+  const { data: pricing = DEFAULT_PRICING_CONFIG } = useQuery({
+    queryKey: ["pricing-config"],
+    queryFn: () => getPricingConfig({ data: undefined }),
+    staleTime: 5 * 60 * 1000,
+  });
   const queryClient = useQueryClient();
   const removeItem = useServerFn(removeCartItem);
   const updateItem = useServerFn(updateCartItem);
@@ -93,8 +101,13 @@ function CartPage() {
 
   const freeShippingThreshold = 999;
   const remaining = Math.max(0, freeShippingThreshold - cart.total);
-  const onlineFee = calculateOnlineFee(cart.total);
   const progress = Math.min(100, (cart.total / freeShippingThreshold) * 100);
+  const totals = computeOrderTotals({
+    subtotalPaise: cart.total * 100,
+    discountPaise: 0,
+    channel: "cod",
+    config: pricing,
+  });
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -171,26 +184,28 @@ function CartPage() {
               <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span className="text-emerald-600 dark:text-emerald-400">Free</span></div>
               <div className="flex justify-between text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
-                  Estimated taxes
+                  Estimated Tax ({bpsToPercentLabel(pricing.taxRateBps)}%)
                   <TooltipProvider delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button type="button" className="text-muted-foreground hover:text-foreground" aria-label="Taxes info">
+                        <button type="button" className="text-muted-foreground hover:text-foreground" aria-label="Tax info">
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs text-xs">
-                        Estimated taxes apply to online/card/UPI payments and are ₹0 for Cash on Delivery.
+                        Tax is estimated at {bpsToPercentLabel(pricing.taxRateBps)}% of the amount payable after discounts.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </span>
-                <span>{formatINR(onlineFee)}</span>
+                <span>{formatPaise(totals.taxPaise)}</span>
               </div>
-              <p className="text-xs text-muted-foreground">Taxes are estimated and apply only to online payments. Cash on Delivery is free of these charges.</p>
+              <p className="text-xs text-muted-foreground">
+                Coupons and a {bpsToPercentLabel(pricing.creditCardFeeBps)}% credit card processing fee (credit cards only) are applied at checkout.
+              </p>
             </div>
             <div className="mt-4 flex justify-between border-t border-border pt-4 text-lg font-semibold text-foreground">
-              <span>Total</span><span>{formatINR(cart.total + onlineFee)}</span>
+              <span>Total</span><span>{formatPaise(totals.totalPaise)}</span>
             </div>
 
             <Button asChild className="btn-gold mt-6 w-full"><Link to="/checkout">Proceed to checkout</Link></Button>
