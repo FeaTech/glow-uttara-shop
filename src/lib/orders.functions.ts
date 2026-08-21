@@ -108,7 +108,6 @@ export const createOrder = createServerFn({ method: "POST" })
         tax_rate_bps: totals.taxRateBps,
         payment_fee_rate_bps: totals.feeRateBps,
         payment_fee_paise: totals.feePaise,
-        payment_fee_inr: Math.round(totals.feePaise / 100),
         shipping_inr: 0,
         shipping_address: data.shippingAddress,
         customer_email: customerEmail,
@@ -176,8 +175,8 @@ export const createOrder = createServerFn({ method: "POST" })
         })),
         subtotalInr: subtotal,
         discountInr: discount,
-        taxesInr: taxes,
-        totalInr: total,
+        taxesInr: Math.round(totals.taxPaise / 100),
+        totalInr: Math.round(totals.totalPaise / 100),
         customerName: profile?.full_name ?? null,
         shippingAddress: data.shippingAddress,
       });
