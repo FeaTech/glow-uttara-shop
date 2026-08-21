@@ -62,7 +62,6 @@ function CheckoutPage() {
   const discount = applied?.discount ?? 0;
   const base = Math.max(0, subtotal - discount);
   const taxes = paymentMethod === "online" ? calculateOnlineFee(base) : 0;
-  const gst = includedGst(base);
   const total = base + taxes;
 
   const couponMutation = useMutation({
