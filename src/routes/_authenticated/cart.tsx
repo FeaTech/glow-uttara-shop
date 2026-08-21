@@ -94,7 +94,6 @@ function CartPage() {
   const freeShippingThreshold = 999;
   const remaining = Math.max(0, freeShippingThreshold - cart.total);
   const onlineFee = calculateOnlineFee(cart.total);
-  const gst = includedGst(cart.total);
   const progress = Math.min(100, (cart.total / freeShippingThreshold) * 100);
 
   return (
