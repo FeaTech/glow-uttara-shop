@@ -41,6 +41,7 @@ import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/cart'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders.index'
+import { Route as ApiPublicRazorpayWebhookRouteImport } from './routes/api/public/razorpay-webhook'
 import { Route as ApiPublicAuthEmailHookRouteImport } from './routes/api/public/auth-email-hook'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 
@@ -204,6 +205,12 @@ const AuthenticatedOrdersIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedOrdersRoute,
   } as any)
+const ApiPublicRazorpayWebhookRoute =
+  ApiPublicRazorpayWebhookRouteImport.update({
+    id: '/api/public/razorpay-webhook',
+    path: '/api/public/razorpay-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicAuthEmailHookRoute = ApiPublicAuthEmailHookRouteImport.update({
   id: '/api/public/auth-email-hook',
   path: '/api/public/auth-email-hook',
@@ -249,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/products/': typeof ProductsIndexRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
+  '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -281,6 +289,7 @@ export interface FileRoutesByTo {
   '/products': typeof ProductsIndexRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
+  '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
 }
 export interface FileRoutesById {
@@ -318,6 +327,7 @@ export interface FileRoutesById {
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/public/auth-email-hook': typeof ApiPublicAuthEmailHookRoute
+  '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
 }
 export interface FileRouteTypes {
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/products/'
     | '/orders/$orderId'
     | '/api/public/auth-email-hook'
+    | '/api/public/razorpay-webhook'
     | '/orders/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/orders/$orderId'
     | '/api/public/auth-email-hook'
+    | '/api/public/razorpay-webhook'
     | '/orders'
   id:
     | '__root__'
@@ -423,6 +435,7 @@ export interface FileRouteTypes {
     | '/products/'
     | '/_authenticated/orders/$orderId'
     | '/api/public/auth-email-hook'
+    | '/api/public/razorpay-webhook'
     | '/_authenticated/orders/'
   fileRoutesById: FileRoutesById
 }
@@ -442,6 +455,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ApiPublicAuthEmailHookRoute: typeof ApiPublicAuthEmailHookRoute
+  ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -670,6 +684,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersIndexRouteImport
       parentRoute: typeof AuthenticatedOrdersRoute
     }
+    '/api/public/razorpay-webhook': {
+      id: '/api/public/razorpay-webhook'
+      path: '/api/public/razorpay-webhook'
+      fullPath: '/api/public/razorpay-webhook'
+      preLoaderRoute: typeof ApiPublicRazorpayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/auth-email-hook': {
       id: '/api/public/auth-email-hook'
       path: '/api/public/auth-email-hook'
@@ -777,6 +798,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ApiPublicAuthEmailHookRoute: ApiPublicAuthEmailHookRoute,
+  ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
