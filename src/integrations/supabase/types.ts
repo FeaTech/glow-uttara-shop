@@ -406,6 +406,10 @@ export type Database = {
           discount_inr: number
           id: string
           notes: string | null
+          payment_channel: string | null
+          payment_fee_inr: number
+          payment_fee_paise: number
+          payment_fee_rate_bps: number
           payment_method: string
           payment_status: Database["public"]["Enums"]["payment_status"]
           razorpay_order_id: string | null
@@ -414,8 +418,11 @@ export type Database = {
           shipping_inr: number
           status: Database["public"]["Enums"]["order_status"]
           subtotal_inr: number | null
+          tax_paise: number
+          tax_rate_bps: number
           taxes_inr: number
           total_inr: number
+          total_paise: number | null
           updated_at: string
           user_id: string
         }
@@ -426,6 +433,10 @@ export type Database = {
           discount_inr?: number
           id?: string
           notes?: string | null
+          payment_channel?: string | null
+          payment_fee_inr?: number
+          payment_fee_paise?: number
+          payment_fee_rate_bps?: number
           payment_method?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
           razorpay_order_id?: string | null
@@ -434,8 +445,11 @@ export type Database = {
           shipping_inr?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_inr?: number | null
+          tax_paise?: number
+          tax_rate_bps?: number
           taxes_inr?: number
           total_inr: number
+          total_paise?: number | null
           updated_at?: string
           user_id: string
         }
@@ -446,6 +460,10 @@ export type Database = {
           discount_inr?: number
           id?: string
           notes?: string | null
+          payment_channel?: string | null
+          payment_fee_inr?: number
+          payment_fee_paise?: number
+          payment_fee_rate_bps?: number
           payment_method?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
           razorpay_order_id?: string | null
@@ -454,8 +472,11 @@ export type Database = {
           shipping_inr?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_inr?: number | null
+          tax_paise?: number
+          tax_rate_bps?: number
           taxes_inr?: number
           total_inr?: number
+          total_paise?: number | null
           updated_at?: string
           user_id?: string
         }
