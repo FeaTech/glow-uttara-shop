@@ -168,6 +168,12 @@ function AdminOrders() {
                                 <span>−{formatINR(o.discount_inr)}</span>
                               </p>
                             )}
+                            {(o.taxes_inr ?? 0) > 0 && (
+                              <p className="mt-2 flex justify-between text-sm text-muted-foreground">
+                                <span>Estimated taxes</span>
+                                <span>{formatINR(o.taxes_inr)}</span>
+                              </p>
+                            )}
                           </div>
                           <div>
                             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Shipping address</p>

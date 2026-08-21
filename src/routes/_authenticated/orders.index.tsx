@@ -84,6 +84,12 @@ function OrdersPage() {
                         <span>−{formatINR(order.discount_inr)}</span>
                       </div>
                     )}
+                    {(order.taxes_inr ?? 0) > 0 && (
+                      <div className={`mt-3 flex justify-between text-sm text-muted-foreground ${order.discount_inr > 0 ? "" : "border-t border-border pt-3"}`}>
+                        <span>Estimated taxes</span>
+                        <span>{formatINR(order.taxes_inr)}</span>
+                      </div>
+                    )}
                     <div className="mt-4 flex items-center justify-between">
                       <span className={cn("text-xs font-medium", order.payment_status === "paid" ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>
                         Payment: {order.payment_status}

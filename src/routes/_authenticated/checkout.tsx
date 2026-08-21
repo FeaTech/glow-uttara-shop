@@ -9,6 +9,7 @@ import { createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay-checkout";
 import { releaseOrderCoupon, validateCoupon } from "@/lib/coupons.functions";
+import { calculateOnlineFee } from "@/lib/payment-fees";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,7 +59,9 @@ function CheckoutPage() {
 
   const subtotal = cart.total;
   const discount = applied?.discount ?? 0;
-  const total = Math.max(0, subtotal - discount);
+  const base = Math.max(0, subtotal - discount);
+  const taxes = paymentMethod === "online" ? calculateOnlineFee(base) : 0;
+  const total = base + taxes;
 
   const couponMutation = useMutation({
     mutationFn: (code: string) => validateCouponFn({ data: { code, subtotal } }),
@@ -268,6 +271,9 @@ function CheckoutPage() {
                 <div className="flex justify-between text-primary"><span>Discount</span><span>−{formatINR(discount)}</span></div>
               )}
               <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span className="text-emerald-600 dark:text-emerald-400">Free</span></div>
+              {taxes > 0 && (
+                <div className="flex justify-between text-muted-foreground"><span>Estimated taxes</span><span>{formatINR(taxes)}</span></div>
+              )}
             </div>
             <div className="mt-4 flex justify-between border-t border-border pt-4 text-lg font-semibold text-foreground">
               <span>Total</span><span>{formatINR(total)}</span>

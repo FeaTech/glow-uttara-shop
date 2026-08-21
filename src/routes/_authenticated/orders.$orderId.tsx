@@ -151,7 +151,7 @@ function OrderDetailPage() {
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
-                  <span>{formatINR(order.subtotal_inr ?? order.total_inr + order.discount_inr)}</span>
+                  <span>{formatINR(order.subtotal_inr ?? order.total_inr - (order.taxes_inr ?? 0) + order.discount_inr)}</span>
                 </div>
                 {order.discount_inr > 0 && (
                   <div className="flex justify-between text-primary">
@@ -160,6 +160,12 @@ function OrderDetailPage() {
                   </div>
                 )}
                 <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span className="text-emerald-600 dark:text-emerald-400">Free</span></div>
+                {(order.taxes_inr ?? 0) > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Estimated taxes</span>
+                    <span>{formatINR(order.taxes_inr)}</span>
+                  </div>
+                )}
               </div>
               <div className="mt-3 flex justify-between border-t border-border pt-3 text-lg font-semibold text-foreground">
                 <span>Total</span><span>{formatINR(order.total_inr)}</span>
