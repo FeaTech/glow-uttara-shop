@@ -169,9 +169,25 @@ function CartPage() {
             <div className="mt-5 space-y-2 border-t border-border pt-5 text-sm">
               <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{formatINR(cart.total)}</span></div>
               <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span className="text-emerald-600 dark:text-emerald-400">Free</span></div>
-              <div className="flex justify-between text-muted-foreground"><span>GST ({Math.round(GST_RATE * 100)}%, included)</span><span>{formatINR(gst)}</span></div>
-              <div className="flex justify-between text-muted-foreground"><span>Online payment charges</span><span>{formatINR(onlineFee)}</span></div>
-              <p className="text-xs text-muted-foreground">GST is included in the item price. Online payment charges apply only to card/UPI payments and are ₹0 for Cash on Delivery.</p>
+              <div className="flex justify-between text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  Estimated taxes
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" className="text-muted-foreground hover:text-foreground" aria-label="Taxes info">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-xs">
+                        Estimated taxes apply to online/card/UPI payments and are ₹0 for Cash on Delivery.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </span>
+                <span>{formatINR(onlineFee)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">Taxes are estimated and apply only to online payments. Cash on Delivery is free of these charges.</p>
             </div>
             <div className="mt-4 flex justify-between border-t border-border pt-4 text-lg font-semibold text-foreground">
               <span>Total</span><span>{formatINR(cart.total + onlineFee)}</span>
