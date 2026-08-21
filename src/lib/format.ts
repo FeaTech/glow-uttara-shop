@@ -30,3 +30,8 @@ export function handleImageError(event: { currentTarget: HTMLImageElement }) {
   const img = event.currentTarget;
   if (img.src !== PLACEHOLDER_IMAGE) img.src = PLACEHOLDER_IMAGE;
 }
+
+/** Format an integer paise amount, e.g. 121540 -> "₹1,215.40". */
+export function formatPaise(paise: number | null | undefined): string {
+  return formatINR((paise ?? 0) / 100);
+}
