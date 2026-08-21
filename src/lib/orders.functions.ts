@@ -216,3 +216,92 @@ export const getOrderById = createServerFn({ method: "GET" })
     if (error) throw error;
     return order;
   });
+
+const abandonOrderSchema = z.object({ orderId: z.string().uuid() });
+
+/**
+ * Customer walked away from the payment modal. Undo the order completely —
+ * restore stock, release the coupon, and put the items back in the cart —
+ * so nothing is left sitting as "pending payment".
+ */
+export const abandonUnpaidOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => abandonOrderSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: order, error } = await supabase
+      .from("orders")
+      .select("id, payment_status, coupon_code, razorpay_payment_id, order_items(product_id, variant_id, quantity)")
+      .eq("id", data.orderId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!order) throw new Error("Order not found");
+    // Never unwind an order that was actually paid.
+    if (order.payment_status === "paid" || order.razorpay_payment_id) {
+      return { ok: false as const, restored: false };
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    if (order.coupon_code) {
+      await supabaseAdmin.rpc("release_coupon_usage", { _order_id: order.id });
+    }
+    await supabaseAdmin.rpc("restore_order_stock", { _order_id: order.id });
+
+    // Put the lines back into an active cart.
+    const items = order.order_items ?? [];
+    if (items.length > 0) {
+      let cartId: string | undefined;
+      const { data: activeCart } = await supabase
+        .from("cart")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .maybeSingle();
+      if (activeCart) {
+        cartId = activeCart.id;
+      } else {
+        const { data: created, error: cartError } = await supabase
+          .from("cart")
+          .insert({ user_id: userId, status: "active" })
+          .select("id")
+          .single();
+        if (cartError) throw cartError;
+        cartId = created.id;
+      }
+
+      for (const item of items) {
+        let existingQuery = supabase
+          .from("cart_items")
+          .select("id, quantity")
+          .eq("cart_id", cartId)
+          .eq("product_id", item.product_id);
+        existingQuery = item.variant_id
+          ? existingQuery.eq("variant_id", item.variant_id)
+          : existingQuery.is("variant_id", null);
+        const { data: existing } = await existingQuery.maybeSingle();
+
+        if (existing) {
+          await supabase
+            .from("cart_items")
+            .update({ quantity: existing.quantity + item.quantity })
+            .eq("id", existing.id);
+        } else {
+          await supabase.from("cart_items").insert({
+            cart_id: cartId,
+            product_id: item.product_id,
+            variant_id: item.variant_id,
+            quantity: item.quantity,
+          });
+        }
+      }
+    }
+
+    // Remove the abandoned order entirely (order_items cascade).
+    await supabaseAdmin.from("order_items").delete().eq("order_id", order.id);
+    await supabaseAdmin.from("orders").delete().eq("id", order.id);
+
+    return { ok: true as const, restored: items.length > 0 };
+  });
