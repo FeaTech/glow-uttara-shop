@@ -151,7 +151,7 @@ function OrderDetailPage() {
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
-                  <span>{formatINR(order.subtotal_inr ?? order.total_inr + order.discount_inr)}</span>
+                  <span>{formatINR(order.subtotal_inr ?? order.total_inr - (order.taxes_inr ?? 0) + order.discount_inr)}</span>
                 </div>
                 {order.discount_inr > 0 && (
                   <div className="flex justify-between text-primary">
