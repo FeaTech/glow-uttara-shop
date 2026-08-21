@@ -30,6 +30,8 @@ export type RazorpaySessionInput = {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  /** Restrict the Razorpay modal to the method the customer picked. */
+  method?: "upi" | "card" | "netbanking" | "wallet" | null;
 };
 
 export type RazorpaySuccess = {
@@ -61,6 +63,18 @@ export function openRazorpayCheckout(session: RazorpaySessionInput): Promise<Raz
         contact: session.customerPhone,
       },
       theme: { color: "#b08d57" },
+      ...(session.method
+        ? {
+            config: {
+              display: {
+                blocks: {},
+                sequence: [`block.${session.method}`],
+                preferences: { show_default_blocks: false },
+              },
+            },
+            method: { [session.method]: true },
+          }
+        : {}),
       handler: (response: RazorpaySuccess) => {
         settled = true;
         resolve(response);

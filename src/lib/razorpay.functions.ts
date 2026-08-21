@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { RAZORPAY_METHOD_BY_CHANNEL } from "@/lib/pricing";
 
 const orderIdSchema = z.object({ orderId: z.string().uuid() });
 
@@ -23,7 +24,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: order, error } = await supabase
       .from("orders")
-      .select("id, total_inr, payment_status, customer_email, razorpay_order_id")
+      .select("id, total_inr, total_paise, payment_channel, payment_status, customer_email, razorpay_order_id")
       .eq("id", data.orderId)
       .eq("user_id", userId)
       .maybeSingle();
@@ -37,6 +38,8 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
 
+    const amountPaise = order.total_paise ?? order.total_inr * 100;
+
     const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
     const response = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
@@ -45,7 +48,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        amount: order.total_inr * 100,
+        amount: amountPaise,
         currency: "INR",
         receipt: order.id,
         notes: { order_id: order.id },
@@ -75,6 +78,12 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       customerName: profile?.full_name ?? "",
       customerEmail: order.customer_email ?? "",
       customerPhone: profile?.phone ?? "",
+      method:
+        order.payment_channel && order.payment_channel !== "cod"
+          ? RAZORPAY_METHOD_BY_CHANNEL[
+              order.payment_channel as keyof typeof RAZORPAY_METHOD_BY_CHANNEL
+            ] ?? null
+          : null,
     };
   });
 
