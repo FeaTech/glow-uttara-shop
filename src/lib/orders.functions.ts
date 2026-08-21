@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { evaluateCoupon, reserveCouponUsage } from "@/lib/coupons.functions";
-import { calculateOnlineFee } from "@/lib/payment-fees";
+import { computeOrderTotals, type PaymentChannel } from "@/lib/pricing";
 
 const addressSchema = z.object({
   label: z.string().optional(),
@@ -16,9 +16,12 @@ const addressSchema = z.object({
 
 const createOrderSchema = z.object({
   shippingAddress: addressSchema,
-  paymentMethod: z.enum(["cod", "online"]).default("cod"),
+  paymentChannel: z
+    .enum(["cod", "upi", "credit_card", "debit_card", "netbanking", "wallet"])
+    .default("cod"),
   couponCode: z.string().trim().max(40).optional(),
 });
+
 
 export const createOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
