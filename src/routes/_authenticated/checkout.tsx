@@ -1,21 +1,29 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Tag, X, Check } from "lucide-react";
+import { Tag, X, Check, Loader2 } from "lucide-react";
 import { getCart } from "@/lib/cart.functions";
 import { getAddresses } from "@/lib/profile.functions";
 import { createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay-checkout";
 import { releaseOrderCoupon, validateCoupon } from "@/lib/coupons.functions";
-import { calculateOnlineFee } from "@/lib/payment-fees";
+import { getPricingConfig } from "@/lib/pricing.functions";
+import {
+  DEFAULT_PRICING_CONFIG,
+  PAYMENT_CHANNEL_LABELS,
+  bpsToPercentLabel,
+  computeOrderTotals,
+  isPaymentChannel,
+  type PaymentChannel,
+} from "@/lib/pricing";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { formatINR } from "@/lib/format";
+import { formatINR, formatPaise } from "@/lib/format";
 import { toast } from "sonner";
 
 const cartQueryOptions = () =>
@@ -50,7 +58,7 @@ function CheckoutPage() {
   const verifyRazorpayPaymentFn = useServerFn(verifyRazorpayPayment);
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(addresses[0]?.id);
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
+  const [paymentChannel, setPaymentChannel] = useState<PaymentChannel>("cod");
   const [newAddress, setNewAddress] = useState({ label: "Home", line1: "", line2: "", city: "", state: "", pincode: "", country: "India" });
   const [showNewAddress, setShowNewAddress] = useState(addresses.length === 0);
 
@@ -58,11 +66,20 @@ function CheckoutPage() {
   const [applied, setApplied] = useState<{ code: string; discount: number } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
 
+  const { data: pricing = DEFAULT_PRICING_CONFIG } = useQuery({
+    queryKey: ["pricing-config"],
+    queryFn: () => getPricingConfig({ data: undefined }),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const subtotal = cart.total;
   const discount = applied?.discount ?? 0;
-  const base = Math.max(0, subtotal - discount);
-  const taxes = paymentMethod === "online" ? calculateOnlineFee(base) : 0;
-  const total = base + taxes;
+  const totals = computeOrderTotals({
+    subtotalPaise: subtotal * 100,
+    discountPaise: discount * 100,
+    channel: paymentChannel,
+    config: pricing,
+  });
 
   const couponMutation = useMutation({
     mutationFn: (code: string) => validateCouponFn({ data: { code, subtotal } }),
@@ -91,12 +108,12 @@ function CheckoutPage() {
           pincode: string;
           country: string;
         };
-        paymentMethod: "cod" | "online";
+        paymentChannel: PaymentChannel;
         couponCode?: string;
       };
     }) => {
       const { orderId } = await createOrderFn(variables);
-      if (variables.data.paymentMethod !== "online") return { orderId, paid: false };
+      if (variables.data.paymentChannel === "cod") return { orderId, paid: false };
 
       const loaded = await loadRazorpayScript();
       if (!loaded) throw new Error("Could not load the payment gateway. Please try again.");
@@ -127,7 +144,12 @@ function CheckoutPage() {
     onError: (err: any) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-      toast.error(err?.message ?? "Could not place order");
+      const message: string = err?.message ?? "Could not place order";
+      if (message.toLowerCase().includes("cancelled")) {
+        toast.warning(`${message} You can retry payment from My orders.`);
+      } else {
+        toast.error(`${message} Please try again.`);
+      }
     },
   });
 
@@ -141,6 +163,7 @@ function CheckoutPage() {
   }
 
   const handlePlaceOrder = () => {
+    if (orderMutation.isPending) return; // guard against duplicate submissions
     let shippingAddress;
     if (showNewAddress) {
       if (!newAddress.line1 || !newAddress.city || !newAddress.state || !newAddress.pincode) {
@@ -153,7 +176,7 @@ function CheckoutPage() {
       if (!addr) { toast.error("Please select a shipping address"); return; }
       shippingAddress = { label: addr.label, line1: addr.line1, line2: addr.line2 ?? undefined, city: addr.city, state: addr.state, pincode: addr.pincode, country: addr.country };
     }
-    orderMutation.mutate({ data: { shippingAddress, paymentMethod, couponCode: applied?.code } });
+    orderMutation.mutate({ data: { shippingAddress, paymentChannel, couponCode: applied?.code } });
   };
 
   return (
@@ -201,18 +224,29 @@ function CheckoutPage() {
             {/* Payment */}
             <section className="card-luxe p-6">
               <h2 className="font-serif text-xl text-foreground">Payment method</h2>
-              <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as "cod" | "online")} className="mt-4 space-y-3">
-                <div className="flex items-center space-x-3 rounded-md border border-input p-4 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                  <RadioGroupItem value="cod" id="cod" />
-                  <Label htmlFor="cod" className="cursor-pointer font-normal">Cash on delivery</Label>
-                </div>
-                <div className="flex items-center space-x-3 rounded-md border border-input p-4 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                  <RadioGroupItem value="online" id="online" />
-                  <Label htmlFor="online" className="cursor-pointer font-normal">Pay online (UPI / card / net banking)</Label>
-                </div>
+              <RadioGroup
+                value={paymentChannel}
+                onValueChange={(v) => isPaymentChannel(v) && setPaymentChannel(v)}
+                className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2"
+              >
+                {(["cod", "upi", "credit_card", "debit_card", "netbanking", "wallet"] as PaymentChannel[]).map((channel) => (
+                  <div key={channel} className="flex items-center space-x-3 rounded-md border border-input p-4 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                    <RadioGroupItem value={channel} id={channel} />
+                    <Label htmlFor={channel} className="cursor-pointer font-normal">
+                      {PAYMENT_CHANNEL_LABELS[channel]}
+                      {channel === "credit_card" && (
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          (+{bpsToPercentLabel(pricing.creditCardFeeBps)}% fee)
+                        </span>
+                      )}
+                    </Label>
+                  </div>
+                ))}
               </RadioGroup>
-              {paymentMethod === "online" && (
-                <p className="mt-3 text-xs text-muted-foreground">A secure payment link will be generated after you place the order.</p>
+              {paymentChannel !== "cod" && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  You'll pay securely via Razorpay using {PAYMENT_CHANNEL_LABELS[paymentChannel].toLowerCase()}.
+                </p>
               )}
             </section>
           </div>
@@ -272,33 +306,44 @@ function CheckoutPage() {
                 <div className="flex justify-between text-primary"><span>Discount</span><span>−{formatINR(discount)}</span></div>
               )}
               <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span className="text-emerald-600 dark:text-emerald-400">Free</span></div>
-              {taxes > 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  Estimated Tax ({bpsToPercentLabel(totals.taxRateBps)}%)
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" className="text-muted-foreground hover:text-foreground" aria-label="Tax info">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-xs">
+                        Tax is {bpsToPercentLabel(totals.taxRateBps)}% of the amount payable after discounts.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </span>
+                <span>{formatPaise(totals.taxPaise)}</span>
+              </div>
+              {totals.feePaise > 0 && (
                 <div className="flex justify-between text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    Estimated taxes
-                    <TooltipProvider delayDuration={0}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button type="button" className="text-muted-foreground hover:text-foreground" aria-label="Taxes info">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs text-xs">
-                          Estimated taxes apply to online/card/UPI payments and are ₹0 for Cash on Delivery.
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </span>
-                  <span>{formatINR(taxes)}</span>
+                  <span>Credit Card Processing Fee ({bpsToPercentLabel(totals.feeRateBps)}%)</span>
+                  <span>{formatPaise(totals.feePaise)}</span>
                 </div>
               )}
             </div>
             <div className="mt-4 flex justify-between border-t border-border pt-4 text-lg font-semibold text-foreground">
-              <span>Total</span><span>{formatINR(total)}</span>
+              <span>Total</span><span>{formatPaise(totals.totalPaise)}</span>
             </div>
 
             <Button className="btn-gold mt-6 w-full" onClick={handlePlaceOrder} disabled={orderMutation.isPending}>
-              {orderMutation.isPending ? "Placing order…" : `Place order · ${formatINR(total)}`}
+              {orderMutation.isPending ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {paymentChannel === "cod" ? "Placing order…" : "Processing payment…"}
+                </span>
+              ) : (
+                `${paymentChannel === "cod" ? "Place order" : "Pay now"} · ${formatPaise(totals.totalPaise)}`
+              )}
             </Button>
             <p className="mt-3 text-center text-xs text-muted-foreground">By placing this order you agree to our terms.</p>
           </div>
