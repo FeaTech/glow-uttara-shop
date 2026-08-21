@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { evaluateCoupon, reserveCouponUsage } from "@/lib/coupons.functions";
+import { calculateOnlineFee } from "@/lib/payment-fees";
 
 const addressSchema = z.object({
   label: z.string().optional(),
@@ -71,7 +72,9 @@ export const createOrder = createServerFn({ method: "POST" })
       }
     }
 
-    const total = Math.max(0, subtotal - discount);
+    const base = Math.max(0, subtotal - discount);
+    const taxes = data.paymentMethod === "online" ? calculateOnlineFee(base) : 0;
+    const total = base + taxes;
 
     // Some Supabase JWTs omit `email` from the claims, which silently skipped
     // every confirmation email — fall back to the authenticated user record.
@@ -89,6 +92,8 @@ export const createOrder = createServerFn({ method: "POST" })
         discount_inr: discount,
         coupon_code: couponCode,
         total_inr: total,
+        taxes_inr: taxes,
+        shipping_inr: 0,
         shipping_address: data.shippingAddress,
         customer_email: customerEmail,
         payment_method: data.paymentMethod,
@@ -153,6 +158,7 @@ export const createOrder = createServerFn({ method: "POST" })
         })),
         subtotalInr: subtotal,
         discountInr: discount,
+        taxesInr: taxes,
         totalInr: total,
         customerName: profile?.full_name ?? null,
         shippingAddress: data.shippingAddress,
