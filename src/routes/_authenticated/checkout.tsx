@@ -116,30 +116,27 @@ function CheckoutPage() {
       if (variables.data.paymentChannel === "cod") return { orderId, paid: false };
 
       const loaded = await loadRazorpayScript();
-      if (!loaded) throw new Error("Could not load the payment gateway. Please try again.");
+      if (!loaded) {
+        await abandonUnpaidOrderFn({ data: { orderId } });
+        throw new Error("Could not load the payment gateway. Your items are still in your cart.");
+      }
 
       const session = await createRazorpayOrderFn({ data: { orderId } });
-      const result = await openRazorpayCheckout(session);
+
+      let result;
+      try {
+        result = await openRazorpayCheckout(session);
+      } catch (err: any) {
+        // Payment failed inside the modal — undo the order, keep the cart.
+        await abandonUnpaidOrderFn({ data: { orderId } });
+        throw new Error(`${err?.message ?? "Payment failed"}. Your items are still in your cart.`);
+      }
+
       if (!result) {
         // Cancelled in the modal: undo the order and hand the items back to the cart.
         await abandonUnpaidOrderFn({ data: { orderId } });
         throw new Error("Payment cancelled — your items are still in your cart.");
       }
-
-      try {
-        await verifyRazorpayPaymentFn({
-          data: {
-            orderId,
-            razorpayOrderId: result.razorpay_order_id,
-            razorpayPaymentId: result.razorpay_payment_id,
-            razorpaySignature: result.razorpay_signature,
-          },
-        });
-      } catch (err) {
-        throw err;
-      }
-      return { orderId, paid: true };
-    },
 
       await verifyRazorpayPaymentFn({
         data: {
@@ -151,6 +148,7 @@ function CheckoutPage() {
       });
       return { orderId, paid: true };
     },
+
     onSuccess: ({ paid }) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
