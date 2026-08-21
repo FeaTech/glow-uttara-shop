@@ -179,6 +179,7 @@ export function orderConfirmationEmail(args: {
       <tr><td style="padding:4px 0;color:${MUTED};">Subtotal</td><td style="text-align:right;color:${INK};">${inr(args.subtotalInr)}</td></tr>
       ${args.discountInr > 0 ? `<tr><td style="padding:4px 0;color:${MUTED};">Discount</td><td style="text-align:right;color:#15803d;">- ${inr(args.discountInr)}</td></tr>` : ""}
       <tr><td style="padding:4px 0;color:${MUTED};">Shipping</td><td style="text-align:right;color:#15803d;">Free</td></tr>
+      ${args.taxesInr > 0 ? `<tr><td style="padding:4px 0;color:${MUTED};">Estimated taxes</td><td style="text-align:right;color:${INK};">${inr(args.taxesInr)}</td></tr>` : ""}
       <tr><td style="padding:12px 0 0;border-top:1px solid ${LINE};font-weight:bold;color:${INK};">Total</td><td style="padding:12px 0 0;border-top:1px solid ${LINE};text-align:right;font-weight:bold;font-size:17px;color:${GOLD};">${inr(args.totalInr)}</td></tr>
     </table>
     <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:2px;color:${GOLD};text-transform:uppercase;margin:28px 0 6px;">Shipping address</div>
