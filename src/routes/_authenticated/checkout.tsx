@@ -5,10 +5,10 @@ import { useState } from "react";
 import { Tag, X, Check, Loader2 } from "lucide-react";
 import { getCart } from "@/lib/cart.functions";
 import { getAddresses } from "@/lib/profile.functions";
-import { createOrder } from "@/lib/orders.functions";
+import { abandonUnpaidOrder, createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay-checkout";
-import { releaseOrderCoupon, validateCoupon } from "@/lib/coupons.functions";
+import { validateCoupon } from "@/lib/coupons.functions";
 import { getPricingConfig } from "@/lib/pricing.functions";
 import {
   DEFAULT_PRICING_CONFIG,
@@ -53,7 +53,7 @@ function CheckoutPage() {
   const queryClient = useQueryClient();
   const createOrderFn = useServerFn(createOrder);
   const validateCouponFn = useServerFn(validateCoupon);
-  const releaseOrderCouponFn = useServerFn(releaseOrderCoupon);
+  const abandonUnpaidOrderFn = useServerFn(abandonUnpaidOrder);
   const createRazorpayOrderFn = useServerFn(createRazorpayOrder);
   const verifyRazorpayPaymentFn = useServerFn(verifyRazorpayPayment);
 
@@ -121,9 +121,25 @@ function CheckoutPage() {
       const session = await createRazorpayOrderFn({ data: { orderId } });
       const result = await openRazorpayCheckout(session);
       if (!result) {
-        await releaseOrderCouponFn({ data: { orderId } });
-        throw new Error("Payment cancelled — your order is saved as pending payment.");
+        // Cancelled in the modal: undo the order and hand the items back to the cart.
+        await abandonUnpaidOrderFn({ data: { orderId } });
+        throw new Error("Payment cancelled — your items are still in your cart.");
       }
+
+      try {
+        await verifyRazorpayPaymentFn({
+          data: {
+            orderId,
+            razorpayOrderId: result.razorpay_order_id,
+            razorpayPaymentId: result.razorpay_payment_id,
+            razorpaySignature: result.razorpay_signature,
+          },
+        });
+      } catch (err) {
+        throw err;
+      }
+      return { orderId, paid: true };
+    },
 
       await verifyRazorpayPaymentFn({
         data: {
