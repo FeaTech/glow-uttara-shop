@@ -411,8 +411,10 @@ export type Database = {
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
           shipping_address: Json
+          shipping_inr: number
           status: Database["public"]["Enums"]["order_status"]
           subtotal_inr: number | null
+          taxes_inr: number
           total_inr: number
           updated_at: string
           user_id: string
@@ -429,8 +431,10 @@ export type Database = {
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           shipping_address: Json
+          shipping_inr?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_inr?: number | null
+          taxes_inr?: number
           total_inr: number
           updated_at?: string
           user_id: string
@@ -447,8 +451,10 @@ export type Database = {
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           shipping_address?: Json
+          shipping_inr?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_inr?: number | null
+          taxes_inr?: number
           total_inr?: number
           updated_at?: string
           user_id?: string

@@ -1,0 +1,3 @@
+ALTER TABLE public.orders
+ADD COLUMN IF NOT EXISTS taxes_inr integer NOT NULL DEFAULT 0,
+ADD COLUMN IF NOT EXISTS shipping_inr integer NOT NULL DEFAULT 0;
