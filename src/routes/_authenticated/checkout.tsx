@@ -158,11 +158,11 @@ function CheckoutPage() {
     onError: (err: any) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-      const message: string = err?.message ?? "Could not place order";
+      const message: string = err?.message ?? "Could not place order. Please try again.";
       if (message.toLowerCase().includes("cancelled")) {
-        toast.warning(`${message} You can retry payment from My orders.`);
+        toast.warning(message);
       } else {
-        toast.error(`${message} Please try again.`);
+        toast.error(message);
       }
     },
   });
