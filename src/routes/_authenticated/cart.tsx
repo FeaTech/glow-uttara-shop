@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { formatINR, productImage } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
 import { toast } from "sonner";
-import { calculateOnlineFee, includedGst, GST_RATE } from "@/lib/payment-fees";
+import { calculateOnlineFee } from "@/lib/payment-fees";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const cartQueryOptions = () =>
   queryOptions({ queryKey: ["cart"], queryFn: () => getCart({ data: undefined }) });
