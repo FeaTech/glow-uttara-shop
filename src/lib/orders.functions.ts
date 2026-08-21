@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { evaluateCoupon, reserveCouponUsage } from "@/lib/coupons.functions";
-import { calculateOnlineFee } from "@/lib/payment-fees";
+import { computeOrderTotals, type PaymentChannel } from "@/lib/pricing";
 
 const addressSchema = z.object({
   label: z.string().optional(),
@@ -16,9 +16,12 @@ const addressSchema = z.object({
 
 const createOrderSchema = z.object({
   shippingAddress: addressSchema,
-  paymentMethod: z.enum(["cod", "online"]).default("cod"),
+  paymentChannel: z
+    .enum(["cod", "upi", "credit_card", "debit_card", "netbanking", "wallet"])
+    .default("cod"),
   couponCode: z.string().trim().max(40).optional(),
 });
+
 
 export const createOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -72,9 +75,16 @@ export const createOrder = createServerFn({ method: "POST" })
       }
     }
 
-    const base = Math.max(0, subtotal - discount);
-    const taxes = data.paymentMethod === "online" ? calculateOnlineFee(base) : 0;
-    const total = base + taxes;
+    // Authoritative money maths, in paise, on the server.
+    const { resolvePricingConfig } = await import("@/lib/pricing.server");
+    const channel = data.paymentChannel as PaymentChannel;
+    const totals = computeOrderTotals({
+      subtotalPaise: subtotal * 100,
+      discountPaise: discount * 100,
+      channel,
+      config: resolvePricingConfig(),
+    });
+    const paymentMethod = channel === "cod" ? "cod" : "online";
 
     // Some Supabase JWTs omit `email` from the claims, which silently skipped
     // every confirmation email — fall back to the authenticated user record.
@@ -91,17 +101,24 @@ export const createOrder = createServerFn({ method: "POST" })
         subtotal_inr: subtotal,
         discount_inr: discount,
         coupon_code: couponCode,
-        total_inr: total,
-        taxes_inr: taxes,
+        total_inr: Math.round(totals.totalPaise / 100),
+        total_paise: totals.totalPaise,
+        taxes_inr: Math.round(totals.taxPaise / 100),
+        tax_paise: totals.taxPaise,
+        tax_rate_bps: totals.taxRateBps,
+        payment_fee_rate_bps: totals.feeRateBps,
+        payment_fee_paise: totals.feePaise,
         shipping_inr: 0,
         shipping_address: data.shippingAddress,
         customer_email: customerEmail,
-        payment_method: data.paymentMethod,
+        payment_method: paymentMethod,
+        payment_channel: channel,
         payment_status: "pending",
         status: "pending",
       })
       .select("id")
       .single();
+
     if (orderError) throw orderError;
 
     const orderItems = items.map((item) => ({
@@ -158,8 +175,8 @@ export const createOrder = createServerFn({ method: "POST" })
         })),
         subtotalInr: subtotal,
         discountInr: discount,
-        taxesInr: taxes,
-        totalInr: total,
+        taxesInr: Math.round(totals.taxPaise / 100),
+        totalInr: Math.round(totals.totalPaise / 100),
         customerName: profile?.full_name ?? null,
         shippingAddress: data.shippingAddress,
       });
