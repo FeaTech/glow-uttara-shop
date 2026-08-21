@@ -9,7 +9,8 @@ import { createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay-checkout";
 import { releaseOrderCoupon, validateCoupon } from "@/lib/coupons.functions";
-import { calculateOnlineFee, includedGst, GST_RATE } from "@/lib/payment-fees";
+import { calculateOnlineFee } from "@/lib/payment-fees";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +62,6 @@ function CheckoutPage() {
   const discount = applied?.discount ?? 0;
   const base = Math.max(0, subtotal - discount);
   const taxes = paymentMethod === "online" ? calculateOnlineFee(base) : 0;
-  const gst = includedGst(base);
   const total = base + taxes;
 
   const couponMutation = useMutation({
@@ -272,9 +272,25 @@ function CheckoutPage() {
                 <div className="flex justify-between text-primary"><span>Discount</span><span>−{formatINR(discount)}</span></div>
               )}
               <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span className="text-emerald-600 dark:text-emerald-400">Free</span></div>
-              <div className="flex justify-between text-muted-foreground"><span>GST ({Math.round(GST_RATE * 100)}%, included)</span><span>{formatINR(gst)}</span></div>
               {taxes > 0 && (
-                <div className="flex justify-between text-muted-foreground"><span>Online payment charges</span><span>{formatINR(taxes)}</span></div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    Estimated taxes
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" className="text-muted-foreground hover:text-foreground" aria-label="Taxes info">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs text-xs">
+                          Estimated taxes apply to online/card/UPI payments and are ₹0 for Cash on Delivery.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </span>
+                  <span>{formatINR(taxes)}</span>
+                </div>
               )}
             </div>
             <div className="mt-4 flex justify-between border-t border-border pt-4 text-lg font-semibold text-foreground">

@@ -1,7 +1,7 @@
 /** Indian-rupee and date formatting helpers used across the storefront. */
 
 export function formatINR(value: number | null | undefined): string {
-  return `₹${(value ?? 0).toLocaleString("en-IN")}`;
+  return `₹${(value ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatDate(value: string | Date): string {
