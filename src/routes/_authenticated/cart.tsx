@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { formatINR, productImage } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
 import { toast } from "sonner";
+import { calculateOnlineFee } from "@/lib/payment-fees";
 
 const cartQueryOptions = () =>
   queryOptions({ queryKey: ["cart"], queryFn: () => getCart({ data: undefined }) });
@@ -91,6 +92,7 @@ function CartPage() {
 
   const freeShippingThreshold = 999;
   const remaining = Math.max(0, freeShippingThreshold - cart.total);
+  const onlineFee = calculateOnlineFee(cart.total);
   const progress = Math.min(100, (cart.total / freeShippingThreshold) * 100);
 
   return (
