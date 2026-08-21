@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { formatINR, productImage } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
 import { toast } from "sonner";
-import { calculateOnlineFee } from "@/lib/payment-fees";
+import { calculateOnlineFee, includedGst, GST_RATE } from "@/lib/payment-fees";
 
 const cartQueryOptions = () =>
   queryOptions({ queryKey: ["cart"], queryFn: () => getCart({ data: undefined }) });
@@ -93,6 +93,7 @@ function CartPage() {
   const freeShippingThreshold = 999;
   const remaining = Math.max(0, freeShippingThreshold - cart.total);
   const onlineFee = calculateOnlineFee(cart.total);
+  const gst = includedGst(cart.total);
   const progress = Math.min(100, (cart.total / freeShippingThreshold) * 100);
 
   return (
@@ -168,8 +169,9 @@ function CartPage() {
             <div className="mt-5 space-y-2 border-t border-border pt-5 text-sm">
               <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{formatINR(cart.total)}</span></div>
               <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span className="text-emerald-600 dark:text-emerald-400">Free</span></div>
-              <div className="flex justify-between text-muted-foreground"><span>Estimated taxes (online payment)</span><span>{formatINR(onlineFee)}</span></div>
-              <p className="text-xs text-muted-foreground">Taxes apply only to online/card payments and are ₹0 for Cash on Delivery.</p>
+              <div className="flex justify-between text-muted-foreground"><span>GST ({Math.round(GST_RATE * 100)}%, included)</span><span>{formatINR(gst)}</span></div>
+              <div className="flex justify-between text-muted-foreground"><span>Online payment charges</span><span>{formatINR(onlineFee)}</span></div>
+              <p className="text-xs text-muted-foreground">GST is included in the item price. Online payment charges apply only to card/UPI payments and are ₹0 for Cash on Delivery.</p>
             </div>
             <div className="mt-4 flex justify-between border-t border-border pt-4 text-lg font-semibold text-foreground">
               <span>Total</span><span>{formatINR(cart.total + onlineFee)}</span>
