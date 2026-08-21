@@ -165,11 +165,14 @@ function CartPage() {
 
             <div className="mt-5 space-y-2 border-t border-border pt-5 text-sm">
               <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{formatINR(cart.total)}</span></div>
-              <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span>Calculated at checkout</span></div>
+              <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span className="text-emerald-600 dark:text-emerald-400">Free</span></div>
+              <div className="flex justify-between text-muted-foreground"><span>Estimated taxes (online payment)</span><span>{formatINR(onlineFee)}</span></div>
+              <p className="text-xs text-muted-foreground">Taxes apply only to online/card payments and are ₹0 for Cash on Delivery.</p>
             </div>
             <div className="mt-4 flex justify-between border-t border-border pt-4 text-lg font-semibold text-foreground">
-              <span>Total</span><span>{formatINR(cart.total)}</span>
+              <span>Total</span><span>{formatINR(cart.total + onlineFee)}</span>
             </div>
+
             <Button asChild className="btn-gold mt-6 w-full"><Link to="/checkout">Proceed to checkout</Link></Button>
             <Button asChild variant="ghost" className="mt-2 w-full"><Link to="/products">Continue shopping</Link></Button>
           </div>
