@@ -356,6 +356,9 @@ function AdminOrders() {
                               {o.shipping_address?.city}, {o.shipping_address?.state} — {o.shipping_address?.pincode}<br />
                               {o.shipping_address?.country}
                             </address>
+                            <Button variant="outline" size="sm" className="mt-3" onClick={() => setPrintOrder(o)}>
+                              <Printer className="h-4 w-4" /> Print invoice
+                            </Button>
                           </div>
                         </div>
                       </TableCell>
