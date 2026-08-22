@@ -603,6 +603,7 @@ const categoryInputSchema = z.object({
   name: z.string().min(1).max(80),
   slug: z.string().max(80).optional(),
   description: z.string().max(300).optional().nullable(),
+  image_url: z.string().max(500).optional().nullable(),
   sort_order: z.number().int().min(0).default(0),
 });
 
@@ -616,6 +617,7 @@ export const adminSaveCategory = createServerFn({ method: "POST" })
       name: data.name,
       slug: data.slug?.trim() || slugify(data.name),
       description: data.description || null,
+      image_url: data.image_url || null,
       sort_order: data.sort_order,
     };
     if (data.id) {
