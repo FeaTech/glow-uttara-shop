@@ -647,8 +647,14 @@ const listOrdersSchema = z.object({
   page: z.number().int().min(0).default(0),
   pageSize: z.number().int().min(1).max(100).default(25),
   status: z.enum(["pending", "processing", "shipped", "delivered", "cancelled"]).optional(),
+  paymentStatus: z.enum(["pending", "paid", "failed", "refunded"]).optional(),
+  paymentMethod: z.string().optional(),
+  sort: z.enum(["newest", "oldest", "highest", "lowest"]).default("newest"),
+  q: z.string().max(120).optional(),
   range: z.string().optional(),
 });
+
+const UUID_PREFIX = /^[0-9a-f-]{4,36}$/i;
 
 export const adminListOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -660,19 +666,41 @@ export const adminListOrders = createServerFn({ method: "GET" })
     // Paginated — this previously fetched every order with every line item on
     // each load, which grows without bound as the store takes orders.
     const from = data.page * data.pageSize;
+    const sortColumn = data.sort === "highest" || data.sort === "lowest" ? "total_inr" : "created_at";
+    const ascending = data.sort === "oldest" || data.sort === "lowest";
     let query = db
       .from("orders")
       .select("*, order_items(*)", { count: "exact" })
-      .order("created_at", { ascending: false })
+      .order(sortColumn, { ascending })
       .range(from, from + data.pageSize - 1);
     if (data.status) query = query.eq("status", data.status);
+    if (data.paymentStatus) query = query.eq("payment_status", data.paymentStatus);
+    if (data.paymentMethod) query = query.eq("payment_method", data.paymentMethod);
     const { start: rangeStart, end: rangeEnd } = rangeInterval(data.range);
     if (rangeStart) query = query.gte("created_at", rangeStart);
     if (rangeEnd) query = query.lte("created_at", rangeEnd);
 
+    const term = data.q?.trim();
+    if (term) {
+      const like = `%${term}%`;
+      const filters = [`customer_email.ilike.${like}`, `coupon_code.ilike.${like}`];
+      // Order numbers are shown as the first 8 characters of the UUID.
+      if (UUID_PREFIX.test(term)) filters.push(`id::text.ilike.${term.toLowerCase()}%`);
+      // Customer names live on profiles (no FK to orders), so resolve ids first.
+      const { data: nameMatches } = await db
+        .from("profiles")
+        .select("id")
+        .ilike("full_name", like)
+        .limit(200);
+      const ids = (nameMatches ?? []).map((p) => p.id);
+      if (ids.length) filters.push(`user_id.in.(${ids.join(",")})`);
+      query = query.or(filters.join(","));
+    }
+
     const { data: orders, error, count } = await query;
     if (error) throw error;
     if (!orders?.length) return { orders: [], total: count ?? 0, page: data.page, pageSize: data.pageSize };
+
 
     // No direct FK between orders and profiles (both reference auth.users),
     // so fetch the customer profiles separately and merge them in.
