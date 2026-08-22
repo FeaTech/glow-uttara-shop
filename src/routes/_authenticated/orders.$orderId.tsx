@@ -100,8 +100,13 @@ function OrderDetailPage() {
             <Button variant="outline" onClick={() => reorderMutation.mutate({ data: { orderId: order.id } })} disabled={reorderMutation.isPending}>
               <RotateCcw className="h-4 w-4" /> Reorder
             </Button>
+            <Button variant="outline" onClick={() => window.print()}>
+              <Printer className="h-4 w-4" /> Print invoice
+            </Button>
           </div>
         </div>
+
+        <OrderInvoice order={order as any} />
 
 
         {/* Timeline */}
