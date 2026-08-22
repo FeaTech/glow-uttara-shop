@@ -191,6 +191,19 @@ function AuthPage() {
                   <Input id="email2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" />
                 </div>
                 <div>
+                  <Label htmlFor="phone2">Phone</Label>
+                  <Input
+                    id="phone2"
+                    type="tel"
+                    inputMode="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
                   <Label htmlFor="password2">Password</Label>
                   <Input id="password2" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" />
                 </div>
