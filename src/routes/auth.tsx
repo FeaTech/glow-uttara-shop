@@ -33,14 +33,21 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [referralCode, setReferralCode] = useState((ref ?? "").toUpperCase());
   const [loading, setLoading] = useState(false);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (tab === "signup" && !fullName.trim()) {
-      toast.error("Please enter your full name.");
-      return;
+    if (tab === "signup") {
+      if (!fullName.trim()) {
+        toast.error("Please enter your full name.");
+        return;
+      }
+      if (!/^[0-9]{10}$/.test(phone.replace(/\D/g, "").slice(-10))) {
+        toast.error("Please enter a valid 10-digit phone number.");
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -55,6 +62,7 @@ function AuthPage() {
           options: {
             data: {
               full_name: fullName.trim(),
+              phone: phone.trim(),
               ...(referralCode.trim() ? { referral_code: referralCode.trim().toUpperCase() } : {}),
             },
             emailRedirectTo: window.location.origin,
@@ -181,6 +189,19 @@ function AuthPage() {
                 <div>
                   <Label htmlFor="email2">Email</Label>
                   <Input id="email2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" />
+                </div>
+                <div>
+                  <Label htmlFor="phone2">Phone</Label>
+                  <Input
+                    id="phone2"
+                    type="tel"
+                    inputMode="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="mt-1.5"
+                  />
                 </div>
                 <div>
                   <Label htmlFor="password2">Password</Label>
