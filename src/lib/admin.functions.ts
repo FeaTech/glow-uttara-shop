@@ -846,7 +846,7 @@ export const adminListContactMessages = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
     const { data, error } = await context.supabase
-      .from("contact_messages" as any)
+      .from("contact_messages")
       .select("id, name, email, subject, message, created_at")
       .order("created_at", { ascending: false });
     if (error) throw error;
@@ -865,7 +865,7 @@ export const adminDeleteContactMessage = createServerFn({ method: "POST" })
   .inputValidator((input) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { error } = await context.supabase.from("contact_messages" as any).delete().eq("id", data.id);
+    const { error } = await context.supabase.from("contact_messages").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
   });
