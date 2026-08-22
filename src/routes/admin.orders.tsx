@@ -119,7 +119,18 @@ function AdminOrders() {
   const total = data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [printOrder, setPrintOrder] = useState<any | null>(null);
   const updateFn = useServerFn(adminUpdateOrder);
+
+  // Render the invoice first, then hand off to the browser's print dialog.
+  useEffect(() => {
+    if (!printOrder) return;
+    const id = window.setTimeout(() => {
+      window.print();
+      setPrintOrder(null);
+    }, 60);
+    return () => window.clearTimeout(id);
+  }, [printOrder]);
 
   // New orders and status changes appear without a refresh.
   useRealtimeInvalidate({
