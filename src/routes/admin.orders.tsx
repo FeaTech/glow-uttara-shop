@@ -32,7 +32,7 @@ export const Route = createFileRoute("/admin/orders")({
     status: search.status ? String(search.status) : undefined,
     payment: search.payment ? String(search.payment) : undefined,
     method: search.method ? String(search.method) : undefined,
-    sort: search.sortBy ? String(search.sortBy) : undefined,
+    sortBy: search.sortBy ? String(search.sortBy) : undefined,
   }),
   component: AdminOrders,
 });
