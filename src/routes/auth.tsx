@@ -62,6 +62,7 @@ function AuthPage() {
           options: {
             data: {
               full_name: fullName.trim(),
+              phone: phone.trim(),
               ...(referralCode.trim() ? { referral_code: referralCode.trim().toUpperCase() } : {}),
             },
             emailRedirectTo: window.location.origin,
