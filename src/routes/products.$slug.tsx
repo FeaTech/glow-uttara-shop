@@ -445,7 +445,20 @@ function ReviewsSection({ productId, ratingAvg, ratingCount, slug }: { productId
         <div>
           {showForm && (
             <form
-              onSubmit={(e) => { e.preventDefault(); if (!rating) return toast.error("Please select a rating"); mutation.mutate({ data: { productId, rating, title, body } }); }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (mutation.isPending) return;
+                if (!signedIn) {
+                  toast.error("Please sign in to write a review");
+                  navigate({ to: "/auth" });
+                  return;
+                }
+                if (!rating) {
+                  toast.error("Please select a rating");
+                  return;
+                }
+                mutation.mutate({ data: { productId, rating, title, body } });
+              }}
               className="card-luxe mb-8 space-y-4 p-6"
             >
               <div>

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Check, Package, Truck, Home, Clock, XCircle, RotateCcw } from "lucide-react";
-import { getOrderById } from "@/lib/orders.functions";
+import { getOrderById, cancelOrder } from "@/lib/orders.functions";
 import { reorderToCart } from "@/lib/cart.functions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatINR, productImage } from "@/lib/format";
@@ -33,6 +33,7 @@ function OrderDetailPage() {
   const queryClient = useQueryClient();
 
   const reorderFn = useServerFn(reorderToCart);
+  const cancelFn = useServerFn(cancelOrder);
 
   const reorderMutation = useMutation({
     mutationFn: reorderFn,
@@ -42,6 +43,15 @@ function OrderDetailPage() {
       navigate({ to: "/cart" });
     },
     onError: (err: any) => toast.error(err?.message ?? "Could not reorder"),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: cancelFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast.success("Order cancelled");
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Could not cancel this order"),
   });
 
   if (!order) {
@@ -56,6 +66,7 @@ function OrderDetailPage() {
   }
 
   const cancelled = order.status === "cancelled";
+  const canCancel = order.status === "pending";
   const currentStep = TIMELINE.findIndex((s) => s.key === order.status);
   const address = order.shipping_address as any;
 
@@ -74,11 +85,23 @@ function OrderDetailPage() {
             <p className="mt-1 text-muted-foreground">Placed {formatDateTime(order.created_at)}</p>
           </div>
           <div className="flex gap-2">
+            {canCancel && (
+              <Button
+                variant="outline"
+                className="text-destructive hover:text-destructive"
+                onClick={() => cancelMutation.mutate({ data: { orderId: order.id } })}
+                disabled={cancelMutation.isPending}
+              >
+                <XCircle className="h-4 w-4" />
+                {cancelMutation.isPending ? "Cancelling…" : "Cancel order"}
+              </Button>
+            )}
             <Button variant="outline" onClick={() => reorderMutation.mutate({ data: { orderId: order.id } })} disabled={reorderMutation.isPending}>
               <RotateCcw className="h-4 w-4" /> Reorder
             </Button>
           </div>
         </div>
+
 
         {/* Timeline */}
         <div className="card-luxe mt-8 p-6">

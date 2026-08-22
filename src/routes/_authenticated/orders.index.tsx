@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Package } from "lucide-react";
-import { getOrders } from "@/lib/orders.functions";
+import { toast } from "sonner";
+import { getOrders, cancelOrder } from "@/lib/orders.functions";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,17 @@ const STATUS_STYLES: Record<string, string> = {
 
 function OrdersPage() {
   const { data: orders } = useSuspenseQuery(ordersQueryOptions());
+  const queryClient = useQueryClient();
+  const cancelFn = useServerFn(cancelOrder);
+  const cancelMutation = useMutation({
+    mutationFn: cancelFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast.success("Order cancelled");
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Could not cancel this order"),
+  });
+
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -95,6 +108,17 @@ function OrdersPage() {
                         Payment: {order.payment_status}
                       </span>
                       <div className="flex items-center gap-1">
+                        {order.status === "pending" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => cancelMutation.mutate({ data: { orderId: order.id } })}
+                            disabled={cancelMutation.isPending}
+                          >
+                            Cancel
+                          </Button>
+                        )}
                         <Button asChild variant="outline" size="sm">
                           <Link to="/orders/$orderId" params={{ orderId: order.id }}>View details</Link>
                         </Button>

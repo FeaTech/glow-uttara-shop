@@ -72,7 +72,7 @@ export const addToCart = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { error } = await supabase.rpc("add_cart_item", {
       p_product_id: data.productId,
-      p_variant_id: data.variantId ?? null,
+      p_variant_id: (data.variantId ?? null) as unknown as string,
       p_quantity: data.quantity,
     });
     if (error) throw error;
