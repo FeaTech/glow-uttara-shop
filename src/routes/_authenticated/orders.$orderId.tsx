@@ -33,6 +33,7 @@ function OrderDetailPage() {
   const queryClient = useQueryClient();
 
   const reorderFn = useServerFn(reorderToCart);
+  const cancelFn = useServerFn(cancelOrder);
 
   const reorderMutation = useMutation({
     mutationFn: reorderFn,
@@ -42,6 +43,15 @@ function OrderDetailPage() {
       navigate({ to: "/cart" });
     },
     onError: (err: any) => toast.error(err?.message ?? "Could not reorder"),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: cancelFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast.success("Order cancelled");
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Could not cancel this order"),
   });
 
   if (!order) {
