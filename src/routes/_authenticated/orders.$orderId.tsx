@@ -66,6 +66,7 @@ function OrderDetailPage() {
   }
 
   const cancelled = order.status === "cancelled";
+  const canCancel = order.status === "pending";
   const currentStep = TIMELINE.findIndex((s) => s.key === order.status);
   const address = order.shipping_address as any;
 
@@ -84,10 +85,22 @@ function OrderDetailPage() {
             <p className="mt-1 text-muted-foreground">Placed {formatDateTime(order.created_at)}</p>
           </div>
           <div className="flex gap-2">
+            {canCancel && (
+              <Button
+                variant="outline"
+                className="text-destructive hover:text-destructive"
+                onClick={() => cancelMutation.mutate({ data: { orderId: order.id } })}
+                disabled={cancelMutation.isPending}
+              >
+                <XCircle className="h-4 w-4" />
+                {cancelMutation.isPending ? "Cancelling…" : "Cancel order"}
+              </Button>
+            )}
             <Button variant="outline" onClick={() => reorderMutation.mutate({ data: { orderId: order.id } })} disabled={reorderMutation.isPending}>
               <RotateCcw className="h-4 w-4" /> Reorder
             </Button>
           </div>
+        </div>
         </div>
 
         {/* Timeline */}
