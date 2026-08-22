@@ -151,12 +151,12 @@ function HomePage() {
       <section className="relative overflow-hidden bg-foreground py-16 text-background md:py-20">
         <div className="container-luxe relative flex flex-col items-center gap-6 text-center">
           <ScrollReveal>
-            <p className="text-xs font-medium uppercase tracking-[0.3em] text-background/70">Limited time</p>
+            <p className="text-xs font-medium uppercase tracking-[0.3em] text-background/70">Korean beauty inspired</p>
             <h2 className="mt-3 font-serif text-3xl font-light md:text-5xl">
-              Enjoy <span className="text-gradient-gold">10% off</span> your first order
+              Discover your <span className="text-gradient-gold">glow ritual</span>
             </h2>
             <p className="mt-3 text-background/70">
-              Use code <span className="rounded bg-background/15 px-2 py-0.5 font-mono font-semibold text-background">WELCOME10</span> at checkout on orders above ₹999.
+              Handpicked makeup, skincare, haircare and fragrance — all authentic, delivered pan-India.
             </p>
             <Button asChild size="lg" className="btn-gold mt-8">
               <Link to="/products">Start shopping</Link>
@@ -164,6 +164,7 @@ function HomePage() {
           </ScrollReveal>
         </div>
       </section>
+
 
       {/* ---------- Bestsellers ---------- */}
       <section className="container-luxe py-16 md:py-24">
