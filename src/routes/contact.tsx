@@ -22,7 +22,7 @@ export const Route = createFileRoute("/contact")({
 });
 
 const details = [
-  { icon: Mail, label: "Email", value: "Mail@feaglam.com" },
+  { icon: Mail, label: "Email", value: "Mail@Feaglam.com" },
   { icon: Phone, label: "Phone", value: "+91 99629 99336" },
   { icon: Clock, label: "Hours", value: "Mon–Sat, 10am – 7pm IST" },
 ];
