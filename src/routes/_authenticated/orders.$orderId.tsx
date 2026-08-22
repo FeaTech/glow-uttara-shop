@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Check, Package, Truck, Home, Clock, XCircle, RotateCcw } from "lucide-react";
-import { getOrderById } from "@/lib/orders.functions";
+import { getOrderById, cancelOrder } from "@/lib/orders.functions";
 import { reorderToCart } from "@/lib/cart.functions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatINR, productImage } from "@/lib/format";
