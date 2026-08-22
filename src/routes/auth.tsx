@@ -39,7 +39,7 @@ function AuthPage() {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (tab === "signup" && !fullName.trim()) {
+    if (tag === "signup" && !fullName.trim()) {
       toast.error("Please enter your full name.");
       return;
     }
