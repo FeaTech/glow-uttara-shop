@@ -39,7 +39,7 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
       className="group card-luxe card-hover relative flex flex-col overflow-hidden"
       style={{ animation: `var(--animate-fade-up)`, animationDelay: `${Math.min(index, 8) * 60}ms` }}
     >
-      <WishlistButton productId={product.id} />
+      <WishlistButton productId={product.id} productName={product.name} />
 
       <Link
         to="/products/$slug"
