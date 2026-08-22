@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Check, Package, Truck, Home, Clock, XCircle, RotateCcw } from "lucide-react";
+import { ArrowLeft, Check, Package, Truck, Home, Clock, XCircle, RotateCcw, Printer } from "lucide-react";
 import { getOrderById, cancelOrder } from "@/lib/orders.functions";
 import { reorderToCart } from "@/lib/cart.functions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatINR, productImage } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
+import { OrderInvoice } from "@/components/OrderInvoice";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -99,8 +100,13 @@ function OrderDetailPage() {
             <Button variant="outline" onClick={() => reorderMutation.mutate({ data: { orderId: order.id } })} disabled={reorderMutation.isPending}>
               <RotateCcw className="h-4 w-4" /> Reorder
             </Button>
+            <Button variant="outline" onClick={() => window.print()}>
+              <Printer className="h-4 w-4" /> Print invoice
+            </Button>
           </div>
         </div>
+
+        <OrderInvoice order={order as any} />
 
 
         {/* Timeline */}

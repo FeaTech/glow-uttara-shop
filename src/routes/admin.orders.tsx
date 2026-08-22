@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Fragment, useEffect, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Printer, Search, X } from "lucide-react";
 import { adminListOrders, adminUpdateOrder } from "@/lib/admin.functions";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RangeFilter } from "@/components/admin/RangeFilter";
 import { normalizeRange, rangeLabel, type RangeValue } from "@/lib/date-range";
+import { OrderInvoice } from "@/components/OrderInvoice";
 
 type OrdersSearch = {
   range?: RangeValue;
@@ -119,7 +120,18 @@ function AdminOrders() {
   const total = data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [printOrder, setPrintOrder] = useState<any | null>(null);
   const updateFn = useServerFn(adminUpdateOrder);
+
+  // Render the invoice first, then hand off to the browser's print dialog.
+  useEffect(() => {
+    if (!printOrder) return;
+    const id = window.setTimeout(() => {
+      window.print();
+      setPrintOrder(null);
+    }, 60);
+    return () => window.clearTimeout(id);
+  }, [printOrder]);
 
   // New orders and status changes appear without a refresh.
   useRealtimeInvalidate({
@@ -345,6 +357,9 @@ function AdminOrders() {
                               {o.shipping_address?.city}, {o.shipping_address?.state} — {o.shipping_address?.pincode}<br />
                               {o.shipping_address?.country}
                             </address>
+                            <Button variant="outline" size="sm" className="mt-3" onClick={() => setPrintOrder(o)}>
+                              <Printer className="h-4 w-4" /> Print invoice
+                            </Button>
                           </div>
                         </div>
                       </TableCell>
@@ -378,6 +393,7 @@ function AdminOrders() {
           </div>
         </div>
       )}
+      {printOrder && <OrderInvoice order={printOrder} customerName={printOrder.customer_name ?? printOrder.customer_email} />}
     </div>
   );
 }

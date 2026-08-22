@@ -396,3 +396,122 @@
     animation: none !important;
   }
 }
+
+/* ---------- Printable invoice ---------- */
+#print-invoice {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #print-invoice,
+  #print-invoice * {
+    visibility: visible !important;
+  }
+  #print-invoice {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    background: #fff;
+    color: #111;
+  }
+  @page {
+    margin: 14mm;
+  }
+}
+
+.invoice-sheet {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #111;
+}
+.invoice-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 2px solid #b08d57;
+  padding-bottom: 12px;
+}
+.invoice-brand {
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  color: #b08d57;
+}
+.invoice-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.invoice-right {
+  text-align: right;
+}
+.invoice-muted {
+  color: #666;
+}
+.invoice-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #888;
+  margin-bottom: 4px;
+}
+.invoice-capitalize {
+  text-transform: capitalize;
+}
+.invoice-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin: 20px 0;
+}
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+.invoice-table th,
+.invoice-table td {
+  border-bottom: 1px solid #e5e5e5;
+  padding: 8px 4px;
+  text-align: left;
+  vertical-align: top;
+}
+.invoice-table th {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+}
+.invoice-num {
+  text-align: right !important;
+  white-space: nowrap;
+}
+.invoice-totals {
+  margin-left: auto;
+  margin-top: 16px;
+  width: 260px;
+}
+.invoice-totals > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+}
+.invoice-total {
+  border-top: 1px solid #111;
+  margin-top: 6px;
+  padding-top: 8px !important;
+  font-weight: 700;
+  font-size: 14px;
+}
+.invoice-foot {
+  margin-top: 32px;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 12px;
+  text-align: center;
+}
