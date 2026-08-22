@@ -32,6 +32,17 @@ const STATUS_STYLES: Record<string, string> = {
 
 function OrdersPage() {
   const { data: orders } = useSuspenseQuery(ordersQueryOptions());
+  const queryClient = useQueryClient();
+  const cancelFn = useServerFn(cancelOrder);
+  const cancelMutation = useMutation({
+    mutationFn: cancelFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast.success("Order cancelled");
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Could not cancel this order"),
+  });
+
 
   return (
     <div className="min-h-screen bg-background pb-24">
