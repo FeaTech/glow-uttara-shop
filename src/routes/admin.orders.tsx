@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Fragment, useEffect, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Printer, Search, X } from "lucide-react";
 import { adminListOrders, adminUpdateOrder } from "@/lib/admin.functions";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RangeFilter } from "@/components/admin/RangeFilter";
 import { normalizeRange, rangeLabel, type RangeValue } from "@/lib/date-range";
+import { OrderInvoice } from "@/components/OrderInvoice";
 
 type OrdersSearch = {
   range?: RangeValue;
@@ -392,6 +393,7 @@ function AdminOrders() {
           </div>
         </div>
       )}
+      {printOrder && <OrderInvoice order={printOrder} customerName={printOrder.customer_name ?? printOrder.customer_email} />}
     </div>
   );
 }
