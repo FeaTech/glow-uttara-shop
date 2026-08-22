@@ -39,9 +39,15 @@ function AuthPage() {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (tag === "signup" && !fullName.trim()) {
-      toast.error("Please enter your full name.");
-      return;
+    if (tab === "signup") {
+      if (!fullName.trim()) {
+        toast.error("Please enter your full name.");
+        return;
+      }
+      if (!/^[0-9]{10}$/.test(phone.replace(/\D/g, "").slice(-10))) {
+        toast.error("Please enter a valid 10-digit phone number.");
+        return;
+      }
     }
     setLoading(true);
     try {
