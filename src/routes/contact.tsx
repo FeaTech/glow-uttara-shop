@@ -45,10 +45,12 @@ function ContactPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     mutation.mutate({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      subject: form.subject.trim() || undefined,
-      message: form.message.trim(),
+      data: {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim() || undefined,
+        message: form.message.trim(),
+      },
     });
   };
 
