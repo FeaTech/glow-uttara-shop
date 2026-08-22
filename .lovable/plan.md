@@ -1,48 +1,39 @@
-Build FEAGlam, a Clean & Glam-styled cosmetics and beauty e-commerce platform for the Indian market, using the already-connected external Supabase project. Deliver the full shopping flow: browse, cart, checkout, auth, orders, and profile/address management.
+# Admin Orders: search + filters
 
-```text
-src/routes/
-  __root.tsx          site shell (header, footer, auth state)
-  index.tsx           hero + featured categories + trending products
-  products.tsx        /products (filterable catalog)
-  products.$slug.tsx /products/:slug (product detail, add to cart)
-  cart.tsx            /cart (review + quantity + remove)
-  checkout.tsx        /checkout (shipping + payment placeholder + place order)
-  _authenticated/
-    route.tsx         protected layout (managed by Supabase integration)
-    orders.tsx        /orders (order history)
-    order.$id.tsx     /orders/:id (order detail)
-    profile.tsx       /profile (name, phone, addresses)
-  auth.tsx            /auth (sign in / sign up)
-  reset-password.tsx  /reset-password
+Today the Orders page only has a date-range picker and pagination. Everything else (status, payment, customer) has to be found by eye. This adds a search bar and the filters that actually matter for running fulfilment.
 
-src/lib/
-  products.functions.ts   public product queries
-  cart.functions.ts       authenticated cart CRUD
-  orders.functions.ts     authenticated order creation/history
-  profile.functions.ts    authenticated profile/address CRUD
+## What you get
 
-supabase schema:
-  profiles (id fk auth.users, full_name, phone, avatar_url)
-  addresses (id, profile_id, label, line1, line2, city, state, pincode, country, is_default)
-  categories (id, slug, name, description, image_url)
-  products (id, slug, name, description, price_inr, compare_price_inr, category_id, images, stock, is_featured, attributes)
-  product_variants (id, product_id, variant_name, price_inr, stock, sku)
-  cart (id, user_id, status)
-  cart_items (id, cart_id, product_id, variant_id, quantity)
-  orders (id, user_id, status, total_inr, shipping_address, payment_status)
-  order_items (id, order_id, product_id, variant_id, quantity, price_inr)
+A filter bar above the table:
 
-All user tables use RLS. Public reads for categories/products via TO anon SELECT policies. Writes restricted to authenticated owners. Seed categories (Makeup, Skincare, Haircare, Fragrances, Beauty Accessories) and ~20 realistic Indian-market sample products.
+- **Search box** — type an order number (e.g. `A1B2C3D4` or the full ID), a customer email, a customer name, or a coupon code. Results update as you type (short debounce).
+- **Order status** — All / Pending / Processing / Shipped / Delivered / Cancelled.
+- **Payment status** — All / Pending / Paid / Failed / Refunded.
+- **Payment method** — All / Razorpay (online) / Cash on delivery.
+- **Date range** — the existing picker, kept as-is.
+- **Sort** — Newest first (default), Oldest first, Highest value, Lowest value.
+- **Clear all** — one button that resets every filter, shown only when a filter is active.
 
-Design system: update src/styles.css with Clean & Glam tokens (cream backgrounds, warm neutrals, rose-gold accent, elegant serif display font + clean sans-serif body). Generate hero/category images matching the palette.
+Supporting behaviour:
 
-Auth: use Supabase Auth email/password. Create /auth and /reset-password routes. Wire onAuthStateChange in __root.tsx to invalidate router/query cache. Header shows sign-in/sign-out state.
+- Active filters show as small removable chips so it is obvious why the list is short.
+- The header line updates to "12 of 340 orders · filtered".
+- All filters live in the page URL, so a filtered view can be bookmarked or shared with another admin, and going back keeps your place.
+- Changing any filter resets to page 1.
+- Empty state changes from "No orders yet." to "No orders match these filters." with a clear-filters link.
 
-Cart: authenticated server functions; cart created on first add. Guest cart not in scope.
+## Technical notes
 
-Checkout: simple Indian address form, COD/payment placeholder, creates order and order_items, clears cart.
+- `listOrdersSchema` in `src/lib/admin.functions.ts` gains: `q`, `paymentStatus`, `paymentMethod`, `sort`. `status` already exists but is not wired to the UI yet.
+- Search is handled server-side in `adminListOrders`:
+  - If the term looks like a UUID prefix, match on `orders.id`.
+  - Otherwise match `customer_email` and `coupon_code` with a case-insensitive `ilike`, plus a name lookup against `profiles.full_name` (trigram index already exists via `pg_trgm`) to collect matching `user_id`s and include those orders. Combined with `.or(...)`.
+- Sorting maps to `order("created_at" | "total_inr", { ascending })`.
+- Count stays `{ count: "exact" }` so pagination remains correct under filters.
+- `src/routes/admin.orders.tsx`: extend `validateSearch` with the new params (plain strings with defaults, clamped in the component), add a `FilterBar` block above the table, debounce the search input (~300ms) before pushing it into the URL, and include all params in the react-query key.
+- Realtime invalidation and the existing status/payment update dropdowns are untouched.
 
-SEO: unique head() titles/descriptions/og tags on every leaf route; sitemap.xml and robots.txt.
+## Optional (say the word)
 
-Verification: build:dev passes, sample products render on home and catalog, add-to-cart and checkout flow works end-to-end in preview.
+- Export the filtered result set to CSV.
+- Quick chips for "Needs action" (pending + paid) and "Payment failed".
