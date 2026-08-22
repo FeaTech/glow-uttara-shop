@@ -173,6 +173,7 @@ function CategoryDialog({ category, onDone }: { category: CategoryRow | null; on
         name: form.name,
         slug: form.slug || undefined,
         description: form.description || null,
+        image_url: form.image_url || null,
         sort_order: Number(form.sort_order) || 0,
       },
     });
