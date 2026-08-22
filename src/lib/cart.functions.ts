@@ -21,28 +21,6 @@ const removeCartItemSchema = z.object({
 
 type GlamSupabase = SupabaseClient<Database>;
 
-async function validateVariantSelection(supabase: GlamSupabase, productId: string, variantId?: string) {
-  if (variantId) {
-    const { data: variant, error } = await supabase
-      .from("product_variants")
-      .select("id")
-      .eq("id", variantId)
-      .eq("product_id", productId)
-      .maybeSingle();
-    if (error) throw error;
-    if (!variant) throw new Error("That variant is no longer available");
-    return;
-  }
-  const { data: variant, error } = await supabase
-    .from("product_variants")
-    .select("id")
-    .eq("product_id", productId)
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  if (variant) throw new Error("Please select a product variant");
-}
-
 async function ensureCart(supabase: GlamSupabase, userId: string) {
   const { data: existing } = await supabase
     .from("cart")
@@ -92,36 +70,12 @@ export const addToCart = createServerFn({ method: "POST" })
   .inputValidator((input) => addToCartSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    await validateVariantSelection(supabase, data.productId, data.variantId);
-    const cartId = await ensureCart(supabase, userId);
-
-    let existingQuery = supabase
-      .from("cart_items")
-      .select("id, quantity")
-      .eq("cart_id", cartId)
-      .eq("product_id", data.productId);
-    if (data.variantId) {
-      existingQuery = existingQuery.eq("variant_id", data.variantId);
-    } else {
-      existingQuery = existingQuery.is("variant_id", null);
-    }
-    const { data: existing } = await existingQuery.maybeSingle();
-
-    if (existing) {
-      const { error } = await supabase
-        .from("cart_items")
-        .update({ quantity: existing.quantity + data.quantity })
-        .eq("id", existing.id);
-      if (error) throw error;
-    } else {
-      const { error } = await supabase.from("cart_items").insert({
-        cart_id: cartId,
-        product_id: data.productId,
-        variant_id: data.variantId ?? null,
-        quantity: data.quantity,
-      });
-      if (error) throw error;
-    }
+    const { error } = await supabase.rpc("add_cart_item", {
+      p_product_id: data.productId,
+      p_variant_id: data.variantId ?? null,
+      p_quantity: data.quantity,
+    });
+    if (error) throw error;
     return { ok: true };
   });
 
@@ -143,11 +97,10 @@ export const updateCartItem = createServerFn({ method: "POST" })
       if (error) throw error;
       return { ok: true };
     }
-    const { error } = await supabase
-      .from("cart_items")
-      .update({ quantity: data.quantity })
-      .eq("id", data.itemId)
-      .eq("cart_id", cart.id);
+    const { error } = await supabase.rpc("set_cart_item_quantity", {
+      p_item_id: data.itemId,
+      p_quantity: data.quantity,
+    });
     if (error) throw error;
     return { ok: true };
   });

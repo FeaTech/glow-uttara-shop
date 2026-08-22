@@ -120,7 +120,7 @@ function NewsletterForm() {
 
   return (
     <form
-      className="mt-4 flex gap-2"
+      className="mt-4 flex flex-col gap-2 lg:flex-row"
       onSubmit={(e) => { e.preventDefault(); if (email.trim()) mutation.mutate({ data: { email: email.trim() } }); }}
     >
       <input
@@ -129,9 +129,9 @@ function NewsletterForm() {
         placeholder="Your email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+        className="min-w-0 w-full flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
       />
-      <button type="submit" className="btn-gold px-4 py-2 text-sm" disabled={mutation.isPending}>
+      <button type="submit" className="btn-gold w-full px-4 py-2 text-sm lg:w-auto" disabled={mutation.isPending}>
         {mutation.isPending ? "…" : "Join"}
       </button>
     </form>

@@ -15,14 +15,21 @@ export function useCartCount(): number {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const { data } = useQuery({
+  const cartQuery = useQuery({
     queryKey: ["cart"],
     queryFn: () => getCart({ data: undefined }),
     enabled: authed,
     retry: false,
     throwOnError: false,
-    staleTime: 30_000,
+    // A session can change while the header stays mounted. Always revalidate
+    // when it becomes enabled so an old signed-out cache is never shown.
+    staleTime: 0,
+    refetchOnMount: "always",
   });
+  useEffect(() => {
+    if (authed) void cartQuery.refetch();
+  }, [authed, cartQuery.refetch]);
+  const { data } = cartQuery;
   if (!data?.items) return 0;
   return data.items.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
 }

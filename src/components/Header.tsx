@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ShoppingBag, User, Menu, X, LogOut, Heart, Search, Package, LayoutDashboard, Gift } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +33,7 @@ export function Header() {
   const [query, setQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const cartCount = useCartCount();
 
   useEffect(() => {
@@ -82,6 +83,9 @@ export function Header() {
 
 
   async function handleSignOut() {
+    queryClient.removeQueries({ queryKey: ["cart"] });
+    queryClient.removeQueries({ queryKey: ["orders"] });
+    queryClient.removeQueries({ queryKey: ["wishlist"] });
     await supabase.auth.signOut();
     navigate({ to: "/", replace: true });
   }

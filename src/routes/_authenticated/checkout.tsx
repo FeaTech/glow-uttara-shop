@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Tag, X, Check, Loader2 } from "lucide-react";
 import { getCart } from "@/lib/cart.functions";
 import { getAddresses } from "@/lib/profile.functions";
@@ -65,6 +65,8 @@ function CheckoutPage() {
   const [couponInput, setCouponInput] = useState("");
   const [applied, setApplied] = useState<{ code: string; discount: number } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   const { data: pricing = DEFAULT_PRICING_CONFIG } = useQuery({
     queryKey: ["pricing-config"],
@@ -110,6 +112,7 @@ function CheckoutPage() {
         };
         paymentChannel: PaymentChannel;
         couponCode?: string;
+        idempotencyKey: string;
       };
     }) => {
       const { orderId } = await createOrderFn(variables);
@@ -150,12 +153,14 @@ function CheckoutPage() {
     },
 
     onSuccess: ({ paid }) => {
+      submittingRef.current = false;
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       toast.success(paid ? "Payment successful — order confirmed!" : "Order placed successfully!");
       navigate({ to: "/orders" });
     },
     onError: (err: any) => {
+      submittingRef.current = false;
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       const message: string = err?.message ?? "Could not place order. Please try again.";
@@ -177,7 +182,7 @@ function CheckoutPage() {
   }
 
   const handlePlaceOrder = () => {
-    if (orderMutation.isPending) return; // guard against duplicate submissions
+    if (submittingRef.current || orderMutation.isPending) return;
     let shippingAddress;
     if (showNewAddress) {
       if (!newAddress.line1 || !newAddress.city || !newAddress.state || !newAddress.pincode) {
@@ -190,7 +195,9 @@ function CheckoutPage() {
       if (!addr) { toast.error("Please select a shipping address"); return; }
       shippingAddress = { label: addr.label, line1: addr.line1, line2: addr.line2 ?? undefined, city: addr.city, state: addr.state, pincode: addr.pincode, country: addr.country };
     }
-    orderMutation.mutate({ data: { shippingAddress, paymentChannel, couponCode: applied?.code } });
+    submittingRef.current = true;
+    idempotencyKeyRef.current ??= crypto.randomUUID();
+    orderMutation.mutate({ data: { shippingAddress, paymentChannel, couponCode: applied?.code, idempotencyKey: idempotencyKeyRef.current } });
   };
 
   return (

@@ -20,6 +20,7 @@ const createOrderSchema = z.object({
     .enum(["cod", "upi", "credit_card", "debit_card", "netbanking", "wallet"])
     .default("cod"),
   couponCode: z.string().trim().max(40).optional(),
+  idempotencyKey: z.string().uuid(),
 });
 
 
@@ -94,10 +95,11 @@ export const createOrder = createServerFn({ method: "POST" })
       customerEmail = authUser?.user?.email ?? null;
     }
 
-    const { data: order, error: orderError } = await supabase
+    const { data: insertedOrder, error: orderError } = await supabase
       .from("orders")
       .insert({
         user_id: userId,
+        idempotency_key: data.idempotencyKey,
         subtotal_inr: subtotal,
         discount_inr: discount,
         coupon_code: couponCode,
@@ -118,8 +120,19 @@ export const createOrder = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-
-    if (orderError) throw orderError;
+    let order = insertedOrder;
+    if (orderError) {
+      if (orderError.code !== "23505") throw orderError;
+      const { data: existing, error } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("idempotency_key", data.idempotencyKey)
+        .single();
+      if (error || !existing) throw error ?? orderError;
+      return { orderId: existing.id };
+    }
+    if (!order) throw new Error("Could not create order");
 
     const orderItems = items.map((item) => ({
       order_id: order.id,
