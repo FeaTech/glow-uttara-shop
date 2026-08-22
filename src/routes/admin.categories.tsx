@@ -131,9 +131,27 @@ function CategoryDialog({ category, onDone }: { category: CategoryRow | null; on
     name: category?.name ?? "",
     slug: category?.slug ?? "",
     description: category?.description ?? "",
+    image_url: category?.image_url ?? "",
     sort_order: category?.sort_order?.toString() ?? "0",
   });
+  const [uploading, setUploading] = useState(false);
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
+
+  const onPickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    try {
+      const path = await uploadProductImage(file);
+      set({ image_url: path });
+      toast.success("Image uploaded");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const mutation = useMutation({
     mutationFn: saveFn,
