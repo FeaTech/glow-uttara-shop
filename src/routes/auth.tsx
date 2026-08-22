@@ -33,6 +33,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [referralCode, setReferralCode] = useState((ref ?? "").toUpperCase());
   const [loading, setLoading] = useState(false);
 
