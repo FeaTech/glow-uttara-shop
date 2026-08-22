@@ -21,7 +21,7 @@ type OrdersSearch = {
   status?: string;
   payment?: string;
   method?: string;
-  sort?: string;
+  sortBy?: string;
 };
 
 export const Route = createFileRoute("/admin/orders")({
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/admin/orders")({
     status: search.status ? String(search.status) : undefined,
     payment: search.payment ? String(search.payment) : undefined,
     method: search.method ? String(search.method) : undefined,
-    sort: search.sort ? String(search.sort) : undefined,
+    sort: search.sortBy ? String(search.sortBy) : undefined,
   }),
   component: AdminOrders,
 });
@@ -76,7 +76,7 @@ function AdminOrders() {
   const status = oneOf(search.status, ORDER_STATUSES);
   const payment = oneOf(search.payment, PAYMENT_STATUSES);
   const method = oneOf(search.method, PAYMENT_METHODS.map((m) => m.value));
-  const sort = oneOf(search.sort, SORTS.map((s) => s.value)) ?? "newest";
+  const sort = oneOf(search.sortBy, SORTS.map((s) => s.value)) ?? "newest";
 
   // Debounced search box: type freely, URL updates once typing settles.
   const [term, setTerm] = useState(q);
@@ -95,7 +95,7 @@ function AdminOrders() {
     navigate({ search: (prev: OrdersSearch) => ({ ...prev, ...patch }) });
   };
 
-  const filtersActive = Boolean(q || status || payment || method || (search.sort && sort !== "newest"));
+  const filtersActive = Boolean(q || status || payment || method || (search.sortBy && sort !== "newest"));
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ["admin", "orders", page, range, q, status, payment, method, sort],
@@ -156,7 +156,7 @@ function AdminOrders() {
     sort !== "newest" && {
       key: "sort",
       label: `Sort: ${SORTS.find((s) => s.value === sort)?.label}`,
-      clear: () => setFilter({ sort: undefined }),
+      clear: () => setFilter({ sortBy: undefined }),
     },
   ].filter(Boolean) as { key: string; label: string; clear: () => void }[];
 
@@ -210,7 +210,7 @@ function AdminOrders() {
             {PAYMENT_METHODS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={sort} onValueChange={(v) => setFilter({ sort: v === "newest" ? undefined : v })}>
+        <Select value={sort} onValueChange={(v) => setFilter({ sortBy: v === "newest" ? undefined : v })}>
           <SelectTrigger className="h-10 w-44" aria-label="Sort orders"><SelectValue /></SelectTrigger>
           <SelectContent>
             {SORTS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
