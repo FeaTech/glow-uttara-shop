@@ -53,6 +53,7 @@ export const submitContactForm = createServerFn({ method: "POST" })
     });
     if (dbError) {
       console.error("[contact] failed to save message:", dbError);
+      throw new Error("Could not save your message. Please try again.");
     }
 
     const { sendEmailSafe, contactFormEmail, contactAckEmail, CONTACT_INBOX } = await import("@/lib/email.server");
