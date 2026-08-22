@@ -93,7 +93,9 @@ function AdminCategories() {
                       )}
                       <div>
                     <p className="font-medium text-foreground">{c.name}</p>
-                    {c.description && <p className="max-w-md truncate text-xs text-muted-foreground">{c.description}</p>}
+                        {c.description && <p className="max-w-md truncate text-xs text-muted-foreground">{c.description}</p>}
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">/{c.slug}</TableCell>
                   <TableCell className="text-muted-foreground">{productCount(c)}</TableCell>
