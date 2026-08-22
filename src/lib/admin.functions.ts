@@ -837,3 +837,36 @@ export const adminDeleteCoupon = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+// ---------------------------------------------------------------------------
+// Contact messages
+// ---------------------------------------------------------------------------
+export const adminListContactMessages = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data, error } = await context.supabase
+      .from("contact_messages" as any)
+      .select("id, name, email, subject, message, created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as {
+      id: string;
+      name: string;
+      email: string;
+      subject: string | null;
+      message: string;
+      created_at: string;
+    }[];
+  });
+
+export const adminDeleteContactMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => idSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("contact_messages" as any).delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
