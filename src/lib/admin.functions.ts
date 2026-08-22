@@ -617,6 +617,7 @@ export const adminSaveCategory = createServerFn({ method: "POST" })
       name: data.name,
       slug: data.slug?.trim() || slugify(data.name),
       description: data.description || null,
+      image_url: data.image_url || null,
       sort_order: data.sort_order,
     };
     if (data.id) {
