@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
-import { Boxes, LayoutDashboard, Package, ShoppingCart, Ticket, Store, FolderTree, Star, Gift, Users } from "lucide-react";
+import { Boxes, LayoutDashboard, Package, ShoppingCart, Ticket, Store, FolderTree, Star, Gift, Users, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { amIAdmin } from "@/lib/roles.functions";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ const navItems = [
   { to: "/admin/categories", label: "Categories", icon: FolderTree, exact: false },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart, exact: false },
   { to: "/admin/customers", label: "Customers", icon: Users, exact: false },
+  { to: "/admin/messages", label: "Messages", icon: Mail, exact: false },
   { to: "/admin/coupons", label: "Coupons", icon: Ticket, exact: false },
   { to: "/admin/reviews", label: "Reviews", icon: Star, exact: false },
   { to: "/admin/referrals", label: "Referrals", icon: Gift, exact: false },
