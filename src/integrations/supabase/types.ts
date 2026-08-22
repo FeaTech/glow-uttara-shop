@@ -889,7 +889,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      add_cart_item: { Args: { p_product_id: string; p_quantity: number; p_variant_id: string | null }; Returns: string }
+      add_cart_item: {
+        Args: { p_product_id: string; p_quantity: number; p_variant_id: string }
+        Returns: string
+      }
       admin_dashboard_stats: { Args: never; Returns: Json }
       approve_due_referral_commissions: { Args: never; Returns: number }
       generate_referral_code: { Args: never; Returns: string }
@@ -929,7 +932,10 @@ export type Database = {
         Returns: undefined
       }
       restore_order_stock: { Args: { _order_id: string }; Returns: undefined }
-      set_cart_item_quantity: { Args: { p_item_id: string; p_quantity: number }; Returns: undefined }
+      set_cart_item_quantity: {
+        Args: { p_item_id: string; p_quantity: number }
+        Returns: undefined
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
