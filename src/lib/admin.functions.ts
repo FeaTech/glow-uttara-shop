@@ -226,7 +226,7 @@ export const adminListCustomers = createServerFn({ method: "GET" })
 
     let profileQuery = db
       .from("profiles")
-      .select("id, full_name, phone, created_at")
+      .select("id, full_name, phone, email, created_at")
       .order("created_at", { ascending: false });
     if (start) profileQuery = profileQuery.gte("created_at", start);
     if (end) profileQuery = profileQuery.lte("created_at", end);
@@ -237,15 +237,14 @@ export const adminListCustomers = createServerFn({ method: "GET" })
     const ids = profiles.map((p) => p.id);
     const { data: orders } = await db
       .from("orders")
-      .select("user_id, total_inr, status, customer_email, created_at")
+      .select("user_id, total_inr, status, created_at")
       .in("user_id", ids);
 
-    const byUser = new Map<string, { orders: number; spent: number; email: string | null; last: string | null }>();
+    const byUser = new Map<string, { orders: number; spent: number; last: string | null }>();
     for (const o of orders ?? []) {
-      const entry = byUser.get(o.user_id) ?? { orders: 0, spent: 0, email: null, last: null };
+      const entry = byUser.get(o.user_id) ?? { orders: 0, spent: 0, last: null };
       entry.orders += 1;
       if (o.status !== "cancelled") entry.spent += Number(o.total_inr ?? 0);
-      entry.email = entry.email ?? o.customer_email ?? null;
       if (!entry.last || o.created_at > entry.last) entry.last = o.created_at;
       byUser.set(o.user_id, entry);
     }
@@ -256,8 +255,8 @@ export const adminListCustomers = createServerFn({ method: "GET" })
         id: p.id,
         full_name: p.full_name,
         phone: p.phone,
+        email: p.email,
         created_at: p.created_at,
-        email: agg?.email ?? null,
         orderCount: agg?.orders ?? 0,
         totalSpent: agg?.spent ?? 0,
         lastOrderAt: agg?.last ?? null,
