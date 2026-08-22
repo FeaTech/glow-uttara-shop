@@ -318,3 +318,42 @@ export const abandonUnpaidOrder = createServerFn({ method: "POST" })
 
     return { ok: true as const, restored: items.length > 0 };
   });
+
+const cancelOrderSchema = z.object({ orderId: z.string().uuid() });
+
+/** A customer may cancel only their own order while it is still `pending`. */
+export const cancelOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => cancelOrderSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: order, error } = await supabase
+      .from("orders")
+      .select("id, status, payment_status, coupon_code")
+      .eq("id", data.orderId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!order) throw new Error("Order not found");
+    if (order.status === "cancelled") throw new Error("This order is already cancelled");
+    if (order.status !== "pending") {
+      throw new Error("This order has already been processed and can no longer be cancelled");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Put the stock back and release any coupon hold, then mark it cancelled.
+    await supabaseAdmin.rpc("restore_order_stock", { _order_id: order.id });
+    if (order.coupon_code) {
+      await supabaseAdmin.rpc("release_coupon_usage", { _order_id: order.id });
+    }
+    const { error: updateError } = await supabaseAdmin
+      .from("orders")
+      .update({ status: "cancelled" })
+      .eq("id", order.id)
+      .eq("user_id", userId);
+    if (updateError) throw updateError;
+
+    return { ok: true as const };
+  });
