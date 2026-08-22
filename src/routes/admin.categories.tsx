@@ -87,6 +87,11 @@ function AdminCategories() {
               categories.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
+                    <div className="flex items-center gap-3">
+                      {c.image_url && (
+                        <ProductImage src={c.image_url} alt={c.name} className="h-10 w-10 rounded object-cover" />
+                      )}
+                      <div>
                     <p className="font-medium text-foreground">{c.name}</p>
                     {c.description && <p className="max-w-md truncate text-xs text-muted-foreground">{c.description}</p>}
                   </TableCell>
