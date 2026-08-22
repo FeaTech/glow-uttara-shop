@@ -226,7 +226,7 @@ export const adminListCustomers = createServerFn({ method: "GET" })
 
     let profileQuery = db
       .from("profiles")
-      .select("id, full_name, phone, created_at")
+      .select("id, full_name, phone, email, created_at")
       .order("created_at", { ascending: false });
     if (start) profileQuery = profileQuery.gte("created_at", start);
     if (end) profileQuery = profileQuery.lte("created_at", end);
@@ -237,15 +237,14 @@ export const adminListCustomers = createServerFn({ method: "GET" })
     const ids = profiles.map((p) => p.id);
     const { data: orders } = await db
       .from("orders")
-      .select("user_id, total_inr, status, customer_email, created_at")
+      .select("user_id, total_inr, status, created_at")
       .in("user_id", ids);
 
-    const byUser = new Map<string, { orders: number; spent: number; email: string | null; last: string | null }>();
+    const byUser = new Map<string, { orders: number; spent: number; last: string | null }>();
     for (const o of orders ?? []) {
-      const entry = byUser.get(o.user_id) ?? { orders: 0, spent: 0, email: null, last: null };
+      const entry = byUser.get(o.user_id) ?? { orders: 0, spent: 0, last: null };
       entry.orders += 1;
       if (o.status !== "cancelled") entry.spent += Number(o.total_inr ?? 0);
-      entry.email = entry.email ?? o.customer_email ?? null;
       if (!entry.last || o.created_at > entry.last) entry.last = o.created_at;
       byUser.set(o.user_id, entry);
     }
@@ -256,8 +255,8 @@ export const adminListCustomers = createServerFn({ method: "GET" })
         id: p.id,
         full_name: p.full_name,
         phone: p.phone,
+        email: p.email,
         created_at: p.created_at,
-        email: agg?.email ?? null,
         orderCount: agg?.orders ?? 0,
         totalSpent: agg?.spent ?? 0,
         lastOrderAt: agg?.last ?? null,
@@ -700,13 +699,13 @@ export const adminListOrders = createServerFn({ method: "GET" })
       } else {
         const like = `%${term}%`;
         const filters = [`customer_email.ilike.${like}`, `coupon_code.ilike.${like}`];
-        // Customer names live on profiles (no FK to orders), so resolve ids first.
-        const { data: nameMatches } = await db
+        // Customer names and emails live on profiles (no FK to orders), so resolve ids first.
+        const { data: profileMatches } = await db
           .from("profiles")
           .select("id")
-          .ilike("full_name", like)
+          .or(`full_name.ilike.${like},email.ilike.${like}`)
           .limit(200);
-        const ids = (nameMatches ?? []).map((p) => p.id);
+        const ids = (profileMatches ?? []).map((p) => p.id);
         if (ids.length) filters.push(`user_id.in.(${ids.join(",")})`);
         query = query.or(filters.join(","));
       }
@@ -723,35 +722,14 @@ export const adminListOrders = createServerFn({ method: "GET" })
     const userIds = [...new Set(orders.map((o) => o.user_id))];
     const { data: profiles } = await db
       .from("profiles")
-      .select("id, full_name, phone")
+      .select("id, full_name, phone, email")
       .in("id", userIds);
     const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
-
-    // Orders placed before customer_email existed have no address on the row.
-    // Resolve those from the registered account and backfill once.
-    const emailByUser = new Map<string, string>();
-    for (const o of orders) if (o.customer_email) emailByUser.set(o.user_id, o.customer_email);
-    const missing = userIds.filter((id) => !emailByUser.has(id));
-    if (missing.length) {
-      try {
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        for (const id of missing) {
-          const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(id);
-          const email = authUser?.user?.email;
-          if (email) {
-            emailByUser.set(id, email);
-            await supabaseAdmin.from("orders").update({ customer_email: email }).eq("user_id", id).is("customer_email", null);
-          }
-        }
-      } catch (err) {
-        console.error("[admin] could not resolve customer emails", err);
-      }
-    }
 
     return {
       orders: orders.map((o) => ({
         ...o,
-        customer_email: o.customer_email ?? emailByUser.get(o.user_id) ?? null,
+        customer_email: o.customer_email ?? byId.get(o.user_id)?.email ?? null,
         profiles: byId.get(o.user_id) ?? null,
       })),
       total: count ?? orders.length,

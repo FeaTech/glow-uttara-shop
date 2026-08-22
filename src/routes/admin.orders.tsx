@@ -290,10 +290,10 @@ function AdminOrders() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       <span className="block">
-                        {o.profiles?.full_name || o.customer_email || `Customer ${o.user_id.slice(0, 6).toUpperCase()}`}
+                        {o.profiles?.full_name || o.profiles?.email || o.customer_email || `Customer ${o.user_id.slice(0, 6).toUpperCase()}`}
                       </span>
-                      {o.profiles?.full_name && o.customer_email && (
-                        <span className="block text-xs">{o.customer_email}</span>
+                      {o.profiles?.email && (
+                        <span className="block text-xs">{o.profiles.email}</span>
                       )}
                       {o.profiles?.phone && <span className="block text-xs">{o.profiles.phone}</span>}
                     </TableCell>
