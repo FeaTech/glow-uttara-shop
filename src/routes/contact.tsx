@@ -43,6 +43,7 @@ function ContactPage() {
   });
 
   const submit = (e: React.FormEvent) => {
+    console.log("[contact] submit handler called", { submitFn: typeof submitFn, mutation: typeof mutation.mutate });
     e.preventDefault();
     mutation.mutate({
       data: {
@@ -52,6 +53,7 @@ function ContactPage() {
         message: form.message.trim(),
       },
     });
+    console.log("[contact] mutation.mutate called");
   };
 
 
