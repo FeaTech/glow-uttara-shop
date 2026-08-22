@@ -186,6 +186,27 @@ function CategoryDialog({ category, onDone }: { category: CategoryRow | null; on
         <div><Label>Name</Label><Input value={form.name} onChange={(e) => set({ name: e.target.value })} required /></div>
         <div><Label>Slug (optional)</Label><Input value={form.slug} onChange={(e) => set({ slug: e.target.value })} placeholder="auto-generated" /></div>
         <div><Label>Description</Label><Textarea rows={2} value={form.description} onChange={(e) => set({ description: e.target.value })} /></div>
+        <div className="space-y-2">
+          <Label>Image</Label>
+          <div className="flex items-center gap-3">
+            {form.image_url ? (
+              <ProductImage src={form.image_url} alt="Category" className="h-16 w-16 rounded-md object-cover" />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-md border border-dashed text-muted-foreground">
+                <ImageIcon className="h-5 w-5" />
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <Input type="file" accept="image/*" onChange={onPickImage} disabled={uploading} />
+              {form.image_url && (
+                <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={() => set({ image_url: "" })}>
+                  Remove image
+                </Button>
+              )}
+            </div>
+          </div>
+          {uploading && <p className="text-xs text-muted-foreground">Uploading…</p>}
+        </div>
         <div><Label>Sort order</Label><Input type="number" value={form.sort_order} onChange={(e) => set({ sort_order: e.target.value })} /></div>
         <DialogFooter>
           <Button type="submit" className="btn-gold" disabled={mutation.isPending}>
