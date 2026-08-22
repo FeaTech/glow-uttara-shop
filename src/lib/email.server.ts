@@ -255,19 +255,12 @@ export function welcomeEmail(args: { name?: string | null }) {
   const body = `
     ${h1(`Welcome to FEA Glam${args.name ? `, ${escapeHtml(args.name)}` : ""}`)}
     ${p("Your account is confirmed and ready. Explore curated makeup, skincare, haircare, fragrances and beauty accessories — all handpicked, all authentic.")}
-    <table role="presentation" width="100%" style="border:1px dashed ${GOLD};border-radius:10px;background:${CREAM};margin:6px 0 20px;">
-      <tr><td align="center" style="padding:18px;font-family:Arial,Helvetica,sans-serif;">
-        <div style="font-size:11px;letter-spacing:2px;color:${MUTED};text-transform:uppercase;">Welcome gift</div>
-        <div style="font-size:24px;letter-spacing:4px;color:${GOLD};font-weight:700;margin:8px 0 4px;">WELCOME10</div>
-        <div style="font-size:12px;color:${MUTED};">10% off your first order</div>
-      </td></tr>
-    </table>
     <table role="presentation" width="100%" style="border-collapse:collapse;">${perks}</table>
     ${button(`${SITE_URL}/products`, "Start shopping")}
   `;
   return {
     subject: "Welcome to FEA Glam — your account is ready",
-    html: layout("Welcome to FEA Glam", body, "Your FEA Glam account is confirmed. Enjoy 10% off with WELCOME10."),
+    html: layout("Welcome to FEA Glam", body, "Your FEA Glam account is confirmed. Start exploring our curated beauty edit."),
   };
 }
 

@@ -83,7 +83,7 @@ export function Footer() {
               Subscribe for launches, beauty tips, and exclusive offers.
             </p>
             <NewsletterForm />
-            <p className="mt-3 text-xs text-muted-foreground">Try code <span className="font-semibold text-primary">WELCOME10</span> at checkout.</p>
+            
           </div>
         </div>
 
