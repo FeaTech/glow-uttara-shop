@@ -654,7 +654,18 @@ const listOrdersSchema = z.object({
   range: z.string().optional(),
 });
 
-const UUID_PREFIX = /^[0-9a-f-]{4,36}$/i;
+/**
+ * Order numbers in the UI are the first 8 characters of the order UUID.
+ * PostgREST cannot cast uuid columns inside filters, so a hex prefix is turned
+ * into an inclusive uuid range instead of a LIKE.
+ */
+function uuidPrefixRange(term: string): { start: string; end: string } | null {
+  const hex = term.replace(/-/g, "").toLowerCase();
+  if (!/^[0-9a-f]{4,32}$/.test(hex)) return null;
+  const fmt = (s: string) => `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20)}`;
+  return { start: fmt(hex.padEnd(32, "0")), end: fmt(hex.padEnd(32, "f")) };
+}
+
 
 export const adminListOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
