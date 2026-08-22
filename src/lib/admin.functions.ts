@@ -850,7 +850,7 @@ export const adminListContactMessages = createServerFn({ method: "GET" })
       .select("id, name, email, subject, message, created_at")
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return (data ?? []) as {
+    return ((data ?? []) as unknown) as {
       id: string;
       name: string;
       email: string;
