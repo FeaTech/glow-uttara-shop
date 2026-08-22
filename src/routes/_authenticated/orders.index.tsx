@@ -95,6 +95,17 @@ function OrdersPage() {
                         Payment: {order.payment_status}
                       </span>
                       <div className="flex items-center gap-1">
+                        {order.status === "pending" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => cancelMutation.mutate({ data: { orderId: order.id } })}
+                            disabled={cancelMutation.isPending}
+                          >
+                            Cancel
+                          </Button>
+                        )}
                         <Button asChild variant="outline" size="sm">
                           <Link to="/orders/$orderId" params={{ orderId: order.id }}>View details</Link>
                         </Button>
