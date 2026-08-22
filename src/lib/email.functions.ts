@@ -45,7 +45,7 @@ export const submitContactForm = createServerFn({ method: "POST" })
   .inputValidator((input) => contactSchema.parse(input))
   .handler(async ({ data }) => {
     const supabase = getPublicClient();
-    const { error: dbError } = await supabase.from("contact_messages" as any).insert({
+    const { error: dbError } = await supabase.from("contact_messages").insert({
       name: data.name,
       email: data.email,
       subject: data.subject ?? null,
