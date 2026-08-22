@@ -253,7 +253,19 @@ function AdminOrders() {
             {isLoading ? (
               <TableRow><TableCell colSpan={6} className="py-10 text-center text-muted-foreground">Loading…</TableCell></TableRow>
             ) : !orders?.length ? (
-              <TableRow><TableCell colSpan={6} className="py-10 text-center text-muted-foreground">No orders yet.</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                  {filtersActive ? (
+                    <>
+                      No orders match these filters.{" "}
+                      <button onClick={clearAll} className="text-primary underline underline-offset-4">Clear filters</button>
+                    </>
+                  ) : (
+                    "No orders yet."
+                  )}
+                </TableCell>
+              </TableRow>
+
             ) : (
               orders.map((o: any) => (
                 <Fragment key={o.id}>
