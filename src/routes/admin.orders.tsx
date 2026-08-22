@@ -1,28 +1,54 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import { Search, X } from "lucide-react";
 import { adminListOrders, adminUpdateOrder } from "@/lib/admin.functions";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatDate, formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RangeFilter } from "@/components/admin/RangeFilter";
 import { normalizeRange, rangeLabel, type RangeValue } from "@/lib/date-range";
 
+type OrdersSearch = {
+  range?: RangeValue;
+  q?: string;
+  status?: string;
+  payment?: string;
+  method?: string;
+  sort?: string;
+};
+
 export const Route = createFileRoute("/admin/orders")({
   head: () => ({ meta: [{ title: "Orders — Admin — FEA Glam" }] }),
-  validateSearch: (search: Record<string, unknown>): { range?: RangeValue } => ({
+  validateSearch: (search: Record<string, unknown>): OrdersSearch => ({
     range: search.range ? normalizeRange(search.range as string) : undefined,
+    q: search.q ? String(search.q).slice(0, 120) : undefined,
+    status: search.status ? String(search.status) : undefined,
+    payment: search.payment ? String(search.payment) : undefined,
+    method: search.method ? String(search.method) : undefined,
+    sort: search.sort ? String(search.sort) : undefined,
   }),
   component: AdminOrders,
 });
 
 const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
 const PAYMENT_STATUSES = ["pending", "paid", "failed", "refunded"] as const;
+const PAYMENT_METHODS = [
+  { value: "online", label: "Online (Razorpay)" },
+  { value: "cod", label: "Cash on delivery" },
+] as const;
+const SORTS = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "highest", label: "Highest value" },
+  { value: "lowest", label: "Lowest value" },
+] as const;
 
 const STATUS_DOT: Record<string, string> = {
   pending: "bg-amber-500",
@@ -33,15 +59,59 @@ const STATUS_DOT: Record<string, string> = {
 };
 
 const PAGE_SIZE = 25;
+const ALL = "all";
+
+function oneOf<T extends string>(value: string | undefined, allowed: readonly T[]): T | undefined {
+  return value && (allowed as readonly string[]).includes(value) ? (value as T) : undefined;
+}
 
 function AdminOrders() {
   const queryClient = useQueryClient();
-  const range = normalizeRange(Route.useSearch().range);
+  const search = Route.useSearch();
+  const range = normalizeRange(search.range);
   const navigate = useNavigate({ from: "/admin/orders" });
   const [page, setPage] = useState(0);
+
+  const q = search.q?.trim() || "";
+  const status = oneOf(search.status, ORDER_STATUSES);
+  const payment = oneOf(search.payment, PAYMENT_STATUSES);
+  const method = oneOf(search.method, PAYMENT_METHODS.map((m) => m.value));
+  const sort = oneOf(search.sort, SORTS.map((s) => s.value)) ?? "newest";
+
+  // Debounced search box: type freely, URL updates once typing settles.
+  const [term, setTerm] = useState(q);
+  useEffect(() => setTerm(q), [q]);
+  useEffect(() => {
+    if (term.trim() === q) return;
+    const t = setTimeout(() => {
+      setPage(0);
+      navigate({ search: (prev: OrdersSearch) => ({ ...prev, q: term.trim() || undefined }) });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [term, q, navigate]);
+
+  const setFilter = (patch: Partial<OrdersSearch>) => {
+    setPage(0);
+    navigate({ search: (prev: OrdersSearch) => ({ ...prev, ...patch }) });
+  };
+
+  const filtersActive = Boolean(q || status || payment || method || (search.sort && sort !== "newest"));
+
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["admin", "orders", page, range],
-    queryFn: () => adminListOrders({ data: { page, pageSize: PAGE_SIZE, range } }),
+    queryKey: ["admin", "orders", page, range, q, status, payment, method, sort],
+    queryFn: () =>
+      adminListOrders({
+        data: {
+          page,
+          pageSize: PAGE_SIZE,
+          range,
+          q: q || undefined,
+          status,
+          paymentStatus: payment,
+          paymentMethod: method,
+          sort,
+        },
+      }),
     placeholderData: keepPreviousData,
     retry: false,
   });
@@ -68,23 +138,104 @@ function AdminOrders() {
     onError: (err: any) => toast.error(err?.message ?? "Update failed"),
   });
 
+  const clearAll = () => {
+    setPage(0);
+    setTerm("");
+    navigate({ search: { range } });
+  };
+
+  const chips = [
+    q && { key: "q", label: `Search: ${q}`, clear: () => setFilter({ q: undefined }) },
+    status && { key: "status", label: `Status: ${status}`, clear: () => setFilter({ status: undefined }) },
+    payment && { key: "payment", label: `Payment: ${payment}`, clear: () => setFilter({ payment: undefined }) },
+    method && {
+      key: "method",
+      label: `Method: ${PAYMENT_METHODS.find((m) => m.value === method)?.label}`,
+      clear: () => setFilter({ method: undefined }),
+    },
+    sort !== "newest" && {
+      key: "sort",
+      label: `Sort: ${SORTS.find((s) => s.value === sort)?.label}`,
+      clear: () => setFilter({ sort: undefined }),
+    },
+  ].filter(Boolean) as { key: string; label: string; clear: () => void }[];
+
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl font-light text-foreground">Orders</h1>
           <p className="mt-1 text-muted-foreground">
-            {total} orders · {rangeLabel(range)} · update fulfilment &amp; payment status
+            {total} {filtersActive ? "matching orders" : "orders"} · {rangeLabel(range)} · update fulfilment &amp; payment status
           </p>
         </div>
         <RangeFilter
           value={range}
           onChange={(v) => {
             setPage(0);
-            navigate({ search: { range: v } });
+            navigate({ search: (prev: OrdersSearch) => ({ ...prev, range: v }) });
           }}
         />
       </div>
+
+      <div className="card-luxe mt-6 flex flex-wrap items-center gap-3 p-4">
+        <div className="relative min-w-[240px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            placeholder="Search order no., customer, email or coupon"
+            aria-label="Search orders"
+            className="pl-9"
+          />
+        </div>
+        <Select value={status ?? ALL} onValueChange={(v) => setFilter({ status: v === ALL ? undefined : v })}>
+          <SelectTrigger className="h-10 w-40 capitalize" aria-label="Filter by order status"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>All statuses</SelectItem>
+            {ORDER_STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={payment ?? ALL} onValueChange={(v) => setFilter({ payment: v === ALL ? undefined : v })}>
+          <SelectTrigger className="h-10 w-40 capitalize" aria-label="Filter by payment status"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>All payments</SelectItem>
+            {PAYMENT_STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={method ?? ALL} onValueChange={(v) => setFilter({ method: v === ALL ? undefined : v })}>
+          <SelectTrigger className="h-10 w-44" aria-label="Filter by payment method"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>All methods</SelectItem>
+            {PAYMENT_METHODS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={sort} onValueChange={(v) => setFilter({ sort: v === "newest" ? undefined : v })}>
+          <SelectTrigger className="h-10 w-44" aria-label="Sort orders"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {SORTS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        {filtersActive && (
+          <Button variant="ghost" size="sm" onClick={clearAll}>Clear all</Button>
+        )}
+      </div>
+
+      {chips.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {chips.map((c) => (
+            <button
+              key={c.key}
+              onClick={c.clear}
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs capitalize text-muted-foreground transition hover:text-foreground"
+            >
+              {c.label}
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+        </div>
+      )}
+
 
       <div className="card-luxe mt-8 overflow-x-auto">
         <Table>
