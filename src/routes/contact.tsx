@@ -22,9 +22,8 @@ export const Route = createFileRoute("/contact")({
 });
 
 const details = [
-  { icon: Mail, label: "Email", value: "care@feaglam.com" },
+  { icon: Mail, label: "Email", value: "feaglam@gmail.com" },
   { icon: Phone, label: "Phone", value: "+91 90000 00000" },
-  { icon: MapPin, label: "Address", value: "Bandra Kurla Complex, Mumbai, India" },
   { icon: Clock, label: "Hours", value: "Mon–Sat, 10am – 7pm IST" },
 ];
 
@@ -56,14 +55,15 @@ function ContactPage() {
     console.log("[contact] mutation.mutate called");
   };
 
-
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-gradient-to-b from-secondary/50 to-background">
         <div className="container-luxe py-16 text-center">
           <div className="rule-gold mx-auto" />
           <h1 className="mt-4 font-serif text-4xl font-light text-foreground md:text-5xl">We'd love to help</h1>
-          <p className="mt-3 text-muted-foreground">Questions about an order or a product? Reach out — we reply fast.</p>
+          <p className="mt-3 text-muted-foreground">
+            Questions about an order or a product? Reach out — we reply fast.
+          </p>
         </div>
       </div>
 
@@ -72,7 +72,9 @@ function ContactPage() {
           <div className="space-y-4">
             {details.map(({ icon: Icon, label, value }) => (
               <div key={label} className="card-luxe flex items-center gap-4 p-5">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"><Icon className="h-5 w-5" /></span>
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" />
+                </span>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
                   <p className="font-medium text-foreground">{value}</p>
@@ -86,16 +88,54 @@ function ContactPage() {
           <form onSubmit={submit} className="card-luxe space-y-4 p-6">
             <h2 className="font-serif text-2xl font-light text-foreground">Send us a message</h2>
             {sent ? (
-              <p className="rounded-md bg-primary/10 p-4 text-sm text-primary">Your message has been received. We'll be in touch soon!</p>
+              <p className="rounded-md bg-primary/10 p-4 text-sm text-primary">
+                Your message has been received. We'll be in touch soon!
+              </p>
             ) : (
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div><Label>Name</Label><Input required className="mt-1.5" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></div>
-                  <div><Label>Email</Label><Input type="email" required className="mt-1.5" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} /></div>
+                  <div>
+                    <Label>Name</Label>
+                    <Input
+                      required
+                      className="mt-1.5"
+                      value={form.name}
+                      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      required
+                      className="mt-1.5"
+                      value={form.email}
+                      onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                    />
+                  </div>
                 </div>
-                <div><Label>Subject</Label><Input className="mt-1.5" value={form.subject} onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))} /></div>
-                <div><Label>Message</Label><Textarea required rows={5} minLength={5} className="mt-1.5" value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} /></div>
-                <Button type="submit" className="btn-gold w-full" disabled={mutation.isPending}>{mutation.isPending ? "Sending…" : "Send message"}</Button>
+                <div>
+                  <Label>Subject</Label>
+                  <Input
+                    className="mt-1.5"
+                    value={form.subject}
+                    onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>Message</Label>
+                  <Textarea
+                    required
+                    rows={5}
+                    minLength={5}
+                    className="mt-1.5"
+                    value={form.message}
+                    onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                  />
+                </div>
+                <Button type="submit" className="btn-gold w-full" disabled={mutation.isPending}>
+                  {mutation.isPending ? "Sending…" : "Send message"}
+                </Button>
               </>
             )}
           </form>
