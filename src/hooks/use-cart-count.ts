@@ -20,13 +20,10 @@ export function useCartCount(): number {
       if (event === "SIGNED_OUT") {
         // Drop the previous account's cart entirely — never show a stale badge.
         queryClient.removeQueries({ queryKey: ["cart"] });
-      } else if (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "INITIAL_SESSION") {
-        if (signedIn) {
-          // The bearer token is now attached; refetch the server-side cart so the
-          // badge reflects what is actually stored in Supabase.
-          queryClient.removeQueries({ queryKey: ["cart"] });
-          void queryClient.refetchQueries({ queryKey: ["cart"] });
-        }
+      } else if (signedIn) {
+        // The bearer token is now attached; refetch the server-side cart so the
+        // badge reflects what is actually stored in Supabase.
+        void queryClient.invalidateQueries({ queryKey: ["cart"] });
       }
     });
     return () => {
