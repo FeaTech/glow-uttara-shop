@@ -693,20 +693,25 @@ export const adminListOrders = createServerFn({ method: "GET" })
 
     const term = data.q?.trim();
     if (term) {
-      const like = `%${term}%`;
-      const filters = [`customer_email.ilike.${like}`, `coupon_code.ilike.${like}`];
-      // Order numbers are shown as the first 8 characters of the UUID.
-      if (UUID_PREFIX.test(term)) filters.push(`id::text.ilike.${term.toLowerCase()}%`);
-      // Customer names live on profiles (no FK to orders), so resolve ids first.
-      const { data: nameMatches } = await db
-        .from("profiles")
-        .select("id")
-        .ilike("full_name", like)
-        .limit(200);
-      const ids = (nameMatches ?? []).map((p) => p.id);
-      if (ids.length) filters.push(`user_id.in.(${ids.join(",")})`);
-      query = query.or(filters.join(","));
+      const idRange = uuidPrefixRange(term);
+      if (idRange) {
+        // Looks like an order number — match on the id range directly.
+        query = query.gte("id", idRange.start).lte("id", idRange.end);
+      } else {
+        const like = `%${term}%`;
+        const filters = [`customer_email.ilike.${like}`, `coupon_code.ilike.${like}`];
+        // Customer names live on profiles (no FK to orders), so resolve ids first.
+        const { data: nameMatches } = await db
+          .from("profiles")
+          .select("id")
+          .ilike("full_name", like)
+          .limit(200);
+        const ids = (nameMatches ?? []).map((p) => p.id);
+        if (ids.length) filters.push(`user_id.in.(${ids.join(",")})`);
+        query = query.or(filters.join(","));
+      }
     }
+
 
     const { data: orders, error, count } = await query;
     if (error) throw error;
