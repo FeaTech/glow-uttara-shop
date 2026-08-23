@@ -106,7 +106,7 @@ function OrderDetailPage() {
           </div>
         </div>
 
-        <OrderInvoice order={order as any} />
+        <OrderInvoice order={order as any} customerName={order.profile_full_name ?? order.customer_email} />
 
 
         {/* Timeline */}
