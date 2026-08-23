@@ -220,14 +220,17 @@ export const getOrderById = createServerFn({ method: "GET" })
   .inputValidator((input) => getOrderSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: order, error } = await supabase
-      .from("orders")
-      .select("*, order_items(*, products(slug, images)), profiles(full_name)")
-      .eq("id", data.orderId)
-      .eq("user_id", userId)
-      .maybeSingle();
+    const [{ data: order, error }, { data: profile }] = await Promise.all([
+      supabase
+        .from("orders")
+        .select("*, order_items(*, products(slug, images))")
+        .eq("id", data.orderId)
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
+    ]);
     if (error) throw error;
-    return order;
+    return order ? { ...order, profile_full_name: profile?.full_name ?? null } : null;
   });
 
 const abandonOrderSchema = z.object({ orderId: z.string().uuid() });
