@@ -222,7 +222,7 @@ export const getOrderById = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data: order, error } = await supabase
       .from("orders")
-      .select("*, order_items(*, products(slug, images))")
+      .select("*, order_items(*, products(slug, images)), profiles(full_name)")
       .eq("id", data.orderId)
       .eq("user_id", userId)
       .maybeSingle();
