@@ -127,9 +127,9 @@ function AdminOrders() {
   useEffect(() => {
     if (!printOrder) return;
     const id = window.setTimeout(() => {
-      window.print();
+      printInvoice();
       setPrintOrder(null);
-    }, 60);
+    }, 120);
     return () => window.clearTimeout(id);
   }, [printOrder]);
 
