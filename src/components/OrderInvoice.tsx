@@ -31,12 +31,17 @@ export interface InvoiceOrder {
  * styles.css reveal only this node so the browser prints a clean document.
  */
 export function OrderInvoice({ order, customerName }: { order: InvoiceOrder; customerName?: string | null }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const address = order.shipping_address ?? {};
   const subtotal =
     order.subtotal_inr ??
     order.order_items.reduce((sum, i) => sum + i.price_inr * i.quantity, 0);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div id="print-invoice" aria-hidden="true">
       <div className="invoice-sheet">
         <header className="invoice-head">
