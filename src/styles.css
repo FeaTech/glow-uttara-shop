@@ -403,25 +403,29 @@
 }
 
 @media print {
-  body * {
-    visibility: hidden !important;
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
   }
-  #print-invoice,
-  #print-invoice * {
-    visibility: visible !important;
+  body > *:not(#print-invoice) {
+    display: none !important;
   }
   #print-invoice {
-    display: block;
-    position: absolute;
-    inset: 0;
+    display: block !important;
+    position: static !important;
     width: 100%;
     background: #fff;
     color: #111;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   @page {
     margin: 14mm;
   }
 }
+
 
 .invoice-sheet {
   font-family: ui-sans-serif, system-ui, sans-serif;
