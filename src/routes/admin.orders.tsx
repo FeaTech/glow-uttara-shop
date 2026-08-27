@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { RangeFilter } from "@/components/admin/RangeFilter";
 import { normalizeRange, rangeLabel, type RangeValue } from "@/lib/date-range";
 import { OrderInvoice } from "@/components/OrderInvoice";
+import { printInvoice } from "@/lib/print-invoice";
 
 type OrdersSearch = {
   range?: RangeValue;

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatDateTime, formatINR, productImage } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
 import { OrderInvoice } from "@/components/OrderInvoice";
+import { printInvoice } from "@/lib/print-invoice";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -100,7 +101,7 @@ function OrderDetailPage() {
             <Button variant="outline" onClick={() => reorderMutation.mutate({ data: { orderId: order.id } })} disabled={reorderMutation.isPending}>
               <RotateCcw className="h-4 w-4" /> Reorder
             </Button>
-            <Button variant="outline" onClick={() => window.print()}>
+            <Button variant="outline" onClick={() => printInvoice()}>
               <Printer className="h-4 w-4" /> Print invoice
             </Button>
           </div>
