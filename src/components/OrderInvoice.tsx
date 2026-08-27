@@ -145,6 +145,7 @@ export function OrderInvoice({ order, customerName }: { order: InvoiceOrder; cus
           <p className="invoice-muted">This is a computer-generated invoice and does not require a signature.</p>
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
