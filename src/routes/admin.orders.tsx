@@ -73,6 +73,7 @@ function AdminOrders() {
   const range = normalizeRange(search.range);
   const navigate = useNavigate({ from: "/admin/orders" });
   const [page, setPage] = useState(0);
+  const listOrdersFn = useServerFn(adminListOrders);
 
   const q = search.q?.trim() || "";
   const status = oneOf(search.status, ORDER_STATUSES);
@@ -99,10 +100,10 @@ function AdminOrders() {
 
   const filtersActive = Boolean(q || status || payment || method || (search.sortBy && sort !== "newest"));
 
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, error, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["admin", "orders", page, range, q, status, payment, method, sort],
     queryFn: () =>
-      adminListOrders({
+      listOrdersFn({
         data: {
           page,
           pageSize: PAGE_SIZE,
@@ -115,7 +116,7 @@ function AdminOrders() {
         },
       }),
     placeholderData: keepPreviousData,
-    retry: false,
+    retry: 1,
   });
   const orders = data?.orders;
   const total = data?.total ?? 0;
@@ -251,6 +252,13 @@ function AdminOrders() {
 
 
       <div className="card-luxe mt-8 overflow-x-auto">
+        {error ? (
+          <div className="flex min-h-48 flex-col items-center justify-center gap-3 p-6 text-center">
+            <p className="font-medium text-foreground">Orders couldn’t be loaded</p>
+            <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
+            <Button variant="outline" onClick={() => void refetch()}>Try again</Button>
+          </div>
+        ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -371,6 +379,7 @@ function AdminOrders() {
             )}
           </TableBody>
         </Table>
+        )}
       </div>
 
       {pageCount > 1 && (

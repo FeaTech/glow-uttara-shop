@@ -1,37 +1,18 @@
-import { createFileRoute, Link, Outlet, redirect, useRouterState, useRouter, isRedirect } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Boxes, LayoutDashboard, Package, ShoppingCart, Ticket, Store, FolderTree, Star, Gift, Users, Mail } from "lucide-react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { amIAdmin } from "@/lib/roles.functions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
-  beforeLoad: async ({ location }) => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) {
-      throw redirect({ to: "/auth", search: { redirect: location.href } });
-    }
-    // Network hiccups here must not blank the admin shell — retry once, then
-    // surface a recoverable error instead of an unhandled rejection.
-    let res: { isAdmin: boolean };
-    try {
-      res = await amIAdmin({ data: undefined });
-    } catch {
-      res = await amIAdmin({ data: undefined });
-    }
-    if (!res.isAdmin) {
-      throw redirect({ to: "/" });
-    }
-    return { user: data.user };
-  },
   errorComponent: AdminError,
+  pendingComponent: AdminLoading,
   component: AdminLayout,
 });
 
 function AdminError({ error }: { error: Error }) {
-  const router = useRouter();
-  if (isRedirect(error)) throw error;
   return (
     <div className="container-luxe flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
       <h1 className="font-serif text-2xl font-light">Couldn’t load the admin area</h1>
@@ -40,11 +21,14 @@ function AdminError({ error }: { error: Error }) {
           ? "The connection dropped while loading this page."
           : error?.message || "Something went wrong."}
       </p>
-      <Button onClick={() => router.invalidate()}>Try again</Button>
+      <Button onClick={() => window.location.reload()}>Try again</Button>
     </div>
   );
 }
 
+function AdminLoading() {
+  return <div className="container-luxe flex min-h-[60vh] items-center justify-center text-sm text-muted-foreground">Loading admin area…</div>;
+}
 
 const navItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -61,6 +45,61 @@ const navItems = [
 
 function AdminLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const [access, setAccess] = useState<"checking" | "allowed" | "denied" | "error">("checking");
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkAccess() {
+      setAccess("checking");
+      try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        const user = sessionData.session?.user;
+        if (!user) {
+          navigate({ to: "/auth", search: { redirect: pathname }, replace: true });
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        if (error) throw error;
+        if (active) setAccess(data ? "allowed" : "denied");
+      } catch (error) {
+        console.error("Unable to verify admin access", error);
+        if (active) setAccess("error");
+      }
+    }
+
+    void checkAccess();
+    return () => {
+      active = false;
+    };
+  }, [navigate, pathname]);
+
+  if (access === "checking") return <AdminLoading />;
+  if (access === "denied") {
+    return (
+      <div className="container-luxe flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+        <h1 className="font-serif text-2xl font-light">Admin access required</h1>
+        <Button onClick={() => navigate({ to: "/", replace: true })}>Back to store</Button>
+      </div>
+    );
+  }
+  if (access === "error") {
+    return (
+      <div className="container-luxe flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+        <h1 className="font-serif text-2xl font-light">Couldn’t verify admin access</h1>
+        <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
+        <Button onClick={() => window.location.reload()}>Try again</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary/20">
