@@ -1,8 +1,9 @@
-import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, redirect, useRouterState, useRouter, isRedirect } from "@tanstack/react-router";
 import { Boxes, LayoutDashboard, Package, ShoppingCart, Ticket, Store, FolderTree, Star, Gift, Users, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { amIAdmin } from "@/lib/roles.functions";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -11,14 +12,39 @@ export const Route = createFileRoute("/admin")({
     if (!data.user) {
       throw redirect({ to: "/auth", search: { redirect: location.href } });
     }
-    const res = await amIAdmin({ data: undefined });
+    // Network hiccups here must not blank the admin shell — retry once, then
+    // surface a recoverable error instead of an unhandled rejection.
+    let res: { isAdmin: boolean };
+    try {
+      res = await amIAdmin({ data: undefined });
+    } catch {
+      res = await amIAdmin({ data: undefined });
+    }
     if (!res.isAdmin) {
       throw redirect({ to: "/" });
     }
     return { user: data.user };
   },
+  errorComponent: AdminError,
   component: AdminLayout,
 });
+
+function AdminError({ error }: { error: Error }) {
+  const router = useRouter();
+  if (isRedirect(error)) throw error;
+  return (
+    <div className="container-luxe flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+      <h1 className="font-serif text-2xl font-light">Couldn’t load the admin area</h1>
+      <p className="max-w-md text-sm text-muted-foreground">
+        {error?.message === "Load failed" || error?.message?.includes("fetch")
+          ? "The connection dropped while loading this page."
+          : error?.message || "Something went wrong."}
+      </p>
+      <Button onClick={() => router.invalidate()}>Try again</Button>
+    </div>
+  );
+}
+
 
 const navItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
