@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Plus, Pencil, Trash2, Check, Upload, X, Loader2 } from "lucide-react";
 import {
   adminListProducts, adminSaveProduct, adminDeleteProduct, adminUpdateStock,
-  adminListVariants, adminSaveVariant, adminDeleteVariant,
+  adminListVariants, adminSaveVariant, adminDeleteVariant, PRODUCT_TYPES, type ProductType,
 } from "@/lib/admin.functions";
 import { listCategories } from "@/lib/products.functions";
 import { uploadProductImage } from "@/lib/upload";
@@ -179,6 +179,12 @@ function StockEditor({ id, stock }: { id: string; stock: number }) {
   );
 }
 
+const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
+  regular: "Regular",
+  organic: "Organic",
+  korean: "Korean beauty",
+};
+
 function ProductDialog({
   product, categories, onDone,
 }: {
@@ -198,6 +204,7 @@ function ProductDialog({
     base_unit: (product as any)?.base_unit ?? "",
     stock: product?.stock?.toString() ?? "0",
     is_featured: product?.is_featured ?? false,
+    product_type: ((product as any)?.product_type ?? "regular") as ProductType,
     short_description: product?.short_description ?? "",
     description: product?.description ?? "",
     images: ((product?.images as string[] | undefined) ?? []) as string[],
@@ -231,6 +238,7 @@ function ProductDialog({
         base_unit: form.base_unit.trim() || null,
         stock: Number(form.stock) || 0,
         is_featured: form.is_featured,
+        product_type: form.product_type,
         short_description: form.short_description || null,
         description: form.description || null,
         images: form.images,
@@ -257,9 +265,20 @@ function ProductDialog({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center gap-3 sm:col-span-2">
+          <div className="flex items-center gap-3">
             <Switch checked={form.is_featured} onCheckedChange={(v) => set({ is_featured: v })} id="featured" />
             <Label htmlFor="featured" className="font-normal">Featured product</Label>
+          </div>
+          <div>
+            <Label>Type</Label>
+            <Select value={form.product_type} onValueChange={(v) => set({ product_type: v as ProductType })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PRODUCT_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>{PRODUCT_TYPE_LABELS[t]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="sm:col-span-2"><Label>Short description</Label><Input value={form.short_description} onChange={(e) => set({ short_description: e.target.value })} /></div>

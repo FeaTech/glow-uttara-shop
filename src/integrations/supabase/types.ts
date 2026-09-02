@@ -569,6 +569,7 @@ export type Database = {
           is_featured: boolean
           name: string
           price_inr: number
+          product_type: Database["public"]["Enums"]["product_type"]
           rating_avg: number
           rating_count: number
           short_description: string | null
@@ -589,6 +590,7 @@ export type Database = {
           is_featured?: boolean
           name: string
           price_inr: number
+          product_type?: Database["public"]["Enums"]["product_type"]
           rating_avg?: number
           rating_count?: number
           short_description?: string | null
@@ -609,6 +611,7 @@ export type Database = {
           is_featured?: boolean
           name?: string
           price_inr?: number
+          product_type?: Database["public"]["Enums"]["product_type"]
           rating_avg?: number
           rating_count?: number
           short_description?: string | null
@@ -979,6 +982,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
       payment_status: "pending" | "paid" | "failed" | "refunded"
+      product_type: "regular" | "organic" | "korean"
       referral_commission_status: "pending" | "approved" | "paid" | "cancelled"
     }
     CompositeTypes: {
@@ -1117,6 +1121,7 @@ export const Constants = {
         "cancelled",
       ],
       payment_status: ["pending", "paid", "failed", "refunded"],
+      product_type: ["regular", "organic", "korean"],
       referral_commission_status: ["pending", "approved", "paid", "cancelled"],
     },
   },

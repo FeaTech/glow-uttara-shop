@@ -356,6 +356,9 @@ export const adminListInventory = createServerFn({ method: "GET" })
     return inventory;
   });
 
+export const PRODUCT_TYPES = ["regular", "organic", "korean"] as const;
+export type ProductType = (typeof PRODUCT_TYPES)[number];
+
 const productInputSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().min(1).max(200),
@@ -369,6 +372,7 @@ const productInputSchema = z.object({
   images: z.array(z.string()).default([]),
   stock: z.number().int().min(0).default(0),
   is_featured: z.boolean().default(false),
+  product_type: z.enum(PRODUCT_TYPES).default("regular"),
   tags: z.array(z.string()).default([]),
 });
 
@@ -392,6 +396,7 @@ export const adminSaveProduct = createServerFn({ method: "POST" })
       images: data.images,
       stock: data.stock,
       is_featured: data.is_featured,
+      product_type: data.product_type,
       tags: data.tags,
     };
 

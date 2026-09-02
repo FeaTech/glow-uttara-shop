@@ -16,11 +16,17 @@ export interface ProductCardProduct {
   images?: unknown;
   stock?: number;
   is_featured?: boolean;
+  product_type?: "regular" | "organic" | "korean" | null;
   rating_avg?: number;
   rating_count?: number;
   categories?: { name?: string | null } | null;
   product_variants?: { id: string }[] | null;
 }
+
+const PRODUCT_TYPE_BADGE_LABELS: Record<string, string> = {
+  organic: "Organic",
+  korean: "Korean beauty",
+};
 
 export function ProductCard({ product, index = 0 }: { product: ProductCardProduct; index?: number }) {
   const price = product.price_inr ?? 0;
@@ -60,6 +66,11 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
           {product.is_featured && (
             <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm">
               Featured
+            </span>
+          )}
+          {product.product_type && PRODUCT_TYPE_BADGE_LABELS[product.product_type] && (
+            <span className="rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm">
+              {PRODUCT_TYPE_BADGE_LABELS[product.product_type]}
             </span>
           )}
           {off !== null && (

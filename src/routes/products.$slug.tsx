@@ -176,9 +176,16 @@ function ProductPage() {
 
           {/* Details */}
           <div className="flex flex-col">
-            {product.categories?.name && (
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">{product.categories.name}</p>
-            )}
+            <div className="flex items-center gap-2">
+              {product.categories?.name && (
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">{product.categories.name}</p>
+              )}
+              {(product as any).product_type && (product as any).product_type !== "regular" && (
+                <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                  {(product as any).product_type === "organic" ? "Organic" : "Korean beauty"}
+                </Badge>
+              )}
+            </div>
             <h1 className="mt-2 font-serif text-4xl font-light text-foreground">{product.name}</h1>
 
             {(variants.length > 0 || baseUnit) && (

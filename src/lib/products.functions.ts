@@ -42,9 +42,13 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
 export const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "rating", "popular"] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 
+export const PRODUCT_TYPES = ["regular", "organic", "korean"] as const;
+export type ProductType = (typeof PRODUCT_TYPES)[number];
+
 const listProductsSchema = z.object({
   category: z.string().optional(),
   featured: z.boolean().optional(),
+  productType: z.enum(PRODUCT_TYPES).optional(),
   search: z.string().trim().max(120).optional(),
   tag: z.string().optional(),
   minPrice: z.number().min(0).optional(),
@@ -80,6 +84,7 @@ export const listProducts = createServerFn({ method: "GET" })
 
     if (data.category) query = query.eq("categories.slug", data.category);
     if (data.featured) query = query.eq("is_featured", true);
+    if (data.productType) query = query.eq("product_type", data.productType);
     if (data.tag) query = query.contains("tags", [data.tag]);
     if (typeof data.minPrice === "number") query = query.gte("price_inr", data.minPrice);
     if (typeof data.maxPrice === "number") query = query.lte("price_inr", data.maxPrice);

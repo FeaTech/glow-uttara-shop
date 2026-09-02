@@ -3,7 +3,7 @@ import { keepPreviousData, queryOptions, useQuery, useSuspenseQuery } from "@tan
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { SlidersHorizontal, X } from "lucide-react";
-import { listCategories, listProducts, SORT_OPTIONS, type SortOption } from "@/lib/products.functions";
+import { listCategories, listProducts, PRODUCT_TYPES, SORT_OPTIONS, type ProductType, type SortOption } from "@/lib/products.functions";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/ProductCardSkeleton";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ const productsSearchSchema = z.object({
   sort: z.enum(SORT_OPTIONS).optional(),
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
+  productType: z.enum(PRODUCT_TYPES).optional(),
 });
 type ProductsSearch = z.infer<typeof productsSearchSchema>;
 
@@ -26,6 +27,12 @@ const SORT_LABELS: Record<SortOption, string> = {
   price_desc: "Price: High to Low",
   rating: "Top rated",
   popular: "Most popular",
+};
+
+const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
+  regular: "Regular",
+  organic: "Organic",
+  korean: "Korean beauty",
 };
 
 const productsQueryOptions = (search: ProductsSearch) =>
@@ -75,7 +82,7 @@ function ProductsIndexPage() {
     navigate({ to: "/products", search: {}, replace: true });
 
   const hasFilters = Boolean(
-    search.category || search.search || search.minPrice || search.maxPrice || search.sort,
+    search.category || search.search || search.minPrice || search.maxPrice || search.sort || search.productType,
   );
 
   return (
@@ -230,6 +237,36 @@ function FilterPanel({
                 )}
               >
                 {cat.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h3 className="font-heading text-lg font-medium text-foreground">Type</h3>
+        <ul className="mt-4 space-y-1">
+          <li>
+            <button
+              onClick={() => update({ productType: undefined })}
+              className={cn(
+                "w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
+                !search.productType ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-secondary",
+              )}
+            >
+              All types
+            </button>
+          </li>
+          {PRODUCT_TYPES.filter((t) => t !== "regular").map((t) => (
+            <li key={t}>
+              <button
+                onClick={() => update({ productType: t })}
+                className={cn(
+                  "w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
+                  search.productType === t ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-secondary",
+                )}
+              >
+                {PRODUCT_TYPE_LABELS[t]}
               </button>
             </li>
           ))}
