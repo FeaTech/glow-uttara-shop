@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Fragment, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { Printer, Search, X } from "lucide-react";
 import { adminListOrders, adminUpdateOrder } from "@/lib/admin.functions";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime";
@@ -125,15 +126,14 @@ function AdminOrders() {
   const [printOrder, setPrintOrder] = useState<any | null>(null);
   const updateFn = useServerFn(adminUpdateOrder);
 
-  // Render the invoice first, then hand off to the browser's print dialog.
-  useEffect(() => {
-    if (!printOrder) return;
-    const id = window.setTimeout(() => {
-      printInvoice();
-      setPrintOrder(null);
-    }, 120);
-    return () => window.clearTimeout(id);
-  }, [printOrder]);
+  // Mount the invoice node synchronously, then print — all inside the click
+  // handler so the popup/print stays within the user gesture (tablets and
+  // phones block a print triggered from a later timer).
+  const handlePrint = (order: any) => {
+    flushSync(() => setPrintOrder(order));
+    printInvoice();
+    setPrintOrder(null);
+  };
 
   // New orders and status changes appear without a refresh.
   useRealtimeInvalidate({
@@ -366,7 +366,7 @@ function AdminOrders() {
                               {o.shipping_address?.city}, {o.shipping_address?.state} — {o.shipping_address?.pincode}<br />
                               {o.shipping_address?.country}
                             </address>
-                            <Button variant="outline" size="sm" className="mt-3" onClick={() => setPrintOrder(o)}>
+                            <Button variant="outline" size="sm" className="mt-3" onClick={() => handlePrint(o)}>
                               <Printer className="h-4 w-4" /> Print invoice
                             </Button>
                           </div>

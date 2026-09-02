@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatDateTime, formatINR } from "@/lib/format";
 
@@ -31,15 +30,15 @@ export interface InvoiceOrder {
  * styles.css reveal only this node so the browser prints a clean document.
  */
 export function OrderInvoice({ order, customerName }: { order: InvoiceOrder; customerName?: string | null }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // Client-only (portals need document.body). Rendered synchronously so callers
+  // can mount it and print within the same user gesture — a deferred mount
+  // breaks popup/print permission on tablets and phones.
+  if (typeof document === "undefined") return null;
 
   const address = order.shipping_address ?? {};
   const subtotal =
     order.subtotal_inr ??
     order.order_items.reduce((sum, i) => sum + i.price_inr * i.quantity, 0);
-
-  if (!mounted) return null;
 
   return createPortal(
     <div id="print-invoice" aria-hidden="true">
