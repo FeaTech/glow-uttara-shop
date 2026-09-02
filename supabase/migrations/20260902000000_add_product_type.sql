@@ -7,3 +7,7 @@ alter table public.products
 
 comment on column public.products.product_type is
   'Marketing/origin classification for a product (regular, organic, korean).';
+
+-- The entire existing catalog is Korean beauty product; the organic range is
+-- new and will be tagged explicitly by admins as those products are added.
+update public.products set product_type = 'korean' where product_type = 'regular';

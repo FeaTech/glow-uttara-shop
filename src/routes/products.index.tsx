@@ -35,6 +35,8 @@ const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   korean: "Korean beauty",
 };
 
+const SHOW_PRODUCT_TYPE_FILTER = true;
+
 const productsQueryOptions = (search: ProductsSearch) =>
   queryOptions({
     queryKey: ["products", "list", search],
@@ -243,35 +245,37 @@ function FilterPanel({
         </ul>
       </div>
 
-      <div>
-        <h3 className="font-heading text-lg font-medium text-foreground">Type</h3>
-        <ul className="mt-4 space-y-1">
-          <li>
-            <button
-              onClick={() => update({ productType: undefined })}
-              className={cn(
-                "w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
-                !search.productType ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-secondary",
-              )}
-            >
-              All types
-            </button>
-          </li>
-          {PRODUCT_TYPES.filter((t) => t !== "regular").map((t) => (
-            <li key={t}>
+      {SHOW_PRODUCT_TYPE_FILTER && (
+        <div>
+          <h3 className="font-heading text-lg font-medium text-foreground">Type</h3>
+          <ul className="mt-4 space-y-1">
+            <li>
               <button
-                onClick={() => update({ productType: t })}
+                onClick={() => update({ productType: undefined })}
                 className={cn(
                   "w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
-                  search.productType === t ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-secondary",
+                  !search.productType ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-secondary",
                 )}
               >
-                {PRODUCT_TYPE_LABELS[t]}
+                All types
               </button>
             </li>
-          ))}
-        </ul>
-      </div>
+            {PRODUCT_TYPES.filter((t) => t !== "regular").map((t) => (
+              <li key={t}>
+                <button
+                  onClick={() => update({ productType: t })}
+                  className={cn(
+                    "w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
+                    search.productType === t ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-secondary",
+                  )}
+                >
+                  {PRODUCT_TYPE_LABELS[t]}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div>
         <h3 className="font-heading text-lg font-medium text-foreground">Price (₹)</h3>

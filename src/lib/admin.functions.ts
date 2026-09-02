@@ -372,7 +372,7 @@ const productInputSchema = z.object({
   images: z.array(z.string()).default([]),
   stock: z.number().int().min(0).default(0),
   is_featured: z.boolean().default(false),
-  product_type: z.enum(PRODUCT_TYPES).default("regular"),
+  product_type: z.enum(PRODUCT_TYPES).default("korean"),
   tags: z.array(z.string()).default([]),
 });
 

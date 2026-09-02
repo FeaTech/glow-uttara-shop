@@ -204,7 +204,7 @@ function ProductDialog({
     base_unit: (product as any)?.base_unit ?? "",
     stock: product?.stock?.toString() ?? "0",
     is_featured: product?.is_featured ?? false,
-    product_type: ((product as any)?.product_type ?? "regular") as ProductType,
+    product_type: ((product as any)?.product_type ?? "korean") as ProductType,
     short_description: product?.short_description ?? "",
     description: product?.description ?? "",
     images: ((product?.images as string[] | undefined) ?? []) as string[],
