@@ -65,7 +65,7 @@ export function OrderInvoice({ order, customerName }: { order: InvoiceOrder; cus
           </div>
           <div>
             <p className="invoice-label">Ship to</p>
-            <p className="font-medium text-foreground">{customerName || order.customer_email || "Customer"}</p>
+            <p style={{ fontWeight: 600 }}>{customerName || order.customer_email || "Customer"}</p>
             <p>
               {address.line1}
               {address.line2 ? `, ${address.line2}` : ""}

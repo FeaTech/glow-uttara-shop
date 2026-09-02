@@ -57,7 +57,7 @@ export function printInvoice(nodeId = "print-invoice") {
       }
     </style>
   </head>
-  <body>${source.innerHTML}</body>
+  <body>${source.outerHTML}</body>
 </html>`);
   doc.close();
 
