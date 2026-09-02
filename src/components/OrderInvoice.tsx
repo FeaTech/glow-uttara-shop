@@ -29,7 +29,15 @@ export interface InvoiceOrder {
  * Printable invoice. Hidden on screen; the global `@media print` rules in
  * styles.css reveal only this node so the browser prints a clean document.
  */
-export function OrderInvoice({ order, customerName }: { order: InvoiceOrder; customerName?: string | null }) {
+export function OrderInvoice({
+  order,
+  customerName,
+  customerPhone,
+}: {
+  order: InvoiceOrder;
+  customerName?: string | null;
+  customerPhone?: string | null;
+}) {
   // Client-only (portals need document.body). Rendered synchronously so callers
   // can mount it and print within the same user gesture — a deferred mount
   // breaks popup/print permission on tablets and phones.
@@ -61,6 +69,7 @@ export function OrderInvoice({ order, customerName }: { order: InvoiceOrder; cus
             <p className="invoice-label">Billed to</p>
             <p>{customerName || order.customer_email || "Customer"}</p>
             {order.customer_email && customerName ? <p className="invoice-muted">{order.customer_email}</p> : null}
+            {customerPhone ? <p className="invoice-muted">{customerPhone}</p> : null}
           </div>
           <div>
             <p className="invoice-label">Ship to</p>
@@ -73,6 +82,7 @@ export function OrderInvoice({ order, customerName }: { order: InvoiceOrder; cus
               {address.city}, {address.state} — {address.pincode}
             </p>
             <p>{address.country}</p>
+            {customerPhone ? <p>Phone: {customerPhone}</p> : null}
           </div>
           <div>
             <p className="invoice-label">Status</p>

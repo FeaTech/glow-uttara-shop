@@ -403,7 +403,13 @@ function AdminOrders() {
           </div>
         </div>
       )}
-      {printOrder && <OrderInvoice order={printOrder} customerName={printOrder.profiles?.full_name ?? printOrder.customer_email} />}
+      {printOrder && (
+        <OrderInvoice
+          order={printOrder}
+          customerName={printOrder.profiles?.full_name ?? printOrder.customer_email}
+          customerPhone={printOrder.profiles?.phone}
+        />
+      )}
     </div>
   );
 }

@@ -227,10 +227,12 @@ export const getOrderById = createServerFn({ method: "GET" })
         .eq("id", data.orderId)
         .eq("user_id", userId)
         .maybeSingle(),
-      supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
+      supabase.from("profiles").select("full_name, phone").eq("id", userId).maybeSingle(),
     ]);
     if (error) throw error;
-    return order ? { ...order, profile_full_name: profile?.full_name ?? null } : null;
+    return order
+      ? { ...order, profile_full_name: profile?.full_name ?? null, profile_phone: profile?.phone ?? null }
+      : null;
   });
 
 const abandonOrderSchema = z.object({ orderId: z.string().uuid() });

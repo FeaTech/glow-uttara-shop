@@ -107,7 +107,11 @@ function OrderDetailPage() {
           </div>
         </div>
 
-        <OrderInvoice order={order as any} customerName={order.profile_full_name ?? order.customer_email} />
+        <OrderInvoice
+          order={order as any}
+          customerName={order.profile_full_name ?? order.customer_email}
+          customerPhone={(order as any).profile_phone}
+        />
 
 
         {/* Timeline */}
