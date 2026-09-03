@@ -8,8 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/ProductCardSkeleton";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
+import { cn } from "@/lib/utils";
 import heroBg from "@/assets/hero-feaglam-products.png.asset.json";
 
 const featuredProductsQueryOptions = () =>
@@ -121,31 +123,44 @@ function HomePage() {
         </div>
       </section>
 
-      {showOrganicOnly && (
-        <section className="container-luxe py-16 md:py-24">
-          <ScrollReveal className="text-center">
-            <div className="rule-gold mx-auto" />
-            <h2 className="mt-4 font-serif text-3xl font-light text-foreground md:text-4xl">Organic collection</h2>
-            <p className="mt-2 text-muted-foreground">Clean, plant-based beauty — new to FEA Glam.</p>
-          </ScrollReveal>
-          {isLoadingOrganic ? (
-            <div className="mt-10">
-              <ProductGridSkeleton count={4} />
-            </div>
-          ) : organicProducts && organicProducts.length > 0 ? (
-            <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-              {organicProducts.map((product, i) => (
-                <ProductCard key={product.id} product={product as never} index={i} />
-              ))}
-            </div>
-          ) : (
-            <div className="mt-10 rounded-2xl border border-dashed border-border py-16 text-center">
-              <p className="font-serif text-xl font-light text-foreground">Organic products are on their way</p>
-              <p className="mt-2 text-muted-foreground">Check back soon — we're adding our organic range shortly.</p>
-            </div>
-          )}
-        </section>
-      )}
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows] duration-500 ease-in-out",
+          showOrganicOnly ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div className="overflow-hidden">
+          <section className="container-luxe py-16 md:py-24">
+            <ScrollReveal className="text-center">
+              <div className="rule-gold mx-auto" />
+              <h2 className="mt-4 font-serif text-3xl font-light text-foreground md:text-4xl">Organic collection</h2>
+              <p className="mt-2 text-muted-foreground">Clean, plant-based beauty — new to FEA Glam.</p>
+            </ScrollReveal>
+            {isLoadingOrganic ? (
+              <div className="mt-10">
+                <ProductGridSkeleton count={4} />
+              </div>
+            ) : organicProducts && organicProducts.length > 0 ? (
+              <Carousel opts={{ align: "start", loop: organicProducts.length > 4 }} className="mt-10">
+                <CarouselContent>
+                  {organicProducts.map((product, i) => (
+                    <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 lg:basis-1/4">
+                      <ProductCard product={product as never} index={i} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden sm:flex" />
+                <CarouselNext className="hidden sm:flex" />
+              </Carousel>
+            ) : (
+              <div className="mt-10 rounded-2xl border border-dashed border-border py-16 text-center">
+                <p className="font-serif text-xl font-light text-foreground">Organic products are on their way</p>
+                <p className="mt-2 text-muted-foreground">Check back soon — we're adding our organic range shortly.</p>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
 
       {/* ---------- Hero ---------- */}
       <section className="relative overflow-hidden">
