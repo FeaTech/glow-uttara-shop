@@ -180,9 +180,9 @@ function StockEditor({ id, stock }: { id: string; stock: number }) {
 }
 
 const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
-  regular: "Regular",
-  organic: "Organic",
   korean: "Korean beauty",
+  organic: "Organic beauty",
+  budget: "Budget beauty",
 };
 
 function ProductDialog({

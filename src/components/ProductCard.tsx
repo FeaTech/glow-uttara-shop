@@ -6,6 +6,7 @@ import { WishlistButton } from "@/components/WishlistButton";
 import { discountPercent, formatINR, productImage } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
 import { cn } from "@/lib/utils";
+import { COLLECTION_BY_KEY } from "@/lib/collections";
 
 export interface ProductCardProduct {
   id: string;
@@ -16,17 +17,13 @@ export interface ProductCardProduct {
   images?: unknown;
   stock?: number;
   is_featured?: boolean;
-  product_type?: "regular" | "organic" | "korean" | null;
+  product_type?: "regular" | "organic" | "korean" | "budget" | null;
   rating_avg?: number;
   rating_count?: number;
   categories?: { name?: string | null } | null;
   product_variants?: { id: string }[] | null;
 }
 
-const PRODUCT_TYPE_BADGE_LABELS: Record<string, string> = {
-  organic: "Organic",
-  korean: "Korean beauty",
-};
 
 export function ProductCard({ product, index = 0 }: { product: ProductCardProduct; index?: number }) {
   const price = product.price_inr ?? 0;
@@ -68,9 +65,14 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
               Featured
             </span>
           )}
-          {product.product_type && PRODUCT_TYPE_BADGE_LABELS[product.product_type] && (
-            <span className="rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm">
-              {PRODUCT_TYPE_BADGE_LABELS[product.product_type]}
+          {product.product_type && COLLECTION_BY_KEY[product.product_type] && (
+            <span
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide shadow-sm",
+                COLLECTION_BY_KEY[product.product_type].badgeClass,
+              )}
+            >
+              {COLLECTION_BY_KEY[product.product_type].badgeLabel}
             </span>
           )}
           {off !== null && (

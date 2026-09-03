@@ -30,9 +30,9 @@ const SORT_LABELS: Record<SortOption, string> = {
 };
 
 const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
-  regular: "Regular",
-  organic: "Organic",
   korean: "Korean beauty",
+  organic: "Organic beauty",
+  budget: "Budget beauty",
 };
 
 const SHOW_PRODUCT_TYPE_FILTER = true;
@@ -260,7 +260,7 @@ function FilterPanel({
                 All types
               </button>
             </li>
-            {PRODUCT_TYPES.filter((t) => t !== "regular").map((t) => (
+            {PRODUCT_TYPES.map((t) => (
               <li key={t}>
                 <button
                   onClick={() => update({ productType: t })}

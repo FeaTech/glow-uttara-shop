@@ -22,6 +22,7 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { discountPercent, formatDate, formatINR, PLACEHOLDER_IMAGE } from "@/lib/format";
 import { ProductImage } from "@/components/ProductImage";
 import { cn } from "@/lib/utils";
+import { COLLECTION_BY_KEY } from "@/lib/collections";
 
 const productQueryOptions = (slug: string) =>
   queryOptions({
@@ -180,9 +181,9 @@ function ProductPage() {
               {product.categories?.name && (
                 <p className="text-xs uppercase tracking-widest text-muted-foreground">{product.categories.name}</p>
               )}
-              {(product as any).product_type && (product as any).product_type !== "regular" && (
-                <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
-                  {(product as any).product_type === "organic" ? "Organic" : "Korean beauty"}
+              {COLLECTION_BY_KEY[(product as any).product_type] && (
+                <Badge className={COLLECTION_BY_KEY[(product as any).product_type].badgeClass}>
+                  {COLLECTION_BY_KEY[(product as any).product_type].label}
                 </Badge>
               )}
             </div>

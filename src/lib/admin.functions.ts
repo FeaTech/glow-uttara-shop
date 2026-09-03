@@ -356,7 +356,7 @@ export const adminListInventory = createServerFn({ method: "GET" })
     return inventory;
   });
 
-export const PRODUCT_TYPES = ["regular", "organic", "korean"] as const;
+export const PRODUCT_TYPES = ["korean", "organic", "budget"] as const;
 export type ProductType = (typeof PRODUCT_TYPES)[number];
 
 const productInputSchema = z.object({

@@ -42,7 +42,7 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
 export const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "rating", "popular"] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 
-export const PRODUCT_TYPES = ["regular", "organic", "korean"] as const;
+export const PRODUCT_TYPES = ["korean", "organic", "budget"] as const;
 export type ProductType = (typeof PRODUCT_TYPES)[number];
 
 const listProductsSchema = z.object({

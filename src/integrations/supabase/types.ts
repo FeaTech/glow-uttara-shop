@@ -982,7 +982,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
       payment_status: "pending" | "paid" | "failed" | "refunded"
-      product_type: "regular" | "organic" | "korean"
+      product_type: "regular" | "organic" | "korean" | "budget"
       referral_commission_status: "pending" | "approved" | "paid" | "cancelled"
     }
     CompositeTypes: {
@@ -1121,7 +1121,7 @@ export const Constants = {
         "cancelled",
       ],
       payment_status: ["pending", "paid", "failed", "refunded"],
-      product_type: ["regular", "organic", "korean"],
+      product_type: ["regular", "organic", "korean", "budget"],
       referral_commission_status: ["pending", "approved", "paid", "cancelled"],
     },
   },
