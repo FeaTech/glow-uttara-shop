@@ -56,7 +56,7 @@ export function CollectionPortals() {
         <div className="text-center">
           <div className="rule-gold mx-auto" />
           <h2 className="mt-4 font-serif text-3xl font-light text-foreground md:text-4xl">
-            Choose your <span className="text-gradient-gold italic">edit</span>
+            Choose your <span className="text-gradient-gold italic">collection</span>
           </h2>
           <p className="mt-2 text-muted-foreground">
             Three ways to shop FEA Glam. Tap one to step inside.
