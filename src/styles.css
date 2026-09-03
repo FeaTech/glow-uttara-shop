@@ -519,3 +519,203 @@
   padding-top: 12px;
   text-align: center;
 }
+
+/* ---------- Collection portals ---------- */
+/*
+ * Three circular "portals" (Korean / Organic / Budget) that recolour the top of
+ * the page when selected. Each collection's palette lives on a
+ * [data-collection] block so the same variables drive both the portal orb and
+ * the full-bleed atmosphere layer behind the section.
+ */
+[data-collection="korean"] {
+  --c-1: oklch(0.965 0.021 330);
+  --c-2: oklch(0.93 0.038 350);
+  --c-3: oklch(0.895 0.052 300);
+  --c-accent: oklch(0.74 0.075 340);
+  --c-ink: oklch(0.3 0.03 340);
+}
+[data-collection="organic"] {
+  --c-1: oklch(0.965 0.02 140);
+  --c-2: oklch(0.925 0.04 148);
+  --c-3: oklch(0.93 0.045 110);
+  --c-accent: oklch(0.62 0.075 148);
+  --c-ink: oklch(0.3 0.035 150);
+}
+[data-collection="budget"] {
+  --c-1: oklch(0.97 0.024 88);
+  --c-2: oklch(0.935 0.048 78);
+  --c-3: oklch(0.93 0.05 55);
+  --c-accent: oklch(0.72 0.09 72);
+  --c-ink: oklch(0.305 0.03 60);
+}
+[data-collection="house"] {
+  --c-1: oklch(0.985 0.006 70);
+  --c-2: oklch(0.955 0.014 60);
+  --c-3: oklch(0.94 0.02 45);
+  --c-accent: oklch(0.66 0.11 42);
+  --c-ink: oklch(0.255 0.018 45);
+}
+
+.dark [data-collection="korean"] {
+  --c-1: oklch(0.29 0.03 330);
+  --c-2: oklch(0.235 0.022 345);
+  --c-3: oklch(0.28 0.04 300);
+  --c-accent: oklch(0.8 0.085 335);
+  --c-ink: oklch(0.965 0.01 340);
+}
+.dark [data-collection="organic"] {
+  --c-1: oklch(0.285 0.03 150);
+  --c-2: oklch(0.23 0.024 145);
+  --c-3: oklch(0.27 0.035 120);
+  --c-accent: oklch(0.76 0.085 150);
+  --c-ink: oklch(0.96 0.012 140);
+}
+.dark [data-collection="budget"] {
+  --c-1: oklch(0.295 0.03 78);
+  --c-2: oklch(0.235 0.024 72);
+  --c-3: oklch(0.28 0.04 55);
+  --c-accent: oklch(0.82 0.1 82);
+  --c-ink: oklch(0.965 0.01 75);
+}
+.dark [data-collection="house"] {
+  --c-1: oklch(0.205 0.012 40);
+  --c-2: oklch(0.24 0.014 42);
+  --c-3: oklch(0.26 0.02 45);
+  --c-accent: oklch(0.76 0.1 78);
+  --c-ink: oklch(0.965 0.008 70);
+}
+
+/* Atmosphere: every palette is rendered at once and cross-faded on opacity.
+   CSS variables do not interpolate, so animating them directly would snap. */
+.atmos-layer {
+  position: absolute;
+  inset: -15% -10% -20%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 800ms cubic-bezier(0.4, 0, 0.2, 1);
+  background:
+    radial-gradient(58% 52% at 16% 18%, var(--c-2) 0%, transparent 64%),
+    radial-gradient(48% 58% at 84% 26%, var(--c-3) 0%, transparent 62%),
+    radial-gradient(72% 58% at 50% 96%, var(--c-2) 0%, transparent 72%),
+    linear-gradient(180deg, var(--c-1) 0%, transparent 88%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 70%, transparent 100%);
+}
+.atmos-layer[data-on="true"] {
+  opacity: 1;
+}
+
+.portal-shell {
+  position: relative;
+  display: block;
+  width: clamp(84px, 25vw, 168px);
+  aspect-ratio: 1;
+}
+.portal-halo {
+  position: absolute;
+  inset: -7%;
+  border-radius: 9999px;
+  border: 2px solid var(--c-accent);
+  opacity: 0;
+  transition: opacity 350ms ease;
+}
+.portal-orb {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: radial-gradient(120% 120% at 30% 22%, var(--c-1) 0%, var(--c-2) 55%, var(--c-3) 100%);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.5),
+    inset 0 -20px 34px -22px var(--c-accent),
+    0 18px 40px -24px var(--c-accent);
+  transition:
+    transform 450ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 450ms ease;
+}
+.portal-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(14px);
+  animation: portal-blob 15s ease-in-out infinite;
+}
+.portal-blob-a {
+  left: -10%;
+  top: -8%;
+  width: 64%;
+  height: 64%;
+  background: var(--c-3);
+  opacity: 0.75;
+}
+.portal-blob-b {
+  right: -12%;
+  bottom: -10%;
+  width: 56%;
+  height: 56%;
+  background: var(--c-accent);
+  opacity: 0.4;
+  animation-duration: 19s;
+  animation-direction: reverse;
+}
+.portal-rim {
+  position: absolute;
+  inset: 7%;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, var(--c-accent) 42%, transparent);
+}
+.portal-icon {
+  position: relative;
+  color: var(--c-ink);
+  transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.portal:hover .portal-orb,
+.portal:focus-visible .portal-orb {
+  transform: scale(1.05);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.6),
+    inset 0 -20px 34px -20px var(--c-accent),
+    0 26px 52px -22px var(--c-accent);
+}
+.portal:hover .portal-icon {
+  transform: scale(1.12) rotate(-4deg);
+}
+.portal[aria-pressed="true"] .portal-orb {
+  transform: scale(1.06);
+}
+.portal[aria-pressed="true"] .portal-halo {
+  opacity: 1;
+  animation: portal-halo 2.8s ease-in-out infinite;
+}
+.portal:focus-visible {
+  outline: none;
+}
+.portal:focus-visible .portal-halo {
+  opacity: 1;
+}
+
+@keyframes portal-blob {
+  0% { transform: translate(-8%, -6%) scale(1); }
+  33% { transform: translate(10%, 8%) scale(1.16); }
+  66% { transform: translate(-6%, 12%) scale(0.9); }
+  100% { transform: translate(-8%, -6%) scale(1); }
+}
+@keyframes portal-halo {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.05); }
+}
+@keyframes portal-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-blob,
+  .portal[aria-pressed="true"] .portal-halo {
+    animation: none;
+  }
+  .atmos-layer {
+    transition-duration: 1ms;
+  }
+}
