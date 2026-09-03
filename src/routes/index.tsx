@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowRight, Star, Truck, ShieldCheck, Sparkles } from "lucide-react";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { ArrowRight, Star, Truck, ShieldCheck, Sparkles, Leaf } from "lucide-react";
 import { listCategories, listProducts } from "@/lib/products.functions";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductGridSkeleton } from "@/components/ProductCardSkeleton";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import heroBg from "@/assets/hero-feaglam-products.png.asset.json";
@@ -12,6 +16,12 @@ const featuredProductsQueryOptions = () =>
   queryOptions({
     queryKey: ["products", "featured"],
     queryFn: () => listProducts({ data: { featured: true, limit: 8 } }),
+  });
+
+const organicProductsQueryOptions = () =>
+  queryOptions({
+    queryKey: ["products", "organic-preview"],
+    queryFn: () => listProducts({ data: { productType: "organic", limit: 8 } }),
   });
 
 const bestsellersQueryOptions = () =>
@@ -62,8 +72,81 @@ function HomePage() {
   const { data: featured } = useSuspenseQuery(featuredProductsQueryOptions());
   const { data: bestsellers } = useSuspenseQuery(bestsellersQueryOptions());
 
+  const [showOrganicOnly, setShowOrganicOnly] = useState(false);
+  const { data: organicProducts, isLoading: isLoadingOrganic } = useQuery({
+    ...organicProductsQueryOptions(),
+    enabled: showOrganicOnly,
+  });
+
   return (
     <div className="bg-background">
+      {/* ---------- Organic launch banner ---------- */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white">
+        <Leaf className="pointer-events-none absolute -left-6 -top-8 h-32 w-32 rotate-12 text-white/10" />
+        <Leaf className="pointer-events-none absolute -right-4 -bottom-10 h-40 w-40 -rotate-12 text-white/10" />
+        <Leaf className="pointer-events-none absolute right-1/4 top-1/2 hidden h-16 w-16 -translate-y-1/2 rotate-45 text-white/10 md:block" />
+        <div className="container-luxe relative flex flex-col items-center gap-5 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div className="flex items-center gap-4">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white/15 ring-2 ring-white/25">
+              <Leaf className="h-7 w-7" />
+            </span>
+            <div>
+              <span className="inline-flex items-center rounded-full bg-white text-emerald-700 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                New
+              </span>
+              <p className="mt-1 font-serif text-xl font-light sm:text-2xl">
+                Introducing our <span className="font-medium italic">organic beauty</span> range
+              </p>
+              <p className="mt-0.5 text-sm text-white/80">Clean, plant-based formulas — now live at FEA Glam.</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-3 sm:flex-row">
+            <div className="flex items-center gap-3 rounded-full bg-white/10 px-4 py-2.5 ring-1 ring-white/20">
+              <Label htmlFor="organic-only" className="cursor-pointer font-medium text-white">
+                Show organic only
+              </Label>
+              <Switch
+                id="organic-only"
+                checked={showOrganicOnly}
+                onCheckedChange={setShowOrganicOnly}
+                className="data-[state=checked]:bg-white data-[state=unchecked]:bg-white/30"
+              />
+            </div>
+            <Button asChild size="lg" className="bg-white text-emerald-700 hover:bg-white/90">
+              <Link to="/products" search={{ productType: "organic" }}>
+                Shop organic <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {showOrganicOnly && (
+        <section className="container-luxe py-16 md:py-24">
+          <ScrollReveal className="text-center">
+            <div className="rule-gold mx-auto" />
+            <h2 className="mt-4 font-serif text-3xl font-light text-foreground md:text-4xl">Organic collection</h2>
+            <p className="mt-2 text-muted-foreground">Clean, plant-based beauty — new to FEA Glam.</p>
+          </ScrollReveal>
+          {isLoadingOrganic ? (
+            <div className="mt-10">
+              <ProductGridSkeleton count={4} />
+            </div>
+          ) : organicProducts && organicProducts.length > 0 ? (
+            <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+              {organicProducts.map((product, i) => (
+                <ProductCard key={product.id} product={product as never} index={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-10 rounded-2xl border border-dashed border-border py-16 text-center">
+              <p className="font-serif text-xl font-light text-foreground">Organic products are on their way</p>
+              <p className="mt-2 text-muted-foreground">Check back soon — we're adding our organic range shortly.</p>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ---------- Hero ---------- */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
