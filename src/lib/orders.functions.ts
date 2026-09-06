@@ -123,6 +123,7 @@ export const createOrder = createServerFn({ method: "POST" })
 
     const { data: insertedOrder, error: orderError } = await supabase
       .from("orders")
+      // Cast until generated types pick up the new billing_address column.
       .insert({
         user_id: userId,
         idempotency_key: data.idempotencyKey,
@@ -144,7 +145,8 @@ export const createOrder = createServerFn({ method: "POST" })
         payment_channel: channel,
         payment_status: "pending",
         status: "pending",
-      })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
       .select("id")
       .single();
     let order = insertedOrder;
