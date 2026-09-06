@@ -123,6 +123,7 @@ export const createOrder = createServerFn({ method: "POST" })
 
     const { data: insertedOrder, error: orderError } = await supabase
       .from("orders")
+      // Cast until generated types pick up the new billing_address column.
       .insert({
         user_id: userId,
         idempotency_key: data.idempotencyKey,
