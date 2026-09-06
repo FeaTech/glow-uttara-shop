@@ -137,7 +137,7 @@ export function orderConfirmationEmail(args: {
   taxesInr: number;
   totalInr: number;
   customerName?: string | null;
-  shippingAddress: { line1: string; line2?: string; city: string; state: string; pincode: string; country?: string };
+  shippingAddress: { recipientName?: string; recipientPhone?: string; line1: string; line2?: string; city: string; state: string; pincode: string; country?: string };
 }) {
   const short = args.orderId.slice(0, 8).toUpperCase();
 
@@ -160,7 +160,7 @@ export function orderConfirmationEmail(args: {
     .join("");
 
   const a = args.shippingAddress;
-  const address = [a.line1, a.line2, `${a.city}, ${a.state} ${a.pincode}`, a.country ?? "India"]
+  const address = [a.recipientName, a.recipientPhone ? `Phone: ${a.recipientPhone}` : null, a.line1, a.line2, `${a.city}, ${a.state} ${a.pincode}`, a.country ?? "India"]
     .filter(Boolean)
     .map((line) => escapeHtml(String(line)))
     .join("<br />");

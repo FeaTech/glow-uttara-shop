@@ -77,6 +77,17 @@ function ProductsIndexPage() {
 
   const activeCategory = categories.find((c) => c.slug === search.category);
 
+  // Keep the whole page in the selected collection's visual environment.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (search.productType) root.dataset.collectionTheme = search.productType;
+    else delete root.dataset.collectionTheme;
+
+    return () => {
+      delete root.dataset.collectionTheme;
+    };
+  }, [search.productType]);
+
   const update = (patch: Partial<ProductsSearch>) =>
     navigate({ to: ".", search: (prev: ProductsSearch) => ({ ...prev, ...patch }), replace: true });
 
@@ -98,7 +109,9 @@ function ProductsIndexPage() {
               ? `Results for “${search.search}”`
               : activeCategory
                 ? activeCategory.name
-                : "All products"}
+                : search.productType
+                  ? PRODUCT_TYPE_LABELS[search.productType]
+                  : "All products"}
           </h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
             {activeCategory?.description ?? "Explore our curated collection of luxury beauty products, hand-picked for Indian skin and hair."}

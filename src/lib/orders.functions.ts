@@ -12,6 +12,8 @@ const addressSchema = z.object({
   state: z.string().min(1),
   pincode: z.string().min(1),
   country: z.string().default("India"),
+  recipientName: z.string().trim().min(1).max(120),
+  recipientPhone: z.string().trim().regex(/^[0-9+() -]{7,20}$/, "Enter a valid phone number"),
 });
 
 const createOrderSchema = z.object({
@@ -95,6 +97,30 @@ export const createOrder = createServerFn({ method: "POST" })
       customerEmail = authUser?.user?.email ?? null;
     }
 
+    // Billing is the account holder's saved default address. Store a snapshot
+    // on the order so an invoice stays accurate even if the account is edited
+    // later. The selected checkout address remains the shipping snapshot.
+    const [{ data: profile, error: profileError }, { data: accountAddress, error: accountAddressError }] = await Promise.all([
+      supabase.from("profiles").select("full_name, phone").eq("id", userId).maybeSingle(),
+      supabase
+        .from("addresses")
+        .select("label, line1, line2, city, state, pincode, country")
+        .eq("profile_id", userId)
+        .order("is_default", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+    if (profileError) throw profileError;
+    if (accountAddressError) throw accountAddressError;
+    const billingAddress = accountAddress
+      ? {
+          ...accountAddress,
+          recipientName: profile?.full_name || data.shippingAddress.recipientName,
+          recipientPhone: profile?.phone || data.shippingAddress.recipientPhone,
+        }
+      : data.shippingAddress;
+
     const { data: insertedOrder, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -111,6 +137,7 @@ export const createOrder = createServerFn({ method: "POST" })
         payment_fee_rate_bps: totals.feeRateBps,
         payment_fee_paise: totals.feePaise,
         shipping_inr: 0,
+        billing_address: billingAddress,
         shipping_address: data.shippingAddress,
         customer_email: customerEmail,
         payment_method: paymentMethod,
@@ -172,11 +199,6 @@ export const createOrder = createServerFn({ method: "POST" })
     ]);
 
     if (customerEmail) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", userId)
-        .maybeSingle();
       const { sendEmailSafe, orderConfirmationEmail } = await import("@/lib/email.server");
       const mail = orderConfirmationEmail({
         orderId: order.id,

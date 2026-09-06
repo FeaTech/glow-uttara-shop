@@ -15,6 +15,7 @@ export interface InvoiceOrder {
   shipping_inr?: number | null;
   payment_fee_inr?: number | null;
   total_inr: number;
+  billing_address?: any;
   shipping_address: any;
   order_items: Array<{
     id: string;
@@ -43,7 +44,12 @@ export function OrderInvoice({
   // breaks popup/print permission on tablets and phones.
   if (typeof document === "undefined") return null;
 
-  const address = order.shipping_address ?? {};
+  const billingAddress = order.billing_address ?? order.shipping_address ?? {};
+  const shippingAddress = order.shipping_address ?? {};
+  const billingName = billingAddress.recipientName || customerName || order.customer_email || "Customer";
+  const billingPhone = billingAddress.recipientPhone || customerPhone;
+  const shippingName = shippingAddress.recipientName || customerName || order.customer_email || "Customer";
+  const shippingPhone = shippingAddress.recipientPhone || customerPhone;
   const subtotal =
     order.subtotal_inr ??
     order.order_items.reduce((sum, i) => sum + i.price_inr * i.quantity, 0);
@@ -66,23 +72,31 @@ export function OrderInvoice({
 
         <section className="invoice-cols">
           <div>
-            <p className="invoice-label">Billed to</p>
-            <p>{customerName || order.customer_email || "Customer"}</p>
+            <p className="invoice-label">Billing address</p>
+            <p style={{ fontWeight: 600 }}>{billingName}</p>
             {order.customer_email && customerName ? <p className="invoice-muted">{order.customer_email}</p> : null}
-            {customerPhone ? <p className="invoice-muted">{customerPhone}</p> : null}
+            {billingPhone ? <p className="invoice-muted">Phone: {billingPhone}</p> : null}
+            <p>
+              {billingAddress.line1}
+              {billingAddress.line2 ? `, ${billingAddress.line2}` : ""}
+            </p>
+            <p>
+              {billingAddress.city}, {billingAddress.state} — {billingAddress.pincode}
+            </p>
+            <p>{billingAddress.country}</p>
           </div>
           <div>
-            <p className="invoice-label">Ship to</p>
-            <p style={{ fontWeight: 600 }}>{customerName || order.customer_email || "Customer"}</p>
+            <p className="invoice-label">Shipping address</p>
+            <p style={{ fontWeight: 600 }}>{shippingName}</p>
             <p>
-              {address.line1}
-              {address.line2 ? `, ${address.line2}` : ""}
+              {shippingAddress.line1}
+              {shippingAddress.line2 ? `, ${shippingAddress.line2}` : ""}
             </p>
             <p>
-              {address.city}, {address.state} — {address.pincode}
+              {shippingAddress.city}, {shippingAddress.state} — {shippingAddress.pincode}
             </p>
-            <p>{address.country}</p>
-            {customerPhone ? <p>Phone: {customerPhone}</p> : null}
+            <p>{shippingAddress.country}</p>
+            {shippingPhone ? <p>Phone: {shippingPhone}</p> : null}
           </div>
           <div>
             <p className="invoice-label">Status</p>

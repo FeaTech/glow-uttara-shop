@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
 import { Tag, X, Check, Loader2 } from "lucide-react";
 import { getCart } from "@/lib/cart.functions";
-import { getAddresses } from "@/lib/profile.functions";
+import { getAddresses, getProfile } from "@/lib/profile.functions";
 import { abandonUnpaidOrder, createOrder } from "@/lib/orders.functions";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay-checkout";
@@ -32,6 +32,9 @@ const cartQueryOptions = () =>
 const addressesQueryOptions = () =>
   queryOptions({ queryKey: ["addresses"], queryFn: () => getAddresses({ data: undefined }) });
 
+const profileQueryOptions = () =>
+  queryOptions({ queryKey: ["profile"], queryFn: () => getProfile({ data: undefined }) });
+
 export const Route = createFileRoute("/_authenticated/checkout")({
   head: () => ({
     meta: [
@@ -42,6 +45,7 @@ export const Route = createFileRoute("/_authenticated/checkout")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(cartQueryOptions());
     context.queryClient.ensureQueryData(addressesQueryOptions());
+    context.queryClient.ensureQueryData(profileQueryOptions());
   },
   component: CheckoutPage,
 });
@@ -49,6 +53,7 @@ export const Route = createFileRoute("/_authenticated/checkout")({
 function CheckoutPage() {
   const { data: cart } = useSuspenseQuery(cartQueryOptions());
   const { data: addresses } = useSuspenseQuery(addressesQueryOptions());
+  const { data: profile } = useSuspenseQuery(profileQueryOptions());
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createOrderFn = useServerFn(createOrder);
@@ -60,6 +65,10 @@ function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(addresses[0]?.id);
   const [paymentChannel, setPaymentChannel] = useState<PaymentChannel>("cod");
   const [newAddress, setNewAddress] = useState({ label: "Home", line1: "", line2: "", city: "", state: "", pincode: "", country: "India" });
+  const [shippingContact, setShippingContact] = useState({
+    recipientName: profile?.full_name ?? "",
+    recipientPhone: profile?.phone ?? "",
+  });
   const [showNewAddress, setShowNewAddress] = useState(addresses.length === 0);
 
   const [couponInput, setCouponInput] = useState("");
@@ -109,6 +118,8 @@ function CheckoutPage() {
           state: string;
           pincode: string;
           country: string;
+          recipientName: string;
+          recipientPhone: string;
         };
         paymentChannel: PaymentChannel;
         couponCode?: string;
@@ -183,17 +194,21 @@ function CheckoutPage() {
 
   const handlePlaceOrder = () => {
     if (submittingRef.current || orderMutation.isPending) return;
+    if (!shippingContact.recipientName.trim() || shippingContact.recipientPhone.replace(/\D/g, "").length < 7) {
+      toast.error("Please enter the recipient's name and a valid phone number");
+      return;
+    }
     let shippingAddress;
     if (showNewAddress) {
       if (!newAddress.line1 || !newAddress.city || !newAddress.state || !newAddress.pincode) {
         toast.error("Please complete the shipping address");
         return;
       }
-      shippingAddress = { ...newAddress, label: newAddress.label || "Home" };
+      shippingAddress = { ...newAddress, label: newAddress.label || "Home", ...shippingContact };
     } else {
       const addr = addresses.find((a) => a.id === selectedAddressId);
       if (!addr) { toast.error("Please select a shipping address"); return; }
-      shippingAddress = { label: addr.label, line1: addr.line1, line2: addr.line2 ?? undefined, city: addr.city, state: addr.state, pincode: addr.pincode, country: addr.country };
+      shippingAddress = { label: addr.label, line1: addr.line1, line2: addr.line2 ?? undefined, city: addr.city, state: addr.state, pincode: addr.pincode, country: addr.country, ...shippingContact };
     }
     submittingRef.current = true;
     idempotencyKeyRef.current ??= crypto.randomUUID();
@@ -209,6 +224,11 @@ function CheckoutPage() {
             {/* Address */}
             <section className="card-luxe p-6">
               <h2 className="font-serif text-xl text-foreground">Shipping address</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Enter the details of the person receiving this order.</p>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div><Label htmlFor="shipping-recipient-name">Recipient name</Label><Input id="shipping-recipient-name" autoComplete="shipping name" required value={shippingContact.recipientName} onChange={(e) => setShippingContact({ ...shippingContact, recipientName: e.target.value })} /></div>
+                <div><Label htmlFor="shipping-recipient-phone">Phone number</Label><Input id="shipping-recipient-phone" autoComplete="shipping tel" inputMode="tel" required value={shippingContact.recipientPhone} onChange={(e) => setShippingContact({ ...shippingContact, recipientPhone: e.target.value })} /></div>
+              </div>
               {addresses.length > 0 && !showNewAddress && (
                 <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId} className="mt-4 space-y-3">
                   {addresses.map((addr) => (

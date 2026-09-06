@@ -213,10 +213,10 @@ function OrderDetailPage() {
               <div className="card-luxe p-6">
                 <h2 className="font-serif text-xl text-foreground">Shipping to</h2>
                 <address className="mt-3 text-sm not-italic text-muted-foreground">
-                  <span className="font-medium text-foreground">{address.label}</span><br />
+                  <span className="font-medium text-foreground">{address.recipientName || address.label}</span><br />
                   {address.line1}{address.line2 ? `, ${address.line2}` : ""}<br />
                   {address.city}, {address.state} — {address.pincode}<br />
-                  {address.country}
+                  {address.country}{address.recipientPhone ? <><br />Phone: {address.recipientPhone}</> : null}
                 </address>
               </div>
             )}

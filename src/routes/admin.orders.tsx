@@ -362,9 +362,10 @@ function AdminOrders() {
                           <div>
                             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Shipping address</p>
                             <address className="text-sm not-italic text-muted-foreground">
+                              {o.shipping_address?.recipientName && <><span className="font-medium text-foreground">{o.shipping_address.recipientName}</span><br /></>}
                               {o.shipping_address?.line1}{o.shipping_address?.line2 ? `, ${o.shipping_address.line2}` : ""}<br />
                               {o.shipping_address?.city}, {o.shipping_address?.state} — {o.shipping_address?.pincode}<br />
-                              {o.shipping_address?.country}
+                              {o.shipping_address?.country}{o.shipping_address?.recipientPhone && <><br />Phone: {o.shipping_address.recipientPhone}</>}
                             </address>
                             <Button variant="outline" size="sm" className="mt-3" onClick={() => handlePrint(o)}>
                               <Printer className="h-4 w-4" /> Print invoice

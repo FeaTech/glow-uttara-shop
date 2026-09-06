@@ -32,6 +32,8 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
   const image = productImage(product.images);
   const outOfStock = typeof product.stock === "number" && product.stock <= 0;
   const hasVariants = (product.product_variants?.length ?? 0) > 0;
+  const collection = product.product_type ? COLLECTION_BY_KEY[product.product_type] : undefined;
+  const categoryLabel = [collection?.badgeLabel, product.categories?.name].filter(Boolean).join(" · ");
 
   // Optimistic — the cart badge updates on click, not after two round trips.
   const addMutation = useAddToCart();
@@ -65,16 +67,6 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
               Featured
             </span>
           )}
-          {product.product_type && COLLECTION_BY_KEY[product.product_type] && (
-            <span
-              className={cn(
-                "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide shadow-sm",
-                COLLECTION_BY_KEY[product.product_type].badgeClass,
-              )}
-            >
-              {COLLECTION_BY_KEY[product.product_type].badgeLabel}
-            </span>
-          )}
           {off !== null && (
             <span className="rounded-full bg-foreground px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-background shadow-sm">
               {off}% off
@@ -97,9 +89,9 @@ export function ProductCard({ product, index = 0 }: { product: ProductCardProduc
         params={{ slug: product.slug }}
         className="flex flex-1 flex-col p-4"
       >
-        {product.categories?.name && (
+        {categoryLabel && (
           <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
-            {product.categories.name}
+            {categoryLabel}
           </p>
         )}
         <h3 className="mt-1 line-clamp-2 font-medium leading-snug text-foreground transition-colors group-hover:text-primary">

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { ArrowRight, Star, Truck, ShieldCheck, Sparkles } from "lucide-react";
 import { listCategories, listProducts } from "@/lib/products.functions";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,6 @@ import { ProductCard } from "@/components/ProductCard";
 import { CollectionPortals } from "@/components/CollectionPortals";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
-import heroBg from "@/assets/hero-feaglam-products.png.asset.json";
 
 const featuredProductsQueryOptions = () =>
   queryOptions({
@@ -63,6 +63,11 @@ function HomePage() {
   const { data: featured } = useSuspenseQuery(featuredProductsQueryOptions());
   const { data: bestsellers } = useSuspenseQuery(bestsellersQueryOptions());
 
+  useEffect(() => {
+    document.documentElement.classList.add("landing-scrollbar-hidden");
+    return () => document.documentElement.classList.remove("landing-scrollbar-hidden");
+  }, []);
+
   return (
     <div className="bg-background">
       <CollectionPortals />
@@ -70,11 +75,11 @@ function HomePage() {
       {/* ---------- Hero ---------- */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroBg.url} alt="FEA Glam luxury beauty products" className="h-full w-full object-cover" />
+          <img src="/images/hero.jpg" alt="FEA Glam luxury beauty products" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/70 to-transparent" />
         </div>
-        <div className="container-luxe relative py-24 sm:py-32 lg:py-40">
+        <div className="container-luxe relative py-14 sm:py-16 lg:py-12">
           <div className="max-w-xl" style={{ animation: "var(--animate-fade-up)" }}>
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-medium uppercase tracking-widest text-primary">
               <Sparkles className="h-3.5 w-3.5" /> New season arrivals
@@ -104,7 +109,7 @@ function HomePage() {
       </section>
 
       {/* ---------- Categories ---------- */}
-      <section className="container-luxe py-16 md:py-24">
+      <section className="container-luxe pt-8 pb-16 md:pt-12 md:pb-24">
         <ScrollReveal className="text-center">
           <div className="rule-gold mx-auto" />
           <h2 className="mt-4 font-serif text-3xl font-light text-foreground md:text-4xl">Shop by category</h2>
