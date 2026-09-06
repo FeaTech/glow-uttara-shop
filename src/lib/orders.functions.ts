@@ -145,7 +145,8 @@ export const createOrder = createServerFn({ method: "POST" })
         payment_channel: channel,
         payment_status: "pending",
         status: "pending",
-      })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
       .select("id")
       .single();
     let order = insertedOrder;
