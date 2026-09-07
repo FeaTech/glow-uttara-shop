@@ -169,17 +169,17 @@
 
 /* A collection product page carries its collection palette across the app shell. */
 :root[data-collection-theme="korean"] {
-  --background: color-mix(in oklab, #E6A2A6 10%, white);
+  --background: color-mix(in oklab, #B76E79 10%, white);
   --foreground: #40282b;
-  --card: color-mix(in oklab, #E6A2A6 3%, white);
+  --card: color-mix(in oklab, #B76E79 3%, white);
   --card-foreground: #40282b;
-  --secondary: color-mix(in oklab, #E6A2A6 18%, white);
-  --muted: color-mix(in oklab, #E6A2A6 12%, white);
+  --secondary: color-mix(in oklab, #B76E79 18%, white);
+  --muted: color-mix(in oklab, #B76E79 12%, white);
   --muted-foreground: #765356;
-  --accent: color-mix(in oklab, #E6A2A6 30%, white);
-  --border: color-mix(in oklab, #E6A2A6 42%, white);
-  --primary: #E6A2A6;
-  --ring: #E6A2A6;
+  --accent: color-mix(in oklab, #B76E79 30%, white);
+  --border: color-mix(in oklab, #B76E79 42%, white);
+  --primary: #B76E79;
+  --ring: #B76E79;
 }
 
 :root[data-collection-theme="organic"] {
@@ -581,10 +581,10 @@
  * the full-bleed atmosphere layer behind the section.
  */
 [data-collection="korean"] {
-  --c-1: color-mix(in oklab, #E6A2A6 17%, white);
-  --c-2: color-mix(in oklab, #E6A2A6 28%, white);
-  --c-3: color-mix(in oklab, #E6A2A6 40%, white);
-  --c-accent: #E6A2A6;
+  --c-1: color-mix(in oklab, #B76E79 17%, white);
+  --c-2: color-mix(in oklab, #B76E79 28%, white);
+  --c-3: color-mix(in oklab, #B76E79 40%, white);
+  --c-accent: #B76E79;
   --c-ink: #40282b;
 }
 [data-collection="organic"] {
@@ -613,7 +613,7 @@
   --c-1: #4a3034;
   --c-2: #59383d;
   --c-3: #6b4247;
-  --c-accent: #E6A2A6;
+  --c-accent: #B76E79;
   --c-ink: #fff8f7;
 }
 .dark [data-collection="organic"] {

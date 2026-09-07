@@ -21,7 +21,7 @@ export const COLLECTIONS: Collection[] = [
     label: "Korean beauty",
     badgeLabel: "Korean beauty",
     tagline: "Glass-skin rituals and luminous, layered care.",
-    badgeClass: "bg-[#E6A2A6] text-[#40282b]",
+    badgeClass: "bg-[#B76E79] text-[#40282b]",
   },
   {
     key: "organic",
