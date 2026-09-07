@@ -5,8 +5,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { Instagram, Facebook, Twitter, Truck, ShieldCheck, RefreshCw, Sparkles, Check } from "lucide-react";
 import { subscribeNewsletter } from "@/lib/newsletter.functions";
 import { toast } from "sonner";
-import logo from "@/assets/feaglam-logo.png.asset.json";
-
 const trust = [
   { icon: Truck, title: "Pan-India shipping", sub: "Fast, tracked delivery" },
   { icon: ShieldCheck, title: "100% authentic", sub: "Genuine luxury brands" },
@@ -37,7 +35,7 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-4">
           <div className="md:col-span-1">
             <Link to="/" className="inline-block" aria-label="FEA Glam home">
-              <img src={logo.url} alt="FEA Glam" className="h-28 w-auto" />
+              <img src="/feaglam-logo.png" alt="FEA Glam — Glow. Nourish. Repeat." className="h-28 w-auto" />
             </Link>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
               Curated cosmetics, skincare, and fragrances for the modern Indian beauty lover.

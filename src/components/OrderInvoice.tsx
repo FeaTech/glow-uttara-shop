@@ -59,8 +59,7 @@ export function OrderInvoice({
       <div className="invoice-sheet">
         <header className="invoice-head">
           <div>
-            <p className="invoice-brand">FEA GLAM</p>
-            <p className="invoice-muted">Korean beauty inspired</p>
+            <img src="/feaglam-logo.png" alt="FEA Glam" className="invoice-logo" />
             <p className="invoice-muted">care@feaglam.com · feaglam.com</p>
           </div>
           <div className="invoice-right">

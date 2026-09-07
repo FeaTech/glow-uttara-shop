@@ -493,11 +493,11 @@
   border-bottom: 2px solid #b08d57;
   padding-bottom: 12px;
 }
-.invoice-brand {
-  font-size: 22px;
-  letter-spacing: 0.18em;
-  font-weight: 600;
-  color: #b08d57;
+.invoice-logo {
+  display: block;
+  width: 148px;
+  height: auto;
+  margin-bottom: 6px;
 }
 .invoice-title {
   font-size: 18px;
