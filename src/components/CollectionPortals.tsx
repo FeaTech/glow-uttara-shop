@@ -14,8 +14,8 @@ export function CollectionPortals() {
   return (
     <section className="relative z-10 mx-auto -mb-px w-full max-w-5xl px-4 pt-4 sm:pt-5">
       <div className="rounded-2xl border border-border bg-card/95 p-3 shadow-luxe backdrop-blur sm:p-4">
-        <p className="px-2 pb-2 text-center text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground sm:hidden">
-          Shop by collection
+        <p className="px-2 pb-2 text-center text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          Tap to shop a collection
         </p>
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {COLLECTIONS.map((collection) => {
