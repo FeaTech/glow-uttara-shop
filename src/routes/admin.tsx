@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState, type ErrorComponentProps } from "@tanstack/react-router";
 import { Boxes, LayoutDashboard, Package, ShoppingCart, Ticket, Store, FolderTree, Star, Gift, Users, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,14 +12,15 @@ export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
-function AdminError({ error }: { error: Error }) {
+function AdminError({ error }: ErrorComponentProps) {
+  const message = error instanceof Error ? error.message : "";
   return (
     <div className="container-luxe flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
       <h1 className="font-serif text-2xl font-light">Couldn’t load the admin area</h1>
       <p className="max-w-md text-sm text-muted-foreground">
-        {error?.message === "Load failed" || error?.message?.includes("fetch")
+        {message === "Load failed" || message.includes("fetch")
           ? "The connection dropped while loading this page."
-          : error?.message || "Something went wrong."}
+          : message || "Something went wrong."}
       </p>
       <Button onClick={() => window.location.reload()}>Try again</Button>
     </div>

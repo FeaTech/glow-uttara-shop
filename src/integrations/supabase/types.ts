@@ -427,6 +427,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          billing_address: Json | null
           coupon_code: string | null
           created_at: string
           customer_email: string | null
@@ -455,6 +456,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          billing_address?: Json | null
           coupon_code?: string | null
           created_at?: string
           customer_email?: string | null
@@ -483,6 +485,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          billing_address?: Json | null
           coupon_code?: string | null
           created_at?: string
           customer_email?: string | null

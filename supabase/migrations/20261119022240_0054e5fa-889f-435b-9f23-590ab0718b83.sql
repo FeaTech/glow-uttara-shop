@@ -1,0 +1,1 @@
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS billing_address jsonb; UPDATE public.orders SET billing_address = shipping_address WHERE billing_address IS NULL;
